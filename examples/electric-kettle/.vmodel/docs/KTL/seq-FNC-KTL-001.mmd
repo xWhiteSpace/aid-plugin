@@ -1,0 +1,10 @@
+sequenceDiagram
+  actor User
+  participant CMP_KTL_003 as Controller
+  participant CMP_KTL_001 as Heating element
+  participant CMP_KTL_004 as Power base
+  User->>CMP_KTL_003: start_pressed, on_base
+  CMP_KTL_003->>CMP_KTL_001: INT-KTL-002 Heater drive
+  CMP_KTL_004->>CMP_KTL_003: INT-KTL-004 On-base and mains
+  Note over CMP_KTL_003: Start only if on_base and not locked and water_present
+  CMP_KTL_003-->>User: heater_on

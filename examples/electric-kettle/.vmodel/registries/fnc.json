@@ -1,0 +1,101 @@
+{
+  "FNC-KTL-001": {
+    "id": "FNC-KTL-001",
+    "kind": "FNC",
+    "project": "KTL",
+    "title": "Start boil",
+    "statement": "Start a boil cycle on user request.",
+    "version": 1,
+    "status": "published",
+    "created_at": "2026-10-16T00:00:00+09:00",
+    "updated_at": "2026-10-16T00:00:00+09:00",
+    "proposed_by": "functional-specs",
+    "inputs": [
+      "start_pressed",
+      "on_base"
+    ],
+    "outputs": [
+      "heater_on"
+    ],
+    "rule": "Start only if on_base and not locked and water_present"
+  },
+  "FNC-KTL-002": {
+    "id": "FNC-KTL-002",
+    "kind": "FNC",
+    "project": "KTL",
+    "title": "Detect boil and stop",
+    "statement": "Stop heating at boil temperature.",
+    "version": 1,
+    "status": "published",
+    "created_at": "2026-10-16T00:00:00+09:00",
+    "updated_at": "2026-10-16T00:00:00+09:00",
+    "proposed_by": "functional-specs",
+    "inputs": [
+      "water_temp_c"
+    ],
+    "outputs": [
+      "heater_off",
+      "done_beep"
+    ],
+    "rule": "When water_temp_c >= 100 turn heater off"
+  },
+  "FNC-KTL-003": {
+    "id": "FNC-KTL-003",
+    "kind": "FNC",
+    "project": "KTL",
+    "title": "Boil-dry cut-off",
+    "statement": "Cut heat when element overheats without water.",
+    "version": 1,
+    "status": "published",
+    "created_at": "2026-10-16T00:00:00+09:00",
+    "updated_at": "2026-10-16T00:00:00+09:00",
+    "proposed_by": "functional-specs",
+    "inputs": [
+      "element_temp_c"
+    ],
+    "outputs": [
+      "heater_off",
+      "fault_led"
+    ],
+    "rule": "When element_temp_c > 140 turn heater off and latch fault"
+  },
+  "FNC-KTL-004": {
+    "id": "FNC-KTL-004",
+    "kind": "FNC",
+    "project": "KTL",
+    "title": "Keep-warm regulate",
+    "statement": "Hold water near target after boil.",
+    "version": 1,
+    "status": "published",
+    "created_at": "2026-10-16T00:00:00+09:00",
+    "updated_at": "2026-10-16T00:00:00+09:00",
+    "proposed_by": "functional-specs",
+    "inputs": [
+      "water_temp_c",
+      "keep_warm_on"
+    ],
+    "outputs": [
+      "heater_pulse"
+    ],
+    "rule": "Pulse heater when water_temp_c < 75, stop at 85, end after 1800 s"
+  },
+  "FNC-KTL-005": {
+    "id": "FNC-KTL-005",
+    "kind": "FNC",
+    "project": "KTL",
+    "title": "Child lock toggle",
+    "statement": "Lock or unlock the start button.",
+    "version": 1,
+    "status": "published",
+    "created_at": "2026-10-16T00:00:00+09:00",
+    "updated_at": "2026-10-16T00:00:00+09:00",
+    "proposed_by": "functional-specs",
+    "inputs": [
+      "lock_hold_ms"
+    ],
+    "outputs": [
+      "locked"
+    ],
+    "rule": "Toggle locked when lock_hold_ms >= 3000"
+  }
+}

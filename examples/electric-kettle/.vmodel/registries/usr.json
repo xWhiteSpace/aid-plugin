@@ -1,0 +1,54 @@
+{
+  "USR-KTL-001": {
+    "id": "USR-KTL-001",
+    "kind": "USR",
+    "project": "KTL",
+    "title": "Boil water quickly",
+    "statement": "As a kettle user I want to boil water at the press of a button so I can make tea fast.",
+    "version": 1,
+    "status": "published",
+    "created_at": "2026-10-16T00:00:00+09:00",
+    "updated_at": "2026-10-16T00:00:00+09:00",
+    "proposed_by": "req-guardian",
+    "who": "Kettle user",
+    "why": "Hot water on demand",
+    "constraints": [
+      "1.7 L max"
+    ],
+    "source": "example intake"
+  },
+  "USR-KTL-002": {
+    "id": "USR-KTL-002",
+    "kind": "USR",
+    "project": "KTL",
+    "title": "Safe unattended use",
+    "statement": "As a parent I want the kettle to protect itself and my children so it is safe to leave.",
+    "version": 1,
+    "status": "published",
+    "created_at": "2026-10-16T00:00:00+09:00",
+    "updated_at": "2026-10-16T00:00:00+09:00",
+    "proposed_by": "req-guardian",
+    "who": "Parent",
+    "why": "Safety",
+    "constraints": [],
+    "source": "example intake"
+  },
+  "USR-KTL-003": {
+    "id": "USR-KTL-003",
+    "kind": "USR",
+    "project": "KTL",
+    "title": "Keep water warm",
+    "statement": "As a tea drinker I want water kept warm after boiling so I can refill my cup later.",
+    "version": 1,
+    "status": "published",
+    "created_at": "2026-10-16T00:00:00+09:00",
+    "updated_at": "2026-10-16T00:00:00+09:00",
+    "proposed_by": "req-guardian",
+    "who": "Tea drinker",
+    "why": "Convenience",
+    "constraints": [
+      "max 30 min"
+    ],
+    "source": "example intake"
+  }
+}

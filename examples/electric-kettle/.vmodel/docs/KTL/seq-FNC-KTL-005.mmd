@@ -1,0 +1,8 @@
+sequenceDiagram
+  actor User
+  participant CMP_KTL_005 as User panel
+  participant CMP_KTL_003 as Controller
+  User->>CMP_KTL_005: lock_hold_ms
+  CMP_KTL_005->>CMP_KTL_003: INT-KTL-003 Panel commands
+  Note over CMP_KTL_005: Toggle locked when lock_hold_ms >= 3000
+  CMP_KTL_005-->>User: locked

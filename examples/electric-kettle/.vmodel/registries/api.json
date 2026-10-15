@@ -1,0 +1,50 @@
+{
+  "API-KTL-001": {
+    "id": "API-KTL-001",
+    "kind": "API",
+    "project": "KTL",
+    "title": "Panel command channel",
+    "statement": "Messages from user panel to controller.",
+    "version": 1,
+    "status": "published",
+    "created_at": "2026-10-16T00:00:00+09:00",
+    "updated_at": "2026-10-16T00:00:00+09:00",
+    "proposed_by": "functional-specs",
+    "channel": "panel->controller",
+    "contract_version": "1.0",
+    "request": {
+      "body": {
+        "command": {
+          "type": "string",
+          "description": "start | keep_warm_on | keep_warm_off | lock_toggle"
+        },
+        "lock_hold_ms": {
+          "type": "integer",
+          "description": "How long lock button held"
+        }
+      }
+    },
+    "response": {
+      "success": {
+        "body": {
+          "state": {
+            "type": "string",
+            "description": "idle | heating | keep_warm | fault"
+          },
+          "locked": {
+            "type": "boolean",
+            "description": "Child lock state"
+          }
+        }
+      }
+    },
+    "errors": [
+      {
+        "code": "LOCKED"
+      },
+      {
+        "code": "OFF_BASE"
+      }
+    ]
+  }
+}

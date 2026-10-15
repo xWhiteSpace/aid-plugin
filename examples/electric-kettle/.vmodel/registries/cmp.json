@@ -1,0 +1,77 @@
+{
+  "CMP-KTL-001": {
+    "id": "CMP-KTL-001",
+    "kind": "CMP",
+    "project": "KTL",
+    "title": "Heating element",
+    "statement": "Converts power to heat",
+    "version": 1,
+    "status": "published",
+    "created_at": "2026-10-16T00:00:00+09:00",
+    "updated_at": "2026-10-16T00:00:00+09:00",
+    "proposed_by": "system-designer",
+    "responsibilities": [
+      "Converts power to heat"
+    ]
+  },
+  "CMP-KTL-002": {
+    "id": "CMP-KTL-002",
+    "kind": "CMP",
+    "project": "KTL",
+    "title": "Temperature sensor",
+    "statement": "Reports water and element temperature",
+    "version": 1,
+    "status": "published",
+    "created_at": "2026-10-16T00:00:00+09:00",
+    "updated_at": "2026-10-16T00:00:00+09:00",
+    "proposed_by": "system-designer",
+    "responsibilities": [
+      "Reports water and element temperature"
+    ]
+  },
+  "CMP-KTL-003": {
+    "id": "CMP-KTL-003",
+    "kind": "CMP",
+    "project": "KTL",
+    "title": "Controller",
+    "statement": "Decides heater state",
+    "version": 1,
+    "status": "published",
+    "created_at": "2026-10-16T00:00:00+09:00",
+    "updated_at": "2026-10-16T00:00:00+09:00",
+    "proposed_by": "system-designer",
+    "responsibilities": [
+      "Decides heater state"
+    ]
+  },
+  "CMP-KTL-004": {
+    "id": "CMP-KTL-004",
+    "kind": "CMP",
+    "project": "KTL",
+    "title": "Power base",
+    "statement": "Supplies mains and detects kettle on base",
+    "version": 1,
+    "status": "published",
+    "created_at": "2026-10-16T00:00:00+09:00",
+    "updated_at": "2026-10-16T00:00:00+09:00",
+    "proposed_by": "system-designer",
+    "responsibilities": [
+      "Supplies mains and detects kettle on base"
+    ]
+  },
+  "CMP-KTL-005": {
+    "id": "CMP-KTL-005",
+    "kind": "CMP",
+    "project": "KTL",
+    "title": "User panel",
+    "statement": "Buttons, LEDs, lock",
+    "version": 1,
+    "status": "published",
+    "created_at": "2026-10-16T00:00:00+09:00",
+    "updated_at": "2026-10-16T00:00:00+09:00",
+    "proposed_by": "system-designer",
+    "responsibilities": [
+      "Buttons, LEDs, lock"
+    ]
+  }
+}

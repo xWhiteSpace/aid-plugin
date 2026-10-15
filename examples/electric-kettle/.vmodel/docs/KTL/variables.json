@@ -1,0 +1,34 @@
+[
+  {
+    "id": "API-KTL-001#request.body.command",
+    "name": "body.command",
+    "type": "string",
+    "definition": "start | keep_warm_on | keep_warm_off | lock_toggle",
+    "parent_interface": "API-KTL-001",
+    "traced_requirement": "REQ-KTL-001,REQ-KTL-005"
+  },
+  {
+    "id": "API-KTL-001#request.body.lock_hold_ms",
+    "name": "body.lock_hold_ms",
+    "type": "integer",
+    "definition": "How long lock button held",
+    "parent_interface": "API-KTL-001",
+    "traced_requirement": "REQ-KTL-001,REQ-KTL-005"
+  },
+  {
+    "id": "API-KTL-001#response.state",
+    "name": "response.state",
+    "type": "string",
+    "definition": "idle | heating | keep_warm | fault",
+    "parent_interface": "API-KTL-001",
+    "traced_requirement": "REQ-KTL-001,REQ-KTL-005"
+  },
+  {
+    "id": "API-KTL-001#response.locked",
+    "name": "response.locked",
+    "type": "boolean",
+    "definition": "Child lock state",
+    "parent_interface": "API-KTL-001",
+    "traced_requirement": "REQ-KTL-001,REQ-KTL-005"
+  }
+]

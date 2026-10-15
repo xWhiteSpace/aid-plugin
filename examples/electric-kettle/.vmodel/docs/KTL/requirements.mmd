@@ -1,0 +1,14 @@
+flowchart TB
+  USR_KTL_001(["«stakeholder need» USR-KTL-001<br/>Boil water quickly"])
+  USR_KTL_002(["«stakeholder need» USR-KTL-002<br/>Safe unattended use"])
+  USR_KTL_003(["«stakeholder need» USR-KTL-003<br/>Keep water warm"])
+  REQ_KTL_001["«requirement» REQ-KTL-001<br/>Boil water"]
+  REQ_KTL_002["«requirement» REQ-KTL-002<br/>Auto shut-off at boil"]
+  REQ_KTL_003["«requirement» REQ-KTL-003<br/>Boil-dry protection"]
+  REQ_KTL_004["«requirement» REQ-KTL-004<br/>Keep-warm"]
+  REQ_KTL_005["«requirement» REQ-KTL-005<br/>Child lock"]
+  REQ_KTL_001 -->|«deriveReqt»| USR_KTL_001
+  REQ_KTL_002 -->|«deriveReqt»| USR_KTL_002
+  REQ_KTL_003 -->|«deriveReqt»| USR_KTL_002
+  REQ_KTL_004 -->|«deriveReqt»| USR_KTL_003
+  REQ_KTL_005 -->|«deriveReqt»| USR_KTL_002

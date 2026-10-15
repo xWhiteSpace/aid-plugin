@@ -1,0 +1,187 @@
+<!doctype html><html><head><meta charset="utf-8"><title>V-model docs</title><style>
+body{font-family:system-ui,sans-serif;margin:24px;color:#223}table{border-collapse:collapse;margin:8px 0}
+td,th{border:1px solid #ccd;padding:4px 8px;font-size:13px;vertical-align:top}.gap{background:#fdd;font-weight:bold}
+pre{background:#f6f8fa;padding:8px;overflow:auto;font-size:12px}.s{font-size:11px;fill:#556;color:#556}
+svg.v{max-width:760px;font-size:13px}.pane{display:none}button{margin-right:6px;padding:4px 12px}
+</style></head><body><h1>V-model documentation</h1>
+<p>Graph version 1 · source n/a · <b>Plan lineage, not proof. Tests are not run unless evidence (EVD) says otherwise.</b></p>
+<div><button onclick="show('KTL')">KTL</button></div><h2>Lint</h2><p>Lint: no flags.</p><section id="p-KTL" class="pane">
+<h2>KTL</h2>
+<svg viewBox="0 0 760 360" class="v" xmlns="http://www.w3.org/2000/svg"><polyline points="40,30 380,330 720,30" fill="none" stroke="#9ab" stroke-width="3"/><g><rect x="0" y="40" width="170" height="40" rx="6" fill="#e8f0fe" stroke="#4a6"/><text x="10" y="57">Requirements</text><text x="10" y="73" class="s">USR/REQ: 8</text></g><g><rect x="75" y="110" width="170" height="40" rx="6" fill="#e8f0fe" stroke="#4a6"/><text x="85" y="127">Functional</text><text x="85" y="143" class="s">FNC/API: 6</text></g><g><rect x="150" y="180" width="170" height="40" rx="6" fill="#e8f0fe" stroke="#4a6"/><text x="160" y="197">System</text><text x="160" y="213" class="s">CMP/INT: 10</text></g><g><rect x="225" y="250" width="170" height="40" rx="6" fill="#e8f0fe" stroke="#4a6"/><text x="235" y="267">Unit</text><text x="235" y="283" class="s">UNT: 5</text></g><g><rect x="580" y="40" width="170" height="40" rx="6" fill="#fef3e8" stroke="#c84"/><text x="590" y="57">Acceptance test</text><text x="590" y="73" class="s">TST: 5 (not run 5)</text></g><g><rect x="505" y="110" width="170" height="40" rx="6" fill="#fef3e8" stroke="#c84"/><text x="515" y="127">System test</text><text x="515" y="143" class="s">TST: 1 (not run 1)</text></g><g><rect x="430" y="180" width="170" height="40" rx="6" fill="#fef3e8" stroke="#c84"/><text x="440" y="197">Integration test</text><text x="440" y="213" class="s">TST: 1 (not run 1)</text></g><g><rect x="355" y="250" width="170" height="40" rx="6" fill="#fef3e8" stroke="#c84"/><text x="365" y="267">Unit test</text><text x="365" y="283" class="s">TST: 5 (not run 5)</text></g><text x="345" y="352">Coding</text></svg>
+<h3>Trace matrix (REQ → FNC → CMP → UNT → TST)</h3><table><tr><th>REQ</th><th>FNC</th><th>CMP</th><th>UNT</th><th>TST</th></tr>
+<tr><td class="">REQ-KTL-001</td><td class="">FNC-KTL-001</td><td class="">CMP-KTL-003</td><td class="">UNT-KTL-001</td><td class="">TST-KTL-001 (not_run), TST-KTL-006 (not_run), TST-KTL-012 (not_run)</td></tr>
+<tr><td class="">REQ-KTL-002</td><td class="">FNC-KTL-002</td><td class="">CMP-KTL-003</td><td class="">UNT-KTL-002</td><td class="">TST-KTL-002 (not_run), TST-KTL-008 (not_run)</td></tr>
+<tr><td class="">REQ-KTL-003</td><td class="">FNC-KTL-003</td><td class="">CMP-KTL-003</td><td class="">UNT-KTL-003</td><td class="">TST-KTL-003 (not_run), TST-KTL-009 (not_run)</td></tr>
+<tr><td class="">REQ-KTL-004</td><td class="">FNC-KTL-004</td><td class="">CMP-KTL-003</td><td class="">UNT-KTL-004</td><td class="">TST-KTL-004 (not_run), TST-KTL-010 (not_run)</td></tr>
+<tr><td class="">REQ-KTL-005</td><td class="">FNC-KTL-005</td><td class="">CMP-KTL-005</td><td class="">UNT-KTL-005</td><td class="">TST-KTL-005 (not_run), TST-KTL-011 (not_run)</td></tr>
+</table>
+<h3>Requirements diagram</h3><pre class="mermaid">flowchart TB
+  USR_KTL_001([&quot;«stakeholder need» USR-KTL-001&lt;br/&gt;Boil water quickly&quot;])
+  USR_KTL_002([&quot;«stakeholder need» USR-KTL-002&lt;br/&gt;Safe unattended use&quot;])
+  USR_KTL_003([&quot;«stakeholder need» USR-KTL-003&lt;br/&gt;Keep water warm&quot;])
+  REQ_KTL_001[&quot;«requirement» REQ-KTL-001&lt;br/&gt;Boil water&quot;]
+  REQ_KTL_002[&quot;«requirement» REQ-KTL-002&lt;br/&gt;Auto shut-off at boil&quot;]
+  REQ_KTL_003[&quot;«requirement» REQ-KTL-003&lt;br/&gt;Boil-dry protection&quot;]
+  REQ_KTL_004[&quot;«requirement» REQ-KTL-004&lt;br/&gt;Keep-warm&quot;]
+  REQ_KTL_005[&quot;«requirement» REQ-KTL-005&lt;br/&gt;Child lock&quot;]
+  REQ_KTL_001 --&gt;|«deriveReqt»| USR_KTL_001
+  REQ_KTL_002 --&gt;|«deriveReqt»| USR_KTL_002
+  REQ_KTL_003 --&gt;|«deriveReqt»| USR_KTL_002
+  REQ_KTL_004 --&gt;|«deriveReqt»| USR_KTL_003
+  REQ_KTL_005 --&gt;|«deriveReqt»| USR_KTL_002
+</pre><p class="s"><a href="KTL/requirements.mmd">requirements.mmd</a></p>
+<h3>Block definition diagram</h3><pre class="mermaid">classDiagram
+  class CMP_KTL_001[&quot;Heating element&quot;] {
+    &lt;&lt;block&gt;&gt;
+  }
+  class CMP_KTL_002[&quot;Temperature sensor&quot;] {
+    &lt;&lt;block&gt;&gt;
+  }
+  class CMP_KTL_003[&quot;Controller&quot;] {
+    &lt;&lt;block&gt;&gt;
+    +FNC_KTL_001()
+    +FNC_KTL_002()
+    +FNC_KTL_003()
+    +FNC_KTL_004()
+    -part UNT_KTL_001
+    -part UNT_KTL_002
+    -part UNT_KTL_003
+    -part UNT_KTL_004
+  }
+  class CMP_KTL_004[&quot;Power base&quot;] {
+    &lt;&lt;block&gt;&gt;
+  }
+  class CMP_KTL_005[&quot;User panel&quot;] {
+    &lt;&lt;block&gt;&gt;
+    +FNC_KTL_005()
+    -part UNT_KTL_005
+  }
+  CMP_KTL_002 --&gt; CMP_KTL_003 : INT-KTL-001
+  CMP_KTL_003 --&gt; CMP_KTL_001 : INT-KTL-002
+  CMP_KTL_005 --&gt; CMP_KTL_003 : INT-KTL-003
+  CMP_KTL_004 --&gt; CMP_KTL_003 : INT-KTL-004
+  CMP_KTL_002 --&gt; CMP_KTL_003 : INT-KTL-005
+</pre><p class="s"><a href="KTL/bdd.mmd">bdd.mmd</a></p>
+<h3>Internal block diagram</h3><pre class="mermaid">flowchart LR
+  subgraph CMP_KTL_001[&quot;«part» Heating element&quot;]
+    CMP_KTL_001_INT_KTL_002_in((in))
+  end
+  subgraph CMP_KTL_002[&quot;«part» Temperature sensor&quot;]
+    CMP_KTL_002_INT_KTL_001_out((out))
+    CMP_KTL_002_INT_KTL_005_out((out))
+  end
+  subgraph CMP_KTL_003[&quot;«part» Controller&quot;]
+    CMP_KTL_003_INT_KTL_001_in((in))
+    CMP_KTL_003_INT_KTL_002_out((out))
+    CMP_KTL_003_INT_KTL_003_in((in))
+    CMP_KTL_003_INT_KTL_004_in((in))
+    CMP_KTL_003_INT_KTL_005_in((in))
+  end
+  subgraph CMP_KTL_004[&quot;«part» Power base&quot;]
+    CMP_KTL_004_INT_KTL_004_out((out))
+  end
+  subgraph CMP_KTL_005[&quot;«part» User panel&quot;]
+    CMP_KTL_005_INT_KTL_003_out((out))
+  end
+  CMP_KTL_002_INT_KTL_001_out --&gt;|&quot;INT-KTL-001: Temperature readings&quot;| CMP_KTL_003_INT_KTL_001_in
+  CMP_KTL_003_INT_KTL_002_out --&gt;|&quot;INT-KTL-002: Heater drive&quot;| CMP_KTL_001_INT_KTL_002_in
+  CMP_KTL_005_INT_KTL_003_out --&gt;|&quot;INT-KTL-003: Panel commands&quot;| CMP_KTL_003_INT_KTL_003_in
+  CMP_KTL_004_INT_KTL_004_out --&gt;|&quot;INT-KTL-004: On-base and mains&quot;| CMP_KTL_003_INT_KTL_004_in
+  CMP_KTL_002_INT_KTL_005_out --&gt;|&quot;INT-KTL-005: Element temperature&quot;| CMP_KTL_003_INT_KTL_005_in
+</pre><p class="s"><a href="KTL/ibd.mmd">ibd.mmd</a></p>
+<h3>Sequence: FNC-KTL-001 Start boil</h3><pre class="mermaid">sequenceDiagram
+  actor User
+  participant CMP_KTL_003 as Controller
+  participant CMP_KTL_001 as Heating element
+  participant CMP_KTL_004 as Power base
+  User-&gt;&gt;CMP_KTL_003: start_pressed, on_base
+  CMP_KTL_003-&gt;&gt;CMP_KTL_001: INT-KTL-002 Heater drive
+  CMP_KTL_004-&gt;&gt;CMP_KTL_003: INT-KTL-004 On-base and mains
+  Note over CMP_KTL_003: Start only if on_base and not locked and water_present
+  CMP_KTL_003--&gt;&gt;User: heater_on
+</pre><p class="s"><a href="KTL/seq-FNC-KTL-001.mmd">seq-FNC-KTL-001.mmd</a></p>
+<h3>Sequence: FNC-KTL-002 Detect boil and stop</h3><pre class="mermaid">sequenceDiagram
+  actor User
+  participant CMP_KTL_003 as Controller
+  participant CMP_KTL_002 as Temperature sensor
+  User-&gt;&gt;CMP_KTL_003: water_temp_c
+  CMP_KTL_002-&gt;&gt;CMP_KTL_003: INT-KTL-001 Temperature readings
+  Note over CMP_KTL_003: When water_temp_c &gt;= 100 turn heater off
+  CMP_KTL_003--&gt;&gt;User: heater_off, done_beep
+</pre><p class="s"><a href="KTL/seq-FNC-KTL-002.mmd">seq-FNC-KTL-002.mmd</a></p>
+<h3>Sequence: FNC-KTL-003 Boil-dry cut-off</h3><pre class="mermaid">sequenceDiagram
+  actor User
+  participant CMP_KTL_003 as Controller
+  participant CMP_KTL_002 as Temperature sensor
+  User-&gt;&gt;CMP_KTL_003: element_temp_c
+  CMP_KTL_002-&gt;&gt;CMP_KTL_003: INT-KTL-005 Element temperature
+  Note over CMP_KTL_003: When element_temp_c &gt; 140 turn heater off and latch fault
+  CMP_KTL_003--&gt;&gt;User: heater_off, fault_led
+</pre><p class="s"><a href="KTL/seq-FNC-KTL-003.mmd">seq-FNC-KTL-003.mmd</a></p>
+<h3>Sequence: FNC-KTL-004 Keep-warm regulate</h3><pre class="mermaid">sequenceDiagram
+  actor User
+  participant CMP_KTL_003 as Controller
+  User-&gt;&gt;CMP_KTL_003: water_temp_c, keep_warm_on
+  Note over CMP_KTL_003: Pulse heater when water_temp_c &lt; 75, stop at 85, end after 1800 s
+  CMP_KTL_003--&gt;&gt;User: heater_pulse
+</pre><p class="s"><a href="KTL/seq-FNC-KTL-004.mmd">seq-FNC-KTL-004.mmd</a></p>
+<h3>Sequence: FNC-KTL-005 Child lock toggle</h3><pre class="mermaid">sequenceDiagram
+  actor User
+  participant CMP_KTL_005 as User panel
+  participant CMP_KTL_003 as Controller
+  User-&gt;&gt;CMP_KTL_005: lock_hold_ms
+  CMP_KTL_005-&gt;&gt;CMP_KTL_003: INT-KTL-003 Panel commands
+  Note over CMP_KTL_005: Toggle locked when lock_hold_ms &gt;= 3000
+  CMP_KTL_005--&gt;&gt;User: locked
+</pre><p class="s"><a href="KTL/seq-FNC-KTL-005.mmd">seq-FNC-KTL-005.mmd</a></p>
+<h3>Nodes</h3><table><tr><th>ID</th><th>Title</th><th>Status</th><th>Statement</th></tr>
+<tr><td id='API-KTL-001'>API-KTL-001</td><td>Panel command channel</td><td>published</td><td>Messages from user panel to controller.</td></tr>
+<tr><td id='CMP-KTL-001'>CMP-KTL-001</td><td>Heating element</td><td>published</td><td>Converts power to heat</td></tr>
+<tr><td id='CMP-KTL-002'>CMP-KTL-002</td><td>Temperature sensor</td><td>published</td><td>Reports water and element temperature</td></tr>
+<tr><td id='CMP-KTL-003'>CMP-KTL-003</td><td>Controller</td><td>published</td><td>Decides heater state</td></tr>
+<tr><td id='CMP-KTL-004'>CMP-KTL-004</td><td>Power base</td><td>published</td><td>Supplies mains and detects kettle on base</td></tr>
+<tr><td id='CMP-KTL-005'>CMP-KTL-005</td><td>User panel</td><td>published</td><td>Buttons, LEDs, lock</td></tr>
+<tr><td id='FNC-KTL-001'>FNC-KTL-001</td><td>Start boil</td><td>published</td><td>Start a boil cycle on user request.</td></tr>
+<tr><td id='FNC-KTL-002'>FNC-KTL-002</td><td>Detect boil and stop</td><td>published</td><td>Stop heating at boil temperature.</td></tr>
+<tr><td id='FNC-KTL-003'>FNC-KTL-003</td><td>Boil-dry cut-off</td><td>published</td><td>Cut heat when element overheats without water.</td></tr>
+<tr><td id='FNC-KTL-004'>FNC-KTL-004</td><td>Keep-warm regulate</td><td>published</td><td>Hold water near target after boil.</td></tr>
+<tr><td id='FNC-KTL-005'>FNC-KTL-005</td><td>Child lock toggle</td><td>published</td><td>Lock or unlock the start button.</td></tr>
+<tr><td id='INT-KTL-001'>INT-KTL-001</td><td>Temperature readings</td><td>published</td><td>Temperature readings: Temperature sensor sends to Controller</td></tr>
+<tr><td id='INT-KTL-002'>INT-KTL-002</td><td>Heater drive</td><td>published</td><td>Heater drive: Controller sends to Heating element</td></tr>
+<tr><td id='INT-KTL-003'>INT-KTL-003</td><td>Panel commands</td><td>published</td><td>Panel commands: User panel sends to Controller</td></tr>
+<tr><td id='INT-KTL-004'>INT-KTL-004</td><td>On-base and mains</td><td>published</td><td>On-base and mains: Power base sends to Controller</td></tr>
+<tr><td id='INT-KTL-005'>INT-KTL-005</td><td>Element temperature</td><td>published</td><td>Element temperature: Temperature sensor sends to Controller</td></tr>
+<tr><td id='REQ-KTL-001'>REQ-KTL-001</td><td>Boil water</td><td>published</td><td>Pressing Start heats water until it boils.</td></tr>
+<tr><td id='REQ-KTL-002'>REQ-KTL-002</td><td>Auto shut-off at boil</td><td>published</td><td>Heating stops automatically when water boils.</td></tr>
+<tr><td id='REQ-KTL-003'>REQ-KTL-003</td><td>Boil-dry protection</td><td>published</td><td>The kettle never heats with no water.</td></tr>
+<tr><td id='REQ-KTL-004'>REQ-KTL-004</td><td>Keep-warm</td><td>published</td><td>After boiling, water can be held warm.</td></tr>
+<tr><td id='REQ-KTL-005'>REQ-KTL-005</td><td>Child lock</td><td>published</td><td>A child lock prevents starting.</td></tr>
+<tr><td id='TST-KTL-001'>TST-KTL-001</td><td>Acceptance: Boil water</td><td>not_run</td><td>Acceptance: Boil water</td></tr>
+<tr><td id='TST-KTL-002'>TST-KTL-002</td><td>Acceptance: Auto shut-off at boil</td><td>not_run</td><td>Acceptance: Auto shut-off at boil</td></tr>
+<tr><td id='TST-KTL-003'>TST-KTL-003</td><td>Acceptance: Boil-dry protection</td><td>not_run</td><td>Acceptance: Boil-dry protection</td></tr>
+<tr><td id='TST-KTL-004'>TST-KTL-004</td><td>Acceptance: Keep-warm</td><td>not_run</td><td>Acceptance: Keep-warm</td></tr>
+<tr><td id='TST-KTL-005'>TST-KTL-005</td><td>Acceptance: Child lock</td><td>not_run</td><td>Acceptance: Child lock</td></tr>
+<tr><td id='TST-KTL-006'>TST-KTL-006</td><td>Start refused off base</td><td>not_run</td><td>Start refused off base</td></tr>
+<tr><td id='TST-KTL-007'>TST-KTL-007</td><td>Panel command round-trip</td><td>not_run</td><td>Panel command round-trip</td></tr>
+<tr><td id='TST-KTL-008'>TST-KTL-008</td><td>boil_detector boundary</td><td>not_run</td><td>boil_detector boundary</td></tr>
+<tr><td id='TST-KTL-009'>TST-KTL-009</td><td>dry_guard boundary</td><td>not_run</td><td>dry_guard boundary</td></tr>
+<tr><td id='TST-KTL-010'>TST-KTL-010</td><td>keep_warm_loop band and timeout</td><td>not_run</td><td>keep_warm_loop band and timeout</td></tr>
+<tr><td id='TST-KTL-011'>TST-KTL-011</td><td>lock_button hold</td><td>not_run</td><td>lock_button hold</td></tr>
+<tr><td id='TST-KTL-012'>TST-KTL-012</td><td>start_guard truth table</td><td>not_run</td><td>start_guard truth table</td></tr>
+<tr><td id='UNT-KTL-001'>UNT-KTL-001</td><td>start_guard</td><td>published</td><td>heater_on = start_pressed and on_base and not locked and water_present</td></tr>
+<tr><td id='UNT-KTL-002'>UNT-KTL-002</td><td>boil_detector</td><td>published</td><td>water_temp_c &gt;= 100 -&gt; heater_off, state = idle</td></tr>
+<tr><td id='UNT-KTL-003'>UNT-KTL-003</td><td>dry_guard</td><td>published</td><td>element_temp_c &gt; 140 -&gt; heater_off, fault = true (latched until off base)</td></tr>
+<tr><td id='UNT-KTL-004'>UNT-KTL-004</td><td>keep_warm_loop</td><td>published</td><td>water_temp_c &lt; 75 -&gt; pulse on; water_temp_c &gt;= 85 -&gt; pulse off; elapsed_s &gt;= 1800 -&gt; keep_warm_on = false</td></tr>
+<tr><td id='UNT-KTL-005'>UNT-KTL-005</td><td>lock_button</td><td>published</td><td>lock_hold_ms &gt;= 3000 -&gt; locked = not locked</td></tr>
+<tr><td id='USR-KTL-001'>USR-KTL-001</td><td>Boil water quickly</td><td>published</td><td>As a kettle user I want to boil water at the press of a button so I can make tea fast.</td></tr>
+<tr><td id='USR-KTL-002'>USR-KTL-002</td><td>Safe unattended use</td><td>published</td><td>As a parent I want the kettle to protect itself and my children so it is safe to leave.</td></tr>
+<tr><td id='USR-KTL-003'>USR-KTL-003</td><td>Keep water warm</td><td>published</td><td>As a tea drinker I want water kept warm after boiling so I can refill my cup later.</td></tr>
+</table>
+<h3>Variables (4)</h3><table><tr><th>id</th><th>type</th><th>definition</th><th>REQ</th></tr>
+<tr><td>API-KTL-001#request.body.command</td><td>string</td><td>start | keep_warm_on | keep_warm_off | lock_toggle</td><td>REQ-KTL-001,REQ-KTL-005</td></tr>
+<tr><td>API-KTL-001#request.body.lock_hold_ms</td><td>integer</td><td>How long lock button held</td><td>REQ-KTL-001,REQ-KTL-005</td></tr>
+<tr><td>API-KTL-001#response.state</td><td>string</td><td>idle | heating | keep_warm | fault</td><td>REQ-KTL-001,REQ-KTL-005</td></tr>
+<tr><td>API-KTL-001#response.locked</td><td>boolean</td><td>Child lock state</td><td>REQ-KTL-001,REQ-KTL-005</td></tr>
+</table></section>
+<script>function show(p){document.querySelectorAll('.pane').forEach(e=>e.style.display='none');document.getElementById('p-'+p).style.display='block'}show("KTL")</script>
+<p class="s">Diagrams show Mermaid source (offline). Drop mermaid.min.js next to this file to render them, or paste a .mmd file into any Mermaid viewer.</p></body></html>

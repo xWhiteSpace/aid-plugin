@@ -1,0 +1,6 @@
+sequenceDiagram
+  actor User
+  participant CMP_KTL_003 as Controller
+  User->>CMP_KTL_003: water_temp_c, keep_warm_on
+  Note over CMP_KTL_003: Pulse heater when water_temp_c < 75, stop at 85, end after 1800 s
+  CMP_KTL_003-->>User: heater_pulse

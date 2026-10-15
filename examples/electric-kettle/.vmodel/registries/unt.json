@@ -1,0 +1,150 @@
+{
+  "UNT-KTL-001": {
+    "id": "UNT-KTL-001",
+    "kind": "UNT",
+    "project": "KTL",
+    "title": "start_guard",
+    "statement": "heater_on = start_pressed and on_base and not locked and water_present",
+    "version": 1,
+    "status": "published",
+    "created_at": "2026-10-16T00:00:00+09:00",
+    "updated_at": "2026-10-16T00:00:00+09:00",
+    "proposed_by": "unit-designer",
+    "fields": [
+      {
+        "name": "start_pressed",
+        "type": "boolean"
+      },
+      {
+        "name": "on_base",
+        "type": "boolean"
+      },
+      {
+        "name": "locked",
+        "type": "boolean"
+      },
+      {
+        "name": "water_present",
+        "type": "boolean"
+      },
+      {
+        "name": "command",
+        "type": "string"
+      }
+    ],
+    "rules": [
+      "heater_on = start_pressed and on_base and not locked and water_present"
+    ],
+    "source_files": []
+  },
+  "UNT-KTL-002": {
+    "id": "UNT-KTL-002",
+    "kind": "UNT",
+    "project": "KTL",
+    "title": "boil_detector",
+    "statement": "water_temp_c >= 100 -> heater_off, state = idle",
+    "version": 1,
+    "status": "published",
+    "created_at": "2026-10-16T00:00:00+09:00",
+    "updated_at": "2026-10-16T00:00:00+09:00",
+    "proposed_by": "unit-designer",
+    "fields": [
+      {
+        "name": "water_temp_c",
+        "type": "number"
+      },
+      {
+        "name": "state",
+        "type": "string"
+      }
+    ],
+    "rules": [
+      "water_temp_c >= 100 -> heater_off, state = idle"
+    ],
+    "source_files": []
+  },
+  "UNT-KTL-003": {
+    "id": "UNT-KTL-003",
+    "kind": "UNT",
+    "project": "KTL",
+    "title": "dry_guard",
+    "statement": "element_temp_c > 140 -> heater_off, fault = true (latched until off base)",
+    "version": 1,
+    "status": "published",
+    "created_at": "2026-10-16T00:00:00+09:00",
+    "updated_at": "2026-10-16T00:00:00+09:00",
+    "proposed_by": "unit-designer",
+    "fields": [
+      {
+        "name": "element_temp_c",
+        "type": "number"
+      },
+      {
+        "name": "fault",
+        "type": "boolean"
+      }
+    ],
+    "rules": [
+      "element_temp_c > 140 -> heater_off, fault = true (latched until off base)"
+    ],
+    "source_files": []
+  },
+  "UNT-KTL-004": {
+    "id": "UNT-KTL-004",
+    "kind": "UNT",
+    "project": "KTL",
+    "title": "keep_warm_loop",
+    "statement": "water_temp_c < 75 -> pulse on; water_temp_c >= 85 -> pulse off; elapsed_s >= 1800 -> keep_warm_on = false",
+    "version": 1,
+    "status": "published",
+    "created_at": "2026-10-16T00:00:00+09:00",
+    "updated_at": "2026-10-16T00:00:00+09:00",
+    "proposed_by": "unit-designer",
+    "fields": [
+      {
+        "name": "water_temp_c",
+        "type": "number"
+      },
+      {
+        "name": "keep_warm_on",
+        "type": "boolean"
+      },
+      {
+        "name": "elapsed_s",
+        "type": "number"
+      }
+    ],
+    "rules": [
+      "water_temp_c < 75 -> pulse on",
+      "water_temp_c >= 85 -> pulse off",
+      "elapsed_s >= 1800 -> keep_warm_on = false"
+    ],
+    "source_files": []
+  },
+  "UNT-KTL-005": {
+    "id": "UNT-KTL-005",
+    "kind": "UNT",
+    "project": "KTL",
+    "title": "lock_button",
+    "statement": "lock_hold_ms >= 3000 -> locked = not locked",
+    "version": 1,
+    "status": "published",
+    "created_at": "2026-10-16T00:00:00+09:00",
+    "updated_at": "2026-10-16T00:00:00+09:00",
+    "proposed_by": "unit-designer",
+    "fields": [
+      {
+        "name": "lock_hold_ms",
+        "type": "integer"
+      },
+      {
+        "name": "locked",
+        "type": "boolean"
+      }
+    ],
+    "rules": [
+      "lock_hold_ms >= 3000 -> locked = not locked"
+    ],
+    "source_files": []
+  }
+}

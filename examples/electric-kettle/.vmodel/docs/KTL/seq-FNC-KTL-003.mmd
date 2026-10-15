@@ -1,0 +1,8 @@
+sequenceDiagram
+  actor User
+  participant CMP_KTL_003 as Controller
+  participant CMP_KTL_002 as Temperature sensor
+  User->>CMP_KTL_003: element_temp_c
+  CMP_KTL_002->>CMP_KTL_003: INT-KTL-005 Element temperature
+  Note over CMP_KTL_003: When element_temp_c > 140 turn heater off and latch fault
+  CMP_KTL_003-->>User: heater_off, fault_led

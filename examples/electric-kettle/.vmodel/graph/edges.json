@@ -1,0 +1,257 @@
+[
+  {
+    "from": "REQ-KTL-001",
+    "to": "USR-KTL-001",
+    "type": "derives"
+  },
+  {
+    "from": "REQ-KTL-002",
+    "to": "USR-KTL-002",
+    "type": "derives"
+  },
+  {
+    "from": "REQ-KTL-003",
+    "to": "USR-KTL-002",
+    "type": "derives"
+  },
+  {
+    "from": "REQ-KTL-004",
+    "to": "USR-KTL-003",
+    "type": "derives"
+  },
+  {
+    "from": "REQ-KTL-005",
+    "to": "USR-KTL-002",
+    "type": "derives"
+  },
+  {
+    "from": "FNC-KTL-001",
+    "to": "REQ-KTL-001",
+    "type": "implements"
+  },
+  {
+    "from": "FNC-KTL-001",
+    "to": "CMP-KTL-003",
+    "type": "allocated_to"
+  },
+  {
+    "from": "FNC-KTL-002",
+    "to": "REQ-KTL-002",
+    "type": "implements"
+  },
+  {
+    "from": "FNC-KTL-002",
+    "to": "CMP-KTL-003",
+    "type": "allocated_to"
+  },
+  {
+    "from": "FNC-KTL-003",
+    "to": "REQ-KTL-003",
+    "type": "implements"
+  },
+  {
+    "from": "FNC-KTL-003",
+    "to": "CMP-KTL-003",
+    "type": "allocated_to"
+  },
+  {
+    "from": "FNC-KTL-004",
+    "to": "REQ-KTL-004",
+    "type": "implements"
+  },
+  {
+    "from": "FNC-KTL-004",
+    "to": "CMP-KTL-003",
+    "type": "allocated_to"
+  },
+  {
+    "from": "FNC-KTL-005",
+    "to": "REQ-KTL-005",
+    "type": "implements"
+  },
+  {
+    "from": "FNC-KTL-005",
+    "to": "CMP-KTL-005",
+    "type": "allocated_to"
+  },
+  {
+    "from": "API-KTL-001",
+    "to": "FNC-KTL-001",
+    "type": "depends_on"
+  },
+  {
+    "from": "API-KTL-001",
+    "to": "FNC-KTL-005",
+    "type": "depends_on"
+  },
+  {
+    "from": "API-KTL-001",
+    "to": "REQ-KTL-001",
+    "type": "implements"
+  },
+  {
+    "from": "API-KTL-001",
+    "to": "REQ-KTL-005",
+    "type": "implements"
+  },
+  {
+    "from": "INT-KTL-001",
+    "to": "CMP-KTL-002",
+    "type": "integrates_with"
+  },
+  {
+    "from": "INT-KTL-001",
+    "to": "CMP-KTL-003",
+    "type": "integrates_with"
+  },
+  {
+    "from": "INT-KTL-002",
+    "to": "CMP-KTL-003",
+    "type": "integrates_with"
+  },
+  {
+    "from": "INT-KTL-002",
+    "to": "CMP-KTL-001",
+    "type": "integrates_with"
+  },
+  {
+    "from": "INT-KTL-003",
+    "to": "CMP-KTL-005",
+    "type": "integrates_with"
+  },
+  {
+    "from": "INT-KTL-003",
+    "to": "CMP-KTL-003",
+    "type": "integrates_with"
+  },
+  {
+    "from": "INT-KTL-004",
+    "to": "CMP-KTL-004",
+    "type": "integrates_with"
+  },
+  {
+    "from": "INT-KTL-004",
+    "to": "CMP-KTL-003",
+    "type": "integrates_with"
+  },
+  {
+    "from": "INT-KTL-005",
+    "to": "CMP-KTL-002",
+    "type": "integrates_with"
+  },
+  {
+    "from": "INT-KTL-005",
+    "to": "CMP-KTL-003",
+    "type": "integrates_with"
+  },
+  {
+    "from": "UNT-KTL-001",
+    "to": "FNC-KTL-001",
+    "type": "refines"
+  },
+  {
+    "from": "UNT-KTL-001",
+    "to": "CMP-KTL-003",
+    "type": "refines"
+  },
+  {
+    "from": "UNT-KTL-002",
+    "to": "FNC-KTL-002",
+    "type": "refines"
+  },
+  {
+    "from": "UNT-KTL-002",
+    "to": "CMP-KTL-003",
+    "type": "refines"
+  },
+  {
+    "from": "UNT-KTL-003",
+    "to": "FNC-KTL-003",
+    "type": "refines"
+  },
+  {
+    "from": "UNT-KTL-003",
+    "to": "CMP-KTL-003",
+    "type": "refines"
+  },
+  {
+    "from": "UNT-KTL-004",
+    "to": "FNC-KTL-004",
+    "type": "refines"
+  },
+  {
+    "from": "UNT-KTL-004",
+    "to": "CMP-KTL-003",
+    "type": "refines"
+  },
+  {
+    "from": "UNT-KTL-005",
+    "to": "FNC-KTL-005",
+    "type": "refines"
+  },
+  {
+    "from": "UNT-KTL-005",
+    "to": "CMP-KTL-005",
+    "type": "refines"
+  },
+  {
+    "from": "TST-KTL-001",
+    "to": "REQ-KTL-001",
+    "type": "verifies"
+  },
+  {
+    "from": "TST-KTL-002",
+    "to": "REQ-KTL-002",
+    "type": "verifies"
+  },
+  {
+    "from": "TST-KTL-003",
+    "to": "REQ-KTL-003",
+    "type": "verifies"
+  },
+  {
+    "from": "TST-KTL-004",
+    "to": "REQ-KTL-004",
+    "type": "verifies"
+  },
+  {
+    "from": "TST-KTL-005",
+    "to": "REQ-KTL-005",
+    "type": "verifies"
+  },
+  {
+    "from": "TST-KTL-006",
+    "to": "FNC-KTL-001",
+    "type": "verifies"
+  },
+  {
+    "from": "TST-KTL-007",
+    "to": "INT-KTL-003",
+    "type": "verifies"
+  },
+  {
+    "from": "TST-KTL-008",
+    "to": "UNT-KTL-002",
+    "type": "verifies"
+  },
+  {
+    "from": "TST-KTL-009",
+    "to": "UNT-KTL-003",
+    "type": "verifies"
+  },
+  {
+    "from": "TST-KTL-010",
+    "to": "UNT-KTL-004",
+    "type": "verifies"
+  },
+  {
+    "from": "TST-KTL-011",
+    "to": "UNT-KTL-005",
+    "type": "verifies"
+  },
+  {
+    "from": "TST-KTL-012",
+    "to": "UNT-KTL-001",
+    "type": "verifies"
+  }
+]

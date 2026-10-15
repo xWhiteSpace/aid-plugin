@@ -1,0 +1,250 @@
+{
+  "TST-KTL-001": {
+    "id": "TST-KTL-001",
+    "kind": "TST",
+    "project": "KTL",
+    "title": "Acceptance: Boil water",
+    "statement": "Acceptance: Boil water",
+    "version": 1,
+    "status": "not_run",
+    "created_at": "2026-10-16T00:00:00+09:00",
+    "updated_at": "2026-10-16T00:00:00+09:00",
+    "proposed_by": "test-master",
+    "level": "acceptance",
+    "cases": [
+      {
+        "input": "bench setup",
+        "expected": "boil 1.0 L from 20 °C in ≤240 s"
+      }
+    ]
+  },
+  "TST-KTL-002": {
+    "id": "TST-KTL-002",
+    "kind": "TST",
+    "project": "KTL",
+    "title": "Acceptance: Auto shut-off at boil",
+    "statement": "Acceptance: Auto shut-off at boil",
+    "version": 1,
+    "status": "not_run",
+    "created_at": "2026-10-16T00:00:00+09:00",
+    "updated_at": "2026-10-16T00:00:00+09:00",
+    "proposed_by": "test-master",
+    "level": "acceptance",
+    "cases": [
+      {
+        "input": "bench setup",
+        "expected": "heater off ≤5 s after 100 °C"
+      }
+    ]
+  },
+  "TST-KTL-003": {
+    "id": "TST-KTL-003",
+    "kind": "TST",
+    "project": "KTL",
+    "title": "Acceptance: Boil-dry protection",
+    "statement": "Acceptance: Boil-dry protection",
+    "version": 1,
+    "status": "not_run",
+    "created_at": "2026-10-16T00:00:00+09:00",
+    "updated_at": "2026-10-16T00:00:00+09:00",
+    "proposed_by": "test-master",
+    "level": "acceptance",
+    "cases": [
+      {
+        "input": "bench setup",
+        "expected": "empty vessel: off before 140 °C"
+      }
+    ]
+  },
+  "TST-KTL-004": {
+    "id": "TST-KTL-004",
+    "kind": "TST",
+    "project": "KTL",
+    "title": "Acceptance: Keep-warm",
+    "statement": "Acceptance: Keep-warm",
+    "version": 1,
+    "status": "not_run",
+    "created_at": "2026-10-16T00:00:00+09:00",
+    "updated_at": "2026-10-16T00:00:00+09:00",
+    "proposed_by": "test-master",
+    "level": "acceptance",
+    "cases": [
+      {
+        "input": "bench setup",
+        "expected": "80±5 °C for 30 min then off"
+      }
+    ]
+  },
+  "TST-KTL-005": {
+    "id": "TST-KTL-005",
+    "kind": "TST",
+    "project": "KTL",
+    "title": "Acceptance: Child lock",
+    "statement": "Acceptance: Child lock",
+    "version": 1,
+    "status": "not_run",
+    "created_at": "2026-10-16T00:00:00+09:00",
+    "updated_at": "2026-10-16T00:00:00+09:00",
+    "proposed_by": "test-master",
+    "level": "acceptance",
+    "cases": [
+      {
+        "input": "bench setup",
+        "expected": "locked: Start ignored"
+      }
+    ]
+  },
+  "TST-KTL-006": {
+    "id": "TST-KTL-006",
+    "kind": "TST",
+    "project": "KTL",
+    "title": "Start refused off base",
+    "statement": "Start refused off base",
+    "version": 1,
+    "status": "not_run",
+    "created_at": "2026-10-16T00:00:00+09:00",
+    "updated_at": "2026-10-16T00:00:00+09:00",
+    "proposed_by": "test-master",
+    "level": "system",
+    "cases": [
+      {
+        "input": "start, on_base=false",
+        "expected": "heater stays off"
+      }
+    ]
+  },
+  "TST-KTL-007": {
+    "id": "TST-KTL-007",
+    "kind": "TST",
+    "project": "KTL",
+    "title": "Panel command round-trip",
+    "statement": "Panel command round-trip",
+    "version": 1,
+    "status": "not_run",
+    "created_at": "2026-10-16T00:00:00+09:00",
+    "updated_at": "2026-10-16T00:00:00+09:00",
+    "proposed_by": "test-master",
+    "level": "integration",
+    "cases": [
+      {
+        "input": "command=lock_toggle",
+        "expected": "response locked=true"
+      }
+    ]
+  },
+  "TST-KTL-008": {
+    "id": "TST-KTL-008",
+    "kind": "TST",
+    "project": "KTL",
+    "title": "boil_detector boundary",
+    "statement": "boil_detector boundary",
+    "version": 1,
+    "status": "not_run",
+    "created_at": "2026-10-16T00:00:00+09:00",
+    "updated_at": "2026-10-16T00:00:00+09:00",
+    "proposed_by": "test-master",
+    "level": "unit",
+    "cases": [
+      {
+        "input": "99.9",
+        "expected": "heater on"
+      },
+      {
+        "input": "100.0",
+        "expected": "heater off"
+      }
+    ]
+  },
+  "TST-KTL-009": {
+    "id": "TST-KTL-009",
+    "kind": "TST",
+    "project": "KTL",
+    "title": "dry_guard boundary",
+    "statement": "dry_guard boundary",
+    "version": 1,
+    "status": "not_run",
+    "created_at": "2026-10-16T00:00:00+09:00",
+    "updated_at": "2026-10-16T00:00:00+09:00",
+    "proposed_by": "test-master",
+    "level": "unit",
+    "cases": [
+      {
+        "input": "140",
+        "expected": "heater on"
+      },
+      {
+        "input": "140.1",
+        "expected": "heater off, fault"
+      }
+    ]
+  },
+  "TST-KTL-010": {
+    "id": "TST-KTL-010",
+    "kind": "TST",
+    "project": "KTL",
+    "title": "keep_warm_loop band and timeout",
+    "statement": "keep_warm_loop band and timeout",
+    "version": 1,
+    "status": "not_run",
+    "created_at": "2026-10-16T00:00:00+09:00",
+    "updated_at": "2026-10-16T00:00:00+09:00",
+    "proposed_by": "test-master",
+    "level": "unit",
+    "cases": [
+      {
+        "input": "74.9",
+        "expected": "pulse on"
+      },
+      {
+        "input": "85",
+        "expected": "pulse off"
+      },
+      {
+        "input": "elapsed 1800",
+        "expected": "keep_warm off"
+      }
+    ]
+  },
+  "TST-KTL-011": {
+    "id": "TST-KTL-011",
+    "kind": "TST",
+    "project": "KTL",
+    "title": "lock_button hold",
+    "statement": "lock_button hold",
+    "version": 1,
+    "status": "not_run",
+    "created_at": "2026-10-16T00:00:00+09:00",
+    "updated_at": "2026-10-16T00:00:00+09:00",
+    "proposed_by": "test-master",
+    "level": "unit",
+    "cases": [
+      {
+        "input": "2999 ms",
+        "expected": "no toggle"
+      },
+      {
+        "input": "3000 ms",
+        "expected": "toggle"
+      }
+    ]
+  },
+  "TST-KTL-012": {
+    "id": "TST-KTL-012",
+    "kind": "TST",
+    "project": "KTL",
+    "title": "start_guard truth table",
+    "statement": "start_guard truth table",
+    "version": 1,
+    "status": "not_run",
+    "created_at": "2026-10-16T00:00:00+09:00",
+    "updated_at": "2026-10-16T00:00:00+09:00",
+    "proposed_by": "test-master",
+    "level": "unit",
+    "cases": [
+      {
+        "input": "locked=true",
+        "expected": "heater off"
+      }
+    ]
+  }
+}

@@ -1,0 +1,31 @@
+classDiagram
+  class CMP_KTL_001["Heating element"] {
+    <<block>>
+  }
+  class CMP_KTL_002["Temperature sensor"] {
+    <<block>>
+  }
+  class CMP_KTL_003["Controller"] {
+    <<block>>
+    +FNC_KTL_001()
+    +FNC_KTL_002()
+    +FNC_KTL_003()
+    +FNC_KTL_004()
+    -part UNT_KTL_001
+    -part UNT_KTL_002
+    -part UNT_KTL_003
+    -part UNT_KTL_004
+  }
+  class CMP_KTL_004["Power base"] {
+    <<block>>
+  }
+  class CMP_KTL_005["User panel"] {
+    <<block>>
+    +FNC_KTL_005()
+    -part UNT_KTL_005
+  }
+  CMP_KTL_002 --> CMP_KTL_003 : INT-KTL-001
+  CMP_KTL_003 --> CMP_KTL_001 : INT-KTL-002
+  CMP_KTL_005 --> CMP_KTL_003 : INT-KTL-003
+  CMP_KTL_004 --> CMP_KTL_003 : INT-KTL-004
+  CMP_KTL_002 --> CMP_KTL_003 : INT-KTL-005

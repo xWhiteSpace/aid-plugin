@@ -1,0 +1,26 @@
+flowchart LR
+  subgraph CMP_KTL_001["«part» Heating element"]
+    CMP_KTL_001_INT_KTL_002_in((in))
+  end
+  subgraph CMP_KTL_002["«part» Temperature sensor"]
+    CMP_KTL_002_INT_KTL_001_out((out))
+    CMP_KTL_002_INT_KTL_005_out((out))
+  end
+  subgraph CMP_KTL_003["«part» Controller"]
+    CMP_KTL_003_INT_KTL_001_in((in))
+    CMP_KTL_003_INT_KTL_002_out((out))
+    CMP_KTL_003_INT_KTL_003_in((in))
+    CMP_KTL_003_INT_KTL_004_in((in))
+    CMP_KTL_003_INT_KTL_005_in((in))
+  end
+  subgraph CMP_KTL_004["«part» Power base"]
+    CMP_KTL_004_INT_KTL_004_out((out))
+  end
+  subgraph CMP_KTL_005["«part» User panel"]
+    CMP_KTL_005_INT_KTL_003_out((out))
+  end
+  CMP_KTL_002_INT_KTL_001_out -->|"INT-KTL-001: Temperature readings"| CMP_KTL_003_INT_KTL_001_in
+  CMP_KTL_003_INT_KTL_002_out -->|"INT-KTL-002: Heater drive"| CMP_KTL_001_INT_KTL_002_in
+  CMP_KTL_005_INT_KTL_003_out -->|"INT-KTL-003: Panel commands"| CMP_KTL_003_INT_KTL_003_in
+  CMP_KTL_004_INT_KTL_004_out -->|"INT-KTL-004: On-base and mains"| CMP_KTL_003_INT_KTL_004_in
+  CMP_KTL_002_INT_KTL_005_out -->|"INT-KTL-005: Element temperature"| CMP_KTL_003_INT_KTL_005_in
