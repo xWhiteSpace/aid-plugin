@@ -50,7 +50,7 @@ Verified from [cursor.com/docs/plugins](https://cursor.com/docs/plugins) and [Pl
 10. **Last Boss (Done)** challenges the whole slice (and the running UI against the recorded design). She never marks passed.
 11. `/docs` builds the pictures and the V debug view.
 
-Other commands: `/setup-aid` (labels, models, **stack-detect → TOL**), `/catchup` (sync from your git diff), `/docs`, `/v-view`.
+Other commands: `/setup-aid` (labels, models, **stack-detect → TOL**), `/catchup` (sync from your git diff), `/docs`, `/v-view`. Each of those is a command; matching skills use internal `aid-*` names (`aid-usr-flow`, `aid-setup`, `aid-catchup`, `aid-docs`, `aid-v-view`) so the `/` menu lists every step once.
 
 ## Hard rules
 
@@ -79,7 +79,7 @@ Python 3.8+, no packages. The example stack is recorded as `TOL-KTL-001..006` (P
 .cursor-plugin/plugin.json   # Cursor Plugin manifest
 plugin.json                  # Agent Plugins companion
 agents/                      # req-guardian, ssot-gate, tools-manager, adept, last-boss, …
-skills/                      # usr, setup-aid, stack-detect, ui-design, v-view, reverse-engineer-*, …
+skills/                      # aid-usr-flow, aid-setup, stack-detect, ui-design, aid-v-view, reverse-engineer-*, …
 commands/                    # /usr /catchup /docs /setup-aid /v-view
 rules/                       # always-on V-model core
 scripts/                     # vmodel_docs.py, vmodel_lint.py, vmodel_vview.py

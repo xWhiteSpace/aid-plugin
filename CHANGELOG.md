@@ -1,8 +1,18 @@
 # Changelog
 
+## 0.4.1 — 2026-10-16
+
+- Slash menu showed each step twice (`commands/<name>.md` and `skills/<name>/SKILL.md` shared `usr`, `docs`, `catchup`, `setup-aid`, `v-view`). Commands stay the user `/` entries. Colliding skills renamed so they no longer share those names:
+  - `skills/usr` → `skills/aid-usr-flow`
+  - `skills/docs` → `skills/aid-docs`
+  - `skills/catchup` → `skills/aid-catchup`
+  - `skills/setup-aid` → `skills/aid-setup` (`/setup-aid` unchanged)
+  - `skills/v-view` → `skills/aid-v-view`
+- Those five skills drop `disable-model-invocation: true` (Cursor's public skill docs: that flag makes a skill slash-only; the agent will not auto-apply it) and set `user-invocable: false`. Cursor CLI honours `user-invocable: false` (hide from `/`, agent still loads). Cursor's public skill/plugin docs do not list `user-invocable`; the IDE `/` menu still lists skills by name, so the rename is what stops the duplicate.
+
 ## 0.4.0 — 2026-10-16
 
-- V debug view: `scripts/vmodel_vview.py` + `v-view` skill, owned by ssot-gate and run on every publish. Writes `.vmodel/docs/v-view.html` (one self-contained offline HTML file, inline JS/CSS, no CDN) from registries, `graph/edges.json`, `@trace` hits and lint flags.
+- V debug view: `scripts/vmodel_vview.py` + `v-view` skill (renamed `aid-v-view` in 0.4.1), owned by ssot-gate and run on every publish. Writes `.vmodel/docs/v-view.html` (one self-contained offline HTML file, inline JS/CSS, no CDN) from registries, `graph/edges.json`, `@trace` hits and lint flags.
 - Landing is a V (left: USR / Requirements / Functional / System / Unit; Coding; right: test levels) with a donut and status pills. Per-level spec and test lists. Focus walks USR↔REQ↔FNC/API↔CMP/INT↔UNT↔code `@trace`↔TST. World pans the whole graph. Review queue lists lint flags (broken `@trace`, orphan UNT, planned TST with no code, missing links).
 - `/v-view` rebuilds and opens the page. `/docs` and kettle example regenerate it. Generic V-model only.
 

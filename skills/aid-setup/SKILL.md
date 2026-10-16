@@ -1,7 +1,7 @@
 ---
-name: setup-aid
-description: Configure A.I.D for this project. Sets project labels, isolation, per-role models, and a confirmed tool stack (never guessed). Writes .cursor/rules/aid-config.mdc, bootstraps .vmodel/, and publishes TOL entries via tools-manager + ssot-gate. Use for /setup-aid, "configure aid", or adding a new project label.
-disable-model-invocation: true
+name: aid-setup
+description: Configure A.I.D for this project. Sets project labels, isolation, per-role models, and a confirmed tool stack (never guessed). Writes .cursor/rules/aid-config.mdc, bootstraps .vmodel/, and publishes TOL entries via tools-manager + ssot-gate. Agent-invoked from the /setup-aid command, or when configuring aid or adding a new project label.
+user-invocable: false
 ---
 
 # /setup-aid

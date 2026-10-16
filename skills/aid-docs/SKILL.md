@@ -1,7 +1,7 @@
 ---
-name: docs
-description: Build the graphical V-model docs from the published .vmodel/ SSOT. SysML-style Mermaid diagrams (requirements, block definition, internal block, per-function sequence), a REQ→FNC→CMP→UNT→TST trace matrix with gaps, and an offline static HTML site under .vmodel/docs/. Use for /docs or "show me the documentation".
-disable-model-invocation: true
+name: aid-docs
+description: Build the graphical V-model docs from the published .vmodel/ SSOT. SysML-style Mermaid diagrams (requirements, block definition, internal block, per-function sequence), a REQ→FNC→CMP→UNT→TST trace matrix with gaps, and an offline static HTML site under .vmodel/docs/. Agent-invoked from the /docs command, or when the user asks to show the documentation.
+user-invocable: false
 ---
 
 # /docs
@@ -15,7 +15,7 @@ disable-model-invocation: true
    ```
    Python 3.8+ only, no packages. `--code` is source and tests (omit only when there is no source yet).
 3. Output under `.vmodel/docs/`:
-   - `v-view.html`: interactive V debug view (landing rails, per-level spec/tests, Focus walk, World, review queue of lint flags). Self-contained, no CDN. See the `v-view` skill.
+   - `v-view.html`: interactive V debug view (landing rails, per-level spec/tests, Focus walk, World, review queue of lint flags). Self-contained, no CDN. See the `aid-v-view` skill.
    - `index.html`: open it in a browser, no network needed. One tab per project. Diagrams render as SVG offline when a local `mermaid.min.js` is present in `.vmodel/docs/` (optional), else the page shows a built-in SVG V-overview and the Mermaid source. Link to `v-view.html`.
    - `<PROJECT>/requirements.mmd`: requirements diagram (USR, REQ, derives).
    - `<PROJECT>/bdd.mmd`: block definition diagram (CMP blocks with allocated FNC).
