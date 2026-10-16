@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.4.2 — 2026-10-16
+
+- Offline V debug view reaches feature parity with the reference debug page structure (generic V-model only; no branded lockup or product names). One self-contained file, inline CSS/JS/SVG, no CDN.
+- Landing camera: `measurePose` fly-in/out (translate3d + scale, 600ms), reduced-motion skip, CODING at `z: -120`, perspective floor grid (`FLOOR` / `floorGridPath`) with near/far masks and horizon, rail polylines (`railPoints`) plus pulse, hot/hover halos, status donut and pills.
+- Globe icon (inline SVG) opens World. Focus graph: Connections rings and published edges, kind tabs, pan/zoom, See connection, lineage panel. Spec **Review** opens a ReviewQueue of published items (Keep/Rewrite/Reject in local storage, not SSOT); auto flags include lineage gaps and lint for that id.
+
 ## 0.4.1 — 2026-10-16
 
 - Slash menu showed each step twice (`commands/<name>.md` and `skills/<name>/SKILL.md` shared `usr`, `docs`, `catchup`, `setup-aid`, `v-view`). Commands stay the user `/` entries. Colliding skills renamed so they no longer share those names:

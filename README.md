@@ -48,7 +48,7 @@ Verified from [cursor.com/docs/plugins](https://cursor.com/docs/plugins) and [Pl
 8. Adept (only if this run is implementing): `ui-design` before any screen, then code → **Last Boss (code)**.
 9. ssot-gate publishes again and **always** reports lint (or says there are none), including planned TST ids with no `@trace TST-…` in code.
 10. **Last Boss (Done)** challenges the whole slice (and the running UI against the recorded design). She never marks passed.
-11. `/docs` builds the pictures and the V debug view.
+11. `/docs` builds the pictures and the V debug view (fly-in camera, Globe World, Focus graph, ReviewQueue).
 
 Other commands: `/setup-aid` (labels, models, **stack-detect → TOL**), `/catchup` (sync from your git diff), `/docs`, `/v-view`. Each of those is a command; matching skills use internal `aid-*` names (`aid-usr-flow`, `aid-setup`, `aid-catchup`, `aid-docs`, `aid-v-view`) so the `/` menu lists every step once.
 

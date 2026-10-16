@@ -16,7 +16,7 @@ NODE_KEEP = (
     "id", "kind", "project", "title", "statement", "status", "level", "cases",
     "source_files", "acceptance", "who", "why", "from_cmp", "to_cmp",
     "carries_api", "implements_fnc", "rule", "inputs", "outputs", "fields",
-    "slot", "tool", "priority", "type",
+    "slot", "tool", "priority", "type", "domain",
 )
 TEMPLATE = os.path.join(os.path.dirname(os.path.abspath(__file__)), "vview_page.html")
 
