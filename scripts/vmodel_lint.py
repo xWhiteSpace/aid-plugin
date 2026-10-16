@@ -11,8 +11,8 @@ import re
 import sys
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from vmodel_common import (EDGE_TYPES, ID_RE, by_kind, in_edges, load,  # noqa: E402
-                           out_edges, project_of)
+from vmodel_common import (EDGE_TYPES, ID_RE, TOL_SLOTS, by_kind,  # noqa: E402
+                           in_edges, load, out_edges, project_of)
 
 SKIP_DIRS = {".git", "node_modules", ".vmodel", "__pycache__", ".venv", "venv"}
 SOURCE_EXT = {
@@ -71,6 +71,10 @@ def lint(root):
                 flag("inconsistency", end, "edge endpoint not in registry")
         if project_of(e.get("from", "")) != project_of(e.get("to", "")):
             flag("isolation", e.get("from"), "cross-project edge to %s" % e.get("to"))
+        if e.get("type") == "uses":
+            tgt = nodes.get(e.get("to"))
+            if tgt and tgt.get("kind") != "TOL":
+                flag("inconsistency", e.get("from"), "uses edge must point at a TOL")
 
     # Redundancy: identical statements within a kind+project
     stmts = {}
@@ -112,6 +116,31 @@ def lint(root):
             for f in ("from_cmp", "to_cmp"):
                 if n.get(f) and n[f] not in nodes:
                     flag("inconsistency", nid, "%s %s not in registry" % (f, n[f]))
+        if k == "TOL":
+            slot = n.get("slot")
+            if slot not in TOL_SLOTS:
+                flag("inconsistency", nid, "TOL slot %r is not one of %s" % (
+                    slot, ", ".join(sorted(TOL_SLOTS))))
+            if not n.get("tool"):
+                flag("inconsistency", nid, "TOL missing tool")
+
+    # One live TOL per slot per project
+    slots_seen = {}
+    for t in by_kind(nodes, "TOL"):
+        if t.get("status") == "retired":
+            continue
+        key = (t.get("project"), t.get("slot"))
+        slots_seen.setdefault(key, []).append(t["id"])
+    for key, ids in slots_seen.items():
+        if key[1] in TOL_SLOTS and len(ids) > 1:
+            flag("redundancy", ids[0], "same TOL slot %s as %s" % (key[1], ", ".join(ids[1:])))
+
+    # Project with code (UNT) but no TOL
+    live_tol = {t.get("project") for t in by_kind(nodes, "TOL") if t.get("status") != "retired"}
+    for p in sorted({u.get("project") for u in by_kind(nodes, "UNT")
+                     if u.get("status") != "retired" and u.get("project")}):
+        if p not in live_tol:
+            flag("gap", p, "project has code (UNT) but no published TOL")
 
     # Unconnected variables: API fields never mentioned by any UNT field/input/rule
     unit_text = {}
@@ -139,6 +168,7 @@ def scan_code(code_dir, nodes):
     """Return list of code-trace flags."""
     flags = []
     tagged = set()  # published UNT ids that appear in at least one well-formed tag
+    source_seen = False
 
     def flag(nid, msg):
         flags.append({"category": "code_trace", "id": nid, "message": msg})
@@ -153,6 +183,7 @@ def scan_code(code_dir, nodes):
             ext = os.path.splitext(name)[1].lower()
             if ext not in SOURCE_EXT:
                 continue
+            source_seen = True
             path = os.path.join(dirpath, name)
             rel = os.path.relpath(path, code_dir)
             try:
@@ -187,6 +218,14 @@ def scan_code(code_dir, nodes):
             continue
         if u["id"] not in tagged:
             flag(u["id"], "untagged unit")
+
+    if source_seen:
+        live_tol = {t.get("project") for t in by_kind(nodes, "TOL")
+                    if t.get("status") != "retired"}
+        ssot_projects = {n.get("project") for n in nodes.values() if n.get("project")}
+        for p in sorted(ssot_projects):
+            if p not in live_tol:
+                flag(p, "project has source files but no published TOL")
 
     return flags
 

@@ -1,7 +1,7 @@
 {
   "name": "aid-plugin",
   "displayName": "A.I.D plugin",
-  "version": "0.1.1",
+  "version": "0.2.0",
   "description": "V-model / MBSE (SysML-aligned) agent team for Cursor. Type /usr with what you want in plain words; a team of subagents turns it into traced requirements, functions, components, units and test plans, published to a project-local SSOT under .vmodel/ with graphical docs.",
   "author": {
     "name": "WhiteSpace"

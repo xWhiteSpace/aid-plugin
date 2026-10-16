@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.2.0 — 2026-10-16
+
+- Stack/setup check: agents never guess language or tooling.
+- New `tools-manager` agent owns `TOL-{PROJECT}-NNN` (language, framework, package manager, test runner, linter, deploy target, versions). Proposes only; does not code or set style.
+- New `stack-detect` skill reads repo manifests and lock/CI files, shows evidence, and asks the user to confirm or change. Empty or unclear repos are questions, not defaults.
+- `/setup-aid` runs stack-detect, publishes confirmed TOL via ssot-gate, and writes a stack summary into `.cursor/rules/aid-config.mdc`.
+- Hard gate: `/usr`, adept and test-master stop if there is no confirmed TOL; they ask or run stack-detect.
+- Adept is language-agnostic: follows the TOL stack, uses that language's `comment_syntax` for `@trace`, and runs the TOL test runner.
+- Schema, lint and kettle example: TOL kind and `uses` edges; lint flags a project with code but no TOL. `TOL-KTL-001..006` (Python, pytest, matching `src/*.py`).
+
 ## 0.1.1 — 2026-10-16
 
 - Code traceability: no explanatory comments; each implementing function/module carries `@trace UNT-{PROJECT}-NNN` only.

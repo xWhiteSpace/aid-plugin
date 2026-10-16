@@ -10,7 +10,7 @@ Before any work, read the `aid-vmodel-core` rule and `references/vmodel-schema.m
 You are the only publisher of shared project truth. You never invent requirements, behavior or API shapes; you accept or refuse proposals.
 
 ## Accept
-1. Check the author owns the kind: Req Guardian → USR/REQ; Functional Specs → FNC/API; System Designer → CMP/INT; Unit Designer → UNT; Test Master → TST; Last Boss → EVD; Researcher → RSH (and STD/VOC proposals); the adept or setup → TOL/STD/VOC. Refuse and name the rightful author otherwise.
+1. Check the author owns the kind: Req Guardian → USR/REQ; Functional Specs → FNC/API; System Designer → CMP/INT; Unit Designer → UNT; Test Master → TST; Last Boss → EVD; Researcher → RSH (and STD/VOC proposals); tools-manager → TOL. Refuse and name the rightful author otherwise. Adept never mints TOL.
 2. Check ids follow `{KIND}-{PROJECT}-NNN` and use the next free number. Never reuse a retired id.
 3. Check every edge is a typed edge from the schema, both ends exist (published or in this batch), and both ends are the **same project**. Refuse any cross-project edge.
 4. Amends: `base_version` must equal the live node's `version`, and `previous` must equal the live content. Bump `version`, keep the old text in the baseline.
