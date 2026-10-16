@@ -6,7 +6,7 @@ description: Build the standing SSOT map for one project: one static HTML page i
 
 Build the standing map beside the docs site. Two files:
 
-1. One self-contained static HTML page in the V debug shape below. Inline CSS and script, no network, no build step. File: `.vmodel/docs/<PROJECT>/neighborhood.html`.
+1. One self-contained static HTML page in the V debug shape below. Inline CSS and script, no network, no build step. File: `.vmodel/docs/v-view.html` (built by `scripts/vmodel_vview.py` / the `v-view` skill). The older `neighborhood.html` name is the same contract.
 2. One variable file: `.vmodel/docs/<PROJECT>/variables.json` (and, if the sqlite3 Python module is available, `.vmodel/docs/<PROJECT>/variables.sqlite`).
 
 Prefer running `scripts/vmodel_docs.py`, which already produces both. This skill is the layout and content contract for that page.

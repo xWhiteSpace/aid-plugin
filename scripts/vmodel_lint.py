@@ -26,6 +26,43 @@ TRACE_ANY_RE = re.compile(r"@trace\s+(\S+)")
 TRACE_ID_RE = re.compile(r"^(UNT|TST)-[A-Z0-9]{2,5}-\d{3,}$")
 
 
+def collect_traces(code_dir):
+    hits = []
+    if not code_dir or not os.path.isdir(code_dir):
+        return hits
+    for dirpath, dirnames, filenames in os.walk(code_dir):
+        dirnames[:] = [d for d in dirnames if d not in SKIP_DIRS]
+        for name in filenames:
+            ext = os.path.splitext(name)[1].lower()
+            if ext not in SOURCE_EXT:
+                continue
+            path = os.path.join(dirpath, name)
+            rel = os.path.relpath(path, code_dir).replace("\\", "/")
+            try:
+                with open(path, encoding="utf-8", errors="replace") as f:
+                    lines = f.read().splitlines()
+            except OSError:
+                continue
+            for i, line in enumerate(lines, 1):
+                for m in TRACE_ANY_RE.finditer(line):
+                    token = m.group(1).rstrip(",;")
+                    um2 = TRACE_ID_RE.match(token)
+                    if not um2:
+                        continue
+                    a = max(0, i - 4)
+                    b = min(len(lines), i + 5)
+                    hits.append({
+                        "id": um2.group(0),
+                        "kind": um2.group(1),
+                        "file": rel,
+                        "line": i,
+                        "snippet": "\n".join(lines[a:b]),
+                        "start": a + 1,
+                        "end": b,
+                    })
+    return hits
+
+
 def walk_fields(obj, prefix=""):
     if not isinstance(obj, dict):
         return

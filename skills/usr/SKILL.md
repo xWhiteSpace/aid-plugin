@@ -26,7 +26,7 @@ The chat that receives `/usr` is the **runner**. It owns the todo list and spawn
 9. **Code (only if this `/usr` spawned `adept`).** Re-check the stack gate. Adept follows `ui-design` before any screen. Spawn `last-boss` on the code (tags, TOL, design match). Defects go back to `adept`.
 10. **Gate 2.** Spawn `ssot-gate` to publish FNC through TST as one baseline. It runs lint with `--code` on the project tree (source **and** tests) and **always** reports lint flags (including code-trace: orphan / untagged UNT, planned TST with no `@trace TST-…` in code, malformed tags) or says "Lint: no flags." / "no trace flags."
 11. **Last Boss — Done.** Spawn `last-boss` on the whole slice (every stage that applied, plus front-end review if any screen is in scope). Feed confirmed defects back to their owner and re-run the gate once. She never marks anything passed. Do not tell the user it is Done while she still refuses a claim.
-12. **Docs.** Run the `docs` skill so the user can see the result.
+12. **Docs.** Run the `docs` skill so the user can see the result. That rebuilds `v-view.html` as well.
 
 `researcher` may be spawned at any step by any role that needs the standard approach; its RSH brief is published like any other proposal.
 
@@ -38,5 +38,5 @@ Ask only when blocked by something only the user can answer (a product decision,
 - What was designed down the V (counts per kind, new ids).
 - Lint flags from the gate (or "no flags").
 - Last Boss per-stage challenges and the final weakest point.
-- Where to look: `.vmodel/docs/index.html`.
+- Where to look: `.vmodel/docs/index.html` and `.vmodel/docs/v-view.html`.
 - Reminder: tests are planned, not run; nothing is marked passed.

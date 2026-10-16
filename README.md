@@ -48,9 +48,9 @@ Verified from [cursor.com/docs/plugins](https://cursor.com/docs/plugins) and [Pl
 8. Adept (only if this run is implementing): `ui-design` before any screen, then code → **Last Boss (code)**.
 9. ssot-gate publishes again and **always** reports lint (or says there are none), including planned TST ids with no `@trace TST-…` in code.
 10. **Last Boss (Done)** challenges the whole slice (and the running UI against the recorded design). She never marks passed.
-11. `/docs` builds the pictures.
+11. `/docs` builds the pictures and the V debug view.
 
-Other commands: `/setup-aid` (labels, models, **stack-detect → TOL**), `/catchup` (sync from your git diff), `/docs`.
+Other commands: `/setup-aid` (labels, models, **stack-detect → TOL**), `/catchup` (sync from your git diff), `/docs`, `/v-view`.
 
 ## Hard rules
 
@@ -64,11 +64,11 @@ Other commands: `/setup-aid` (labels, models, **stack-detect → TOL**), `/catch
 
 ## Example
 
-`examples/electric-kettle/` is a full worked V for a smart kettle, project code **KTL**. Open `examples/electric-kettle/.vmodel/docs/index.html` in a browser. Rebuild with:
+`examples/electric-kettle/` is a full worked V for a smart kettle, project code **KTL**. Open `examples/electric-kettle/.vmodel/docs/index.html` or `examples/electric-kettle/.vmodel/docs/v-view.html` in a browser. Rebuild with:
 
 ```bash
 python3 scripts/vmodel_lint.py examples/electric-kettle/.vmodel --write --code examples/electric-kettle
-python3 scripts/vmodel_docs.py examples/electric-kettle/.vmodel
+python3 scripts/vmodel_docs.py examples/electric-kettle/.vmodel --code examples/electric-kettle
 ```
 
 Python 3.8+, no packages. The example stack is recorded as `TOL-KTL-001..006` (Python, pytest, no framework / package manager / linter / deploy target).
@@ -79,10 +79,10 @@ Python 3.8+, no packages. The example stack is recorded as `TOL-KTL-001..006` (P
 .cursor-plugin/plugin.json   # Cursor Plugin manifest
 plugin.json                  # Agent Plugins companion
 agents/                      # req-guardian, ssot-gate, tools-manager, adept, last-boss, …
-skills/                      # usr, setup-aid, stack-detect, ui-design, reverse-engineer-*, …
-commands/                    # /usr /catchup /docs /setup-aid
+skills/                      # usr, setup-aid, stack-detect, ui-design, v-view, reverse-engineer-*, …
+commands/                    # /usr /catchup /docs /setup-aid /v-view
 rules/                       # always-on V-model core
-scripts/                     # vmodel_docs.py, vmodel_lint.py
+scripts/                     # vmodel_docs.py, vmodel_lint.py, vmodel_vview.py
 references/vmodel-schema.md  # .vmodel/ schema
 examples/electric-kettle/    # KTL sample SSOT + docs
 ```

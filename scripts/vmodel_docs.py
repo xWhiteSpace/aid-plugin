@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 """Build graphical V-model docs from a .vmodel/ SSOT tree. Standard library only.
 
-Usage: python3 vmodel_docs.py .vmodel
+Usage: python3 vmodel_docs.py .vmodel [--code <dir>]
 Writes .vmodel/docs/index.html (offline) and per-project Mermaid, trace
-matrix (md + csv) and variables.json.
+matrix (md + csv) and variables.json. Also rebuilds v-view.html.
 """
 import csv
 import html
@@ -14,6 +14,7 @@ import sys
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from vmodel_common import by_kind, in_edges, load, out_edges  # noqa: E402
 from vmodel_lint import lint, walk_fields  # noqa: E402
+from vmodel_vview import write_vview  # noqa: E402
 
 
 def mid(nid):
@@ -163,7 +164,7 @@ def esc(s):
     return html.escape(str(s))
 
 
-def build(root):
+def build(root, code_dir=None):
     nodes, edges, meta = load(root)
     projects = meta.get("projects") or sorted({n.get("project") for n in nodes.values() if n.get("project")})
     out = os.path.join(root, "docs")
@@ -228,22 +229,50 @@ pre{background:#f6f8fa;padding:8px;overflow:auto;font-size:12px}.s{font-size:11p
 svg.v{max-width:760px;font-size:13px}.pane{display:none}button{margin-right:6px;padding:4px 12px}
 </style></head><body><h1>V-model documentation</h1>
 <p>Graph version %s · source %s · <b>Plan lineage, not proof. Tests are not run unless evidence (EVD) says otherwise.</b></p>
+<p><a href="v-view.html">V debug view</a> (landing rails, Focus, World, review queue)</p>
 <div>%s</div><h2>Lint</h2>%s%s
 <script>function show(p){document.querySelectorAll('.pane').forEach(e=>e.style.display='none');document.getElementById('p-'+p).style.display='block'}show(%s)</script>
 %s</body></html>""" % (esc(meta.get("graph_version", "?")), esc(meta.get("source_commit") or "n/a"), "".join(tabs),
                       lint_html, "\n".join(panes), json.dumps(projects[0] if projects else ""), script)
     with open(os.path.join(out, "index.html"), "w", encoding="utf-8") as fh:
         fh.write(page)
+    vview_path, vview_summary = write_vview(root, code_dir)
+    summary["_vview"] = vview_summary
+    summary["_vview_path"] = vview_path
     return summary, lint_res
 
 
+def parse_args(argv):
+    root = None
+    code_dir = None
+    i = 1
+    while i < len(argv):
+        a = argv[i]
+        if a == "--code":
+            i += 1
+            if i >= len(argv):
+                print("error: --code needs a directory", file=sys.stderr)
+                sys.exit(2)
+            code_dir = argv[i]
+        elif a.startswith("-"):
+            print("unknown option: %s" % a, file=sys.stderr)
+            sys.exit(2)
+        else:
+            root = a
+        i += 1
+    return root, code_dir
+
+
 def main():
-    if len(sys.argv) < 2:
+    root, code_dir = parse_args(sys.argv)
+    if not root:
         print(__doc__)
         return 2
-    summary, lint_res = build(sys.argv[1])
-    print(json.dumps({"index": os.path.join(sys.argv[1], "docs", "index.html"), "projects": summary,
-                      "lint_flags": lint_res["total"]}, indent=2))
+    summary, lint_res = build(root, code_dir)
+    vview = summary.pop("_vview", {})
+    vview_path = summary.pop("_vview_path", os.path.join(root, "docs", "v-view.html"))
+    print(json.dumps({"index": os.path.join(root, "docs", "index.html"), "v_view": vview_path,
+                      "projects": summary, "lint_flags": lint_res["total"], "vview": vview}, indent=2))
     return 0
 
 

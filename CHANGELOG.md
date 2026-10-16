@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.4.0 — 2026-10-16
+
+- V debug view: `scripts/vmodel_vview.py` + `v-view` skill, owned by ssot-gate and run on every publish. Writes `.vmodel/docs/v-view.html` (one self-contained offline HTML file, inline JS/CSS, no CDN) from registries, `graph/edges.json`, `@trace` hits and lint flags.
+- Landing is a V (left: USR / Requirements / Functional / System / Unit; Coding; right: test levels) with a donut and status pills. Per-level spec and test lists. Focus walks USR↔REQ↔FNC/API↔CMP/INT↔UNT↔code `@trace`↔TST. World pans the whole graph. Review queue lists lint flags (broken `@trace`, orphan UNT, planned TST with no code, missing links).
+- `/v-view` rebuilds and opens the page. `/docs` and kettle example regenerate it. Generic V-model only.
+
 ## 0.3.0 — 2026-10-16
 
 - Adept designs every user-facing screen before coding (`skills/ui-design/SKILL.md`): layout, visual hierarchy, spacing and type scale, colour and contrast (WCAG AA), every state (empty, loading, error, hover, focus, disabled), keyboard/accessibility, responsive breakpoints. Design is recorded in `UNT.ui` or an SSOT doc; code must follow it. Language/framework-agnostic except the confirmed TOL. No new agent.
