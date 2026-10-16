@@ -24,13 +24,13 @@ Format: `{KIND}-{PROJECT}-NNN`
 | `EVD` | last-boss | Accepted evidence | «verify» result |
 
 ## Design → Code → Prove
-req-guardian → functional-specs → system-designer → unit-designer → adept (code, using TOL) → test-master → last-boss. ssot-gate publishes between each step.
+req-guardian → last-boss (REQ) → functional-specs → last-boss (FNC) → system-designer → last-boss (CMP/INT) → unit-designer → last-boss (UNT) → adept (code, using TOL; `ui-design` before any screen) → last-boss (code) → test-master → last-boss (tests) → last-boss (Done). ssot-gate publishes between each step. Last Boss never marks passed.
 
 ## Researcher
 Beside every phase. Returns cited RSH briefs. Never mints USR/REQ, never publishes. A direction change needs the user's approval.
 
 ## Last Boss
-Skeptic for left–right verification. Accepts evidence only from a real run (EVD).
+Skeptic for left–right verification after every stage and before Done. Stage checklists: REQ quality, FNC, CMP/INT, UNT, code, tests. Front-end review against the Adept UI design (screenshots or the running app). Accepts evidence only from a real run (EVD). Done means proven. She never marks anything passed.
 
 ## SSOT
 One publisher, one graph, in `.vmodel/` in the project repo. Every publish is a dated baseline.

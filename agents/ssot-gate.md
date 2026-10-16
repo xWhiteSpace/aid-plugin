@@ -19,10 +19,10 @@ You are the only publisher of shared project truth. You never invent requirement
 ## Publish
 1. Write accepted nodes to `.vmodel/registries/<kind>.json` and edges to `.vmodel/graph/edges.json`; increment `graph_version` in `.vmodel/graph/meta.json`.
 2. Write a baseline `.vmodel/baselines/<YYYY-MM-DD>-g<graph_version>.md`: added, amended (with previous → new), retired, refused, who proposed each.
-3. Run `python3 <plugin>/scripts/vmodel_lint.py .vmodel --code <project-src>` (omit `--code` only when the project has no source tree yet) and save its output to `.vmodel/lint/latest.json`. The report includes a **code trace** heading (orphan / untagged / malformed) or says "no trace flags".
+3. Run `python3 <plugin>/scripts/vmodel_lint.py .vmodel --code <project-tree>` (source and tests; omit `--code` only when the project has no source tree yet) and save its output to `.vmodel/lint/latest.json`. The report includes a **code trace** heading (orphan / untagged UNT / planned TST with no `@trace TST-…` in code / malformed) or says "no trace flags".
 4. Move processed proposals to `.vmodel/proposals/processed/`.
 
 ## Report (every time)
 - Accepted ids, refused items with reason, graph diff (+nodes, +edges, amended).
 - Impacted neighbors of every changed node, so owners know what else must update.
-- **Lint flags:** inconsistencies, redundancy, unconnected variables, orphans, gaps, and code-trace flags (orphan tags, untagged units, malformed tags). If there are none, say "Lint: no flags." / "no trace flags."
+- **Lint flags:** inconsistencies, redundancy, unconnected variables, orphans, gaps, and code-trace flags (orphan tags, untagged units, planned TST with no test in code carrying that id, malformed tags). If there are none, say "Lint: no flags." / "no trace flags."

@@ -53,7 +53,7 @@ Kind-specific extras (all optional unless noted):
 - **API:** `route` or `channel`, `contract_version`, `request` `{headers,query,body}`, `response.success.body`, `errors[]`
 - **CMP:** `responsibilities[]`
 - **INT:** `from_cmp`, `to_cmp`, `carries_api`, `implements_fnc`
-- **UNT:** `fields[]` `{name,type,meaning,set_by,read_by}`, `inputs[]`, `returns`, `rules[]`, `algorithms[]`, `source_files[]`
+- **UNT:** `fields[]` `{name,type,meaning,set_by,read_by}`, `inputs[]`, `returns`, `rules[]`, `algorithms[]`, `source_files[]`. Optional `ui` when the unit is a user-facing screen, page, dialog or visible control: `layout`, `visual_hierarchy`, `spacing`, `type_scale`, `colour`, `contrast` (WCAG AA), `states[]` (must include empty, loading, error, hover, focus, disabled), `keyboard`, `accessibility`, `breakpoints[]`. Adept designs this (`ui-design` skill) before coding; unit-designer records it here, or Adept writes `.vmodel/docs/<PROJECT>/ui/<UNT-id>.md`. Code must follow the record.
 - **TST:** `level` (required), `cases[]` `{input,expected}`, `verifies` is carried as edges
 - **EVD:** `command`, `commit`, `ran_at`, `outcome`, `artifact_path`
 - **RSH:** `question`, `answer`, `sources[]`, `asked_by`
@@ -84,14 +84,15 @@ For `create`, omit `previous` and set `base_version` to `0`. For `retire`, `new_
 
 
 ## Code traceability
-Source that implements a published `UNT` carries a machine tag and nothing else as a comment:
+Source that implements a published `UNT`, and tests that implement a published `TST`, carry a machine tag and nothing else as a comment:
 
-- Form: `@trace UNT-{PROJECT}-NNN` inside the **confirmed language TOL** `comment_syntax` (never guessed).
-- Place one tag on each function or module that implements the unit. A unit may span several functions; each carries the same UNT id.
-- Only the UNT id appears in the tag. REQ / FNC / CMP lineage is read from the graph (`UNT refines CMP|FNC`, `FNC implements REQ`).
-- Tags name only published UNT ids. Adept never mints ids.
+- Form: `@trace UNT-{PROJECT}-NNN` on product functions/modules, `@trace TST-{PROJECT}-NNN` on test functions, inside the **confirmed language TOL** `comment_syntax` (never guessed).
+- Place one UNT tag on each function or module that implements the unit. A unit may span several functions; each carries the same UNT id.
+- Place one TST tag on each test that implements a planned TST.
+- Only that one id appears in the tag. REQ / FNC / CMP lineage is read from the graph (`UNT refines CMP|FNC`, `FNC implements REQ`, `TST verifies …`).
+- Tags name only published UNT or TST ids. Adept never mints ids.
 - No explanatory human comments; names and small functions explain the logic.
-- Lint: `python3 <plugin>/scripts/vmodel_lint.py .vmodel --code <src-dir>` reports orphan tags, untagged published units, malformed tags, and a project that has source or UNT records but no published TOL, under a **code trace** heading (or "no trace flags").
+- Lint: `python3 <plugin>/scripts/vmodel_lint.py .vmodel --code <project-tree>` reports orphan tags, untagged published units, a planned TST with no test in code carrying that id, malformed tags, and a project that has source or UNT records but no published TOL, under a **code trace** heading (or "no trace flags"). Pass `--code` a tree that includes both product source and tests.
 
 ## Stack (TOL)
 A project that has product code (published `UNT`, or source files in a `--code` scan) must have at least one published `TOL`. `/setup-aid` runs `stack-detect`, the user confirms, `tools-manager` proposes, `ssot-gate` publishes. Adept, Test Master and `/usr` refuse to write code or tests until `confirmed: true` language and test_runner slots exist. Never assume a stack when the repo is empty or unclear.
