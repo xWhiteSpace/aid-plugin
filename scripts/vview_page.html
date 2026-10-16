@@ -1,0 +1,720 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>V-model debug view</title>
+<style>
+:root {
+  --bg: #0b1220;
+  --panel: #111827;
+  --ink: #e8eef7;
+  --muted: #9aa8bb;
+  --line: #243044;
+  --cyan: #5eead4;
+  --cyan-dim: #22d3ee;
+  --pass: #34d399;
+  --fail: #fb7185;
+  --skip: #fbbf24;
+  --idle: #94a3b8;
+  --focus: #ecfeff;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; height: 100%; background: var(--bg); color: var(--ink); font-family: system-ui, sans-serif; }
+button, select { font: inherit; }
+button { cursor: pointer; }
+button:focus-visible, select:focus-visible, a:focus-visible { outline: 2px solid var(--cyan); outline-offset: 2px; }
+#app { height: 100%; display: flex; flex-direction: column; }
+.bar { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 12px 20px; border-bottom: 1px solid var(--line); flex-shrink: 0; }
+.bar h1 { margin: 0; font-size: 16px; font-weight: 600; }
+.bar p, .hint { margin: 0; color: var(--muted); font-size: 12px; }
+.row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.chip, .pill {
+  border: 1px solid #334155; background: transparent; color: var(--ink);
+  border-radius: 999px; padding: 4px 12px; font-size: 11px; letter-spacing: .08em; text-transform: uppercase;
+}
+.chip[aria-pressed="true"], .pill.on { background: var(--focus); color: #0b1220; border-color: var(--focus); }
+.chip:hover, .pill:hover { border-color: var(--cyan); color: var(--focus); }
+.chip:disabled { opacity: .4; cursor: not-allowed; }
+.main { flex: 1; min-height: 0; display: flex; flex-direction: column; padding: 16px 20px 12px; }
+.card { border: 1px solid var(--line); background: #0f172a; border-radius: 16px; padding: 16px; }
+.stats { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; margin-top: 12px; }
+.stat { text-align: center; border: 1px solid var(--line); border-radius: 12px; padding: 8px; background: #020617; }
+.stat b { display: block; font-size: 22px; }
+.stat span { font-size: 11px; letter-spacing: .08em; text-transform: uppercase; }
+.stage-wrap { position: relative; flex: 1; min-height: 22rem; margin-top: 12px; }
+.stage { position: relative; width: 100%; max-width: 980px; margin: 0 auto; aspect-ratio: 1160 / 892; }
+.stage svg { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; pointer-events: none; }
+.rail { fill: none; stroke: var(--cyan-dim); stroke-width: 2.1; stroke-linecap: round; filter: drop-shadow(0 0 6px #0891b2); }
+.cross { fill: none; stroke-width: 1.2; opacity: .45; }
+.dot { filter: drop-shadow(0 0 3px currentColor); }
+.node {
+  position: absolute; width: 44px; height: 44px; margin: 0; padding: 0; border: 0; background: transparent;
+  transform: translate(-50%, -50%); z-index: 1;
+}
+.lab { position: absolute; top: 50%; width: max-content; max-width: 11rem; transform: translateY(-50%); }
+.lab p { margin: 2px 0 0; font-family: ui-monospace, monospace; font-size: 10px; color: var(--cyan); }
+.lab-l { right: calc(100% + 10px); text-align: right; }
+.lab-r { left: calc(100% + 10px); text-align: left; }
+.lab-a { left: 50%; right: auto; bottom: calc(100% + 8px); top: auto; transform: translateX(-50%); text-align: center; }
+.node:hover .lab, .node:focus-visible .lab { color: var(--focus); text-shadow: 0 0 10px rgba(34,211,238,.6); }
+.coding { position: absolute; transform: translate(-50%, 8px); background: none; border: 0; color: var(--cyan); letter-spacing: .28em; font-size: 10px; text-transform: uppercase; }
+.list { flex: 1; min-height: 0; overflow: auto; display: flex; flex-direction: column; gap: 10px; padding-bottom: 16px; }
+.item { display: block; width: 100%; text-align: left; border: 1px solid var(--line); background: #0f172a; color: inherit; border-radius: 14px; padding: 12px 14px; }
+.item:hover { border-color: rgba(94,234,212,.5); }
+.item .id { font-family: ui-monospace, monospace; font-size: 10px; color: var(--muted); }
+.item h3 { margin: 0 0 4px; font-size: 14px; font-weight: 600; }
+.status { border-radius: 999px; padding: 3px 10px; font-size: 11px; }
+.s-passed { background: rgba(52,211,153,.15); color: var(--pass); }
+.s-failed { background: rgba(251,113,133,.15); color: var(--fail); }
+.s-skipped { background: rgba(251,191,36,.15); color: var(--skip); }
+.s-not_run { background: #1e293b; color: var(--idle); }
+.overlay { position: fixed; inset: 0; background: var(--bg); z-index: 20; display: flex; flex-direction: column; }
+.split { display: flex; flex: 1; min-height: 0; }
+.side { width: 320px; min-width: 224px; max-width: 55vw; overflow: auto; padding: 20px; border-right: 1px solid var(--line); }
+.field { flex: 1; min-width: 0; min-height: 0; position: relative; }
+.field svg { width: 100%; height: 100%; display: block; }
+.grab { cursor: grab; }
+.grab:active { cursor: grabbing; }
+.kind { font-family: ui-monospace, monospace; font-size: 11px; letter-spacing: .16em; text-transform: uppercase; color: var(--cyan); }
+.side h2 { margin: 8px 0 4px; font-size: 20px; }
+.side .stmt { color: #cbd5e1; font-size: 14px; line-height: 1.45; }
+.ids { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 8px; }
+.ids button { border: 1px solid #334155; background: none; color: #cbd5e1; border-radius: 999px; padding: 2px 8px; font-family: ui-monospace, monospace; font-size: 10px; }
+.ids button:hover { border-color: var(--cyan); color: white; }
+pre { background: #020617; border: 1px solid var(--line); border-radius: 10px; padding: 10px; overflow: auto; font-size: 11px; color: #ecfeff; }
+.flags { color: #fde68a; }
+.foot { padding: 8px 20px 12px; color: var(--muted); font-size: 11px; flex-shrink: 0; }
+.empty { color: var(--muted); padding: 24px 4px; }
+@media (max-width: 720px) {
+  .stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .split { flex-direction: column; }
+  .side { width: 100%; max-width: none; border-right: 0; border-bottom: 1px solid var(--line); max-height: 40%; }
+  .lab { max-width: 6.5rem; font-size: 10px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  * { animation: none !important; transition: none !important; }
+}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<script>
+const DATA = __DATA__;
+(function () {
+  const STATUS = { passed: "#34d399", failed: "#fb7185", skipped: "#fbbf24", not_run: "#94a3b8" };
+  const KIND_COLOR = { USR: "#a5f3fc", REQ: "#67e8f9", FNC: "#22d3ee", API: "#818cf8", INT: "#93c5fd", CMP: "#c084fc", UNT: "#34d399", TST: "#fbbf24", CODE: "#e2e8f0", EVD: "#fda4af", TOL: "#94a3b8" };
+  const V_VIEW = { x: -160, y: -72, w: 1160, h: 892 };
+  const USR_HUB = { level: "needs", left: "USR", lx: -90, ly: 70, leftOnly: true };
+  const V_ROWS = [
+    { level: "acceptance", left: "Requirements", right: "Acceptance test", lx: 120, ly: 70, rx: 880, ry: 70, above: true },
+    { level: "system", left: "Functional", right: "System test", lx: 220, ly: 230, rx: 780, ry: 230 },
+    { level: "integration", left: "System", right: "Integration", lx: 320, ly: 390, rx: 680, ry: 390 },
+    { level: "unit", left: "Unit", right: "Unit test", lx: 400, ly: 550, rx: 600, ry: 550 }
+  ];
+  const CODING = { x: 500, y: 720 };
+  const LEFT_KINDS = { needs: ["USR"], acceptance: ["REQ"], system: ["FNC", "API"], integration: ["INT", "CMP"], unit: ["UNT"] };
+  const RING = ["USR", "REQ", "FNC", "API", "CMP", "INT", "UNT", "CODE", "TST"];
+  const FOCUS_TABS = [{ id: "Connections", kind: null }, { id: "USR", kind: "USR" }, { id: "REQ", kind: "REQ" }, { id: "FNC", kind: "FNC" }, { id: "API", kind: "API" }, { id: "CMP", kind: "CMP" }, { id: "INT", kind: "INT" }, { id: "UNT", kind: "UNT" }, { id: "Code", kind: "CODE" }, { id: "Tests", kind: "TST" }];
+  const GOLDEN = Math.PI * (3 - Math.sqrt(5));
+  const WORLD = { w: 1960, h: 1440 };
+  const V_SCALE = 1.65, V_OX = 340, V_OY = 70;
+  function vxy(x, y) { return { x: V_OX + x * V_SCALE, y: V_OY + y * V_SCALE }; }
+  const WORLD_LEFT = [
+    { key: "USR", kind: "USR", label: "USR", ...vxy(-180, 70) },
+    { key: "REQ", kind: "REQ", label: "REQ", ...vxy(120, 70) },
+    { key: "FNC", kind: "FNC", label: "FNC", ...vxy(220, 230) },
+    { key: "API", kind: "API", label: "API", ...vxy(290, 310) },
+    { key: "CMP", kind: "CMP", label: "CMP", ...vxy(320, 390) },
+    { key: "INT", kind: "INT", label: "INT", ...vxy(360, 460) },
+    { key: "UNT", kind: "UNT", label: "UNT", ...vxy(400, 550) }
+  ];
+  const WORLD_RIGHT = [
+    { key: "TST-acceptance", kind: "TST", level: "acceptance", label: "Acceptance", ...vxy(880, 70) },
+    { key: "TST-system", kind: "TST", level: "system", label: "System", ...vxy(780, 230) },
+    { key: "TST-integration", kind: "TST", level: "integration", label: "Integration", ...vxy(680, 390) },
+    { key: "TST-unit", kind: "TST", level: "unit", label: "Unit", ...vxy(600, 550) }
+  ];
+  const WORLD_CODING = { ...vxy(500, 720), label: "Coding" };
+  const WORLD_HUBS = WORLD_LEFT.concat(WORLD_RIGHT);
+  const S = {
+    project: (DATA.projects && DATA.projects[0]) || "",
+    screen: "landing",
+    level: null,
+    pane: "tests",
+    focusId: null,
+    world: false,
+    peekId: null,
+    tab: "Connections",
+    reviewI: 0,
+    cam: { x: 0, y: 0, k: 1 },
+    snippet: null
+  };
+  const root = document.getElementById("app");
+  function esc(s) {
+    return String(s == null ? "" : s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+  }
+  function nodesOf() {
+    return Object.keys(DATA.nodes).map(function (id) { return DATA.nodes[id]; }).filter(function (n) {
+      return !S.project || n.project === S.project;
+    });
+  }
+  function byKinds(kinds) {
+    return nodesOf().filter(function (n) { return kinds.indexOf(n.kind) >= 0; }).sort(function (a, b) { return a.id.localeCompare(b.id); });
+  }
+  function testsOf(level) {
+    return nodesOf().filter(function (n) {
+      return n.kind === "TST" && (n.level || "unit") === level;
+    }).sort(function (a, b) { return a.id.localeCompare(b.id); });
+  }
+  function tracesOf() {
+    const ids = {};
+    nodesOf().forEach(function (n) { ids[n.id] = true; });
+    return (DATA.traces || []).filter(function (t) { return ids[t.id]; });
+  }
+  function tstStatus(n) {
+    const s = (n && n.status) || "not_run";
+    if (s === "passed" || s === "failed" || s === "skipped") return s;
+    return "not_run";
+  }
+  function emptyTotals() { return { passed: 0, failed: 0, skipped: 0, not_run: 0 }; }
+  function addCount(c, s) { c[s] = (c[s] || 0) + 1; }
+  function totalsFor(list) {
+    const c = emptyTotals();
+    (list || []).forEach(function (n) { addCount(c, tstStatus(n)); });
+    return c;
+  }
+  function allTotals() { return totalsFor(nodesOf().filter(function (n) { return n.kind === "TST"; })); }
+  function toneOf(c) {
+    if (c.failed) return STATUS.failed;
+    if (c.passed && !c.not_run) return STATUS.passed;
+    if (c.skipped && !c.passed) return STATUS.skipped;
+    return "#22d3ee";
+  }
+  function pct(x, y) {
+    return {
+      left: (((x - V_VIEW.x) / V_VIEW.w) * 100) + "%",
+      top: (((y - V_VIEW.y) / V_VIEW.h) * 100) + "%"
+    };
+  }
+  function donut(c) {
+    const parts = ["passed", "failed", "skipped", "not_run"].map(function (k) {
+      return { k: k, v: c[k] || 0, color: STATUS[k] };
+    });
+    const total = parts.reduce(function (s, p) { return s + p.v; }, 0);
+    const r = 54, circ = 2 * Math.PI * r;
+    let cursor = 0;
+    const slices = parts.map(function (p) {
+      const t = total || 1;
+      const len = (p.v / t) * circ;
+      const el = '<circle cx="70" cy="70" r="' + r + '" fill="none" stroke="' + p.color + '" stroke-width="16" stroke-dasharray="' + len + " " + (circ - len) + '" stroke-dashoffset="' + (-cursor) + '"></circle>';
+      cursor += len;
+      return el;
+    }).join("");
+    return '<svg viewBox="0 0 140 140" width="120" height="120" role="img" aria-label="Check counts"><g transform="rotate(-90 70 70)">' + slices + '</g><text x="70" y="68" text-anchor="middle" fill="#f8fafc" font-size="22">' + total + '</text><text x="70" y="86" text-anchor="middle" fill="#94a3b8" font-size="10">checks</text></svg>';
+  }
+  function countLine(c) {
+    return ["passed", "failed", "skipped", "not_run"].map(function (k) {
+      return '<span style="color:' + STATUS[k] + '">' + (c[k] || 0) + " " + k.replace("_", " ") + "</span>";
+    }).join(" ");
+  }
+  function kindLine(list, kinds) {
+    return kinds.map(function (k) {
+      const n = list.filter(function (x) { return x.kind === k; }).length;
+      return n + " " + k;
+    }).join(" ");
+  }
+  function verifies(id) {
+    return DATA.edges.filter(function (e) { return e.type === "verifies" && e.from === id; }).map(function (e) { return e.to; });
+  }
+  function neighborMap(id) {
+    const rings = {};
+    RING.forEach(function (k) { rings[k] = []; });
+    const seen = {};
+    seen[id] = true;
+    function add(oid) {
+      const n = DATA.nodes[oid];
+      if (!n || seen[oid]) return;
+      if (S.project && n.project !== S.project) return;
+      seen[oid] = true;
+      if (!rings[n.kind]) rings[n.kind] = [];
+      rings[n.kind].push(n);
+    }
+    DATA.edges.forEach(function (e) {
+      if (e.from === id) add(e.to);
+      if (e.to === id) add(e.from);
+    });
+    const n = DATA.nodes[id];
+    if (n) {
+      ["from_cmp", "to_cmp", "carries_api", "implements_fnc"].forEach(function (k) { if (n[k]) add(n[k]); });
+      (n.source_files || []).forEach(function () {});
+    }
+    (DATA.traces || []).forEach(function (t) {
+      if (t.id === id) rings.CODE.push(t);
+    });
+    RING.forEach(function (k) {
+      rings[k].sort(function (a, b) { return String(a.id || a.file).localeCompare(String(b.id || b.file)); });
+    });
+    return rings;
+  }
+  function hubOf(n) {
+    if (n.kind === "TST") {
+      const level = n.level || "unit";
+      return WORLD_RIGHT.filter(function (h) { return h.level === level; })[0] || WORLD_RIGHT[3];
+    }
+    return WORLD_LEFT.filter(function (h) { return h.kind === n.kind; })[0];
+  }
+  function placeWorld() {
+    const groups = {};
+    WORLD_HUBS.forEach(function (h) { groups[h.key] = []; });
+    nodesOf().forEach(function (n) {
+      const h = hubOf(n);
+      if (!h) return;
+      groups[h.key].push(n);
+    });
+    const points = [];
+    WORLD_HUBS.forEach(function (h) {
+      groups[h.key].sort(function (a, b) { return a.id.localeCompare(b.id); });
+      groups[h.key].forEach(function (n, i) {
+        const compact = h.kind === "USR";
+        const radius = (compact ? 14 : 22) + (compact ? 5 : 9) * Math.sqrt(i);
+        const spin = i * GOLDEN;
+        points.push({ id: n.id, kind: n.kind, x: h.x + Math.cos(spin) * radius, y: h.y + Math.sin(spin) * radius });
+      });
+    });
+    tracesOf().forEach(function (t, i) {
+      const radius = 16 + 7 * Math.sqrt(i);
+      const spin = i * GOLDEN;
+      points.push({ id: "code:" + t.file + ":" + t.line, kind: "CODE", x: WORLD_CODING.x + Math.cos(spin) * radius, y: WORLD_CODING.y + Math.sin(spin) * radius, trace: t });
+    });
+    return points;
+  }
+  function placeFocus(id) {
+    const rings = neighborMap(id);
+    const center = DATA.nodes[id] || { id: id, kind: String(id).split("-")[0] };
+    const active = RING.filter(function (k) { return (rings[k] || []).length; });
+    const cx = 550, cy = 360;
+    const points = [{ id: center.id, kind: center.kind, x: cx, y: cy, center: true }];
+    active.forEach(function (k, ri) {
+      const items = rings[k];
+      const radius = 150 + ri * (active.length > 1 ? 160 / (active.length - 1) : 0);
+      items.forEach(function (item, i) {
+        const ang = -Math.PI / 2 + (Math.PI * 2 * i) / Math.max(items.length, 1);
+        const pid = item.file ? ("code:" + item.file + ":" + item.line) : item.id;
+        points.push({ id: pid, kind: k === "CODE" ? "CODE" : item.kind, x: cx + Math.cos(ang) * radius, y: cy + Math.sin(ang) * radius, trace: item.file ? item : null, src: item.id });
+      });
+    });
+    return { points: points, rings: rings, center: center, active: active };
+  }
+  function lintQueue() {
+    return (DATA.lint || []).filter(function (f) {
+      if (!S.project) return true;
+      return String(f.id || "").indexOf(S.project) >= 0 || String(f.message || "").indexOf(S.project) >= 0;
+    });
+  }
+  function summaryLine(c) {
+    const done = c.passed + c.failed + c.skipped;
+    if (!done) return "These checks are planned. None have been run yet.";
+    const bits = [];
+    if (c.passed) bits.push(c.passed + " passed");
+    if (c.failed) bits.push(c.failed + " failed");
+    if (c.skipped) bits.push(c.skipped + " skipped");
+    if (c.not_run) bits.push(c.not_run + " not run");
+    return bits.join(" · ");
+  }
+  function statusPill(s) {
+    return '<span class="status s-' + s + '">' + s.replace("_", " ") + "</span>";
+  }
+  function caseLines(n) {
+    return (n.cases || []).map(function (c) {
+      if (typeof c === "string") return esc(c);
+      return esc((c.input || "") + " → " + (c.expected || ""));
+    }).join("");
+  }
+  function bar(extra) {
+    const projects = (DATA.projects || []).map(function (p) {
+      return '<option value="' + esc(p) + '"' + (p === S.project ? " selected" : "") + ">" + esc(p) + "</option>";
+    }).join("");
+    return '<header class="bar"><div><h1>V-model debug view</h1><p>Graph ' + esc(DATA.meta.graph_version) + " · source " + esc(DATA.meta.source_commit || "n/a") + '</p></div><div class="row">' +
+      ((DATA.projects || []).length > 1 ? '<label class="hint">Project <select id="proj">' + projects + "</select></label>" : "") +
+      extra + "</div></header>";
+  }
+  function landing() {
+    const tot = allTotals();
+    const leftRail = [USR_HUB.lx + "," + USR_HUB.ly].concat(V_ROWS.map(function (r) { return r.lx + "," + r.ly; })).concat([CODING.x + "," + CODING.y]).join(" ");
+    const rightRail = V_ROWS.map(function (r) { return r.rx + "," + r.ry; }).concat([CODING.x + "," + CODING.y]).join(" ");
+    let nodes = "";
+    function nodeBtn(id, x, y, side, label, sub, above) {
+      const p = pct(x, y);
+      const lab = "lab " + (side === "l" ? "lab-l" : "lab-r") + (above ? " lab-a" : "");
+      nodes += '<button type="button" class="node" data-act="open" data-level="' + id + '" data-pane="' + (side === "l" ? "spec" : "tests") + '" style="left:' + p.left + ";top:" + p.top + '" aria-label="' + esc(label) + '"><span class="' + lab + '"><span>' + esc(label) + "</span><p>" + sub + "</p></span></button>";
+    }
+    const usr = byKinds(["USR"]);
+    nodeBtn("needs", USR_HUB.lx, USR_HUB.ly, "l", "USR", kindLine(usr, ["USR"]), true);
+    V_ROWS.forEach(function (row) {
+      const kinds = LEFT_KINDS[row.level];
+      const specs = byKinds(kinds);
+      const tests = testsOf(row.level);
+      const counts = totalsFor(tests);
+      nodeBtn(row.level, row.lx, row.ly, "l", row.left, kindLine(specs, kinds), row.above);
+      nodeBtn(row.level, row.rx, row.ry, "r", row.right, countLine(counts), row.above);
+    });
+    const cp = pct(CODING.x, CODING.y);
+    nodes += '<button type="button" class="coding" data-act="code" style="left:' + cp.left + ";top:" + cp.top + '">coding · ' + tracesOf().length + " @trace</button>";
+    let dots = "";
+    function circ(x, y, fill) {
+      dots += '<circle class="dot" cx="' + x + '" cy="' + y + '" r="8" fill="' + fill + '"></circle>';
+    }
+    circ(USR_HUB.lx, USR_HUB.ly, "#22d3ee");
+    V_ROWS.forEach(function (row) {
+      const tone = toneOf(totalsFor(testsOf(row.level)));
+      dots += '<line class="cross" x1="' + row.lx + '" y1="' + row.ly + '" x2="' + row.rx + '" y2="' + row.ry + '" stroke="' + tone + '"></line>';
+      circ(row.lx, row.ly, tone);
+      circ(row.rx, row.ry, tone);
+    });
+    circ(CODING.x, CODING.y, "#22d3ee");
+    return bar('<button class="chip" data-act="review" type="button">Review queue · ' + lintQueue().length + '</button><button class="chip" data-act="world" type="button">World</button>') +
+      '<div class="main"><section class="card"><div class="row" style="align-items:center;gap:20px">' + donut(tot) +
+      '<div style="flex:1"><h2 style="margin:0 0 6px;font-size:18px">What we check</h2><p class="hint">' + esc(summaryLine(tot)) + "</p>" +
+      '<div class="stats">' + ["passed", "failed", "skipped", "not_run"].map(function (k) {
+        return '<div class="stat"><b>' + tot[k] + '</b><span style="color:' + STATUS[k] + '">' + k.replace("_", " ") + "</span></div>";
+      }).join("") + "</div></div></div></section>" +
+      '<div class="stage-wrap"><div class="stage"><svg viewBox="' + V_VIEW.x + " " + V_VIEW.y + " " + V_VIEW.w + " " + V_VIEW.h + '" aria-hidden="true"><polyline class="rail" points="' + leftRail + '"></polyline><polyline class="rail" points="' + rightRail + '"></polyline>' + dots + "</svg>" + nodes + "</div></div></div>";
+  }
+  function rowOf(level) {
+    if (level === "needs") return USR_HUB;
+    return V_ROWS.filter(function (r) { return r.level === level; })[0];
+  }
+  function listHeader(title, sub, extras) {
+    return '<div class="row" style="margin-bottom:12px"><button class="chip" data-act="back" type="button">Back</button>' + (extras || "") + '</div><h2 style="margin:0 0 4px">' + esc(title) + '</h2><p class="hint">' + esc(sub) + "</p>";
+  }
+  function specView() {
+    const row = rowOf(S.level);
+    const kinds = LEFT_KINDS[S.level] || [];
+    const items = byKinds(kinds);
+    const cards = items.length ? items.map(function (n) {
+      const checks = DATA.edges.filter(function (e) { return e.type === "verifies" && e.to === n.id; }).map(function (e) { return e.from; });
+      return '<button type="button" class="item" data-act="focus" data-id="' + esc(n.id) + '"><div class="row" style="justify-content:space-between"><div><h3>' + esc(n.title || n.id) + '</h3><div class="id">' + esc(n.id) + '</div></div><span class="kind">' + esc(n.kind) + "</span></div>" +
+        (n.statement ? '<p class="hint" style="margin-top:8px">' + esc(n.statement) + "</p>" : "") +
+        (checks.length ? '<p class="id" style="margin-top:8px">' + esc(checks.join(" · ")) + "</p>" : "") + "</button>";
+    }).join("") : '<p class="empty">No published items at this level.</p>';
+    const extras = '<button class="chip" data-act="pane" data-pane="tests" type="button"' + (row.leftOnly ? " disabled" : "") + ">" + esc(row.right || "Tests") + '</button><button class="chip" data-act="review" type="button">Review</button>';
+    return bar("") + '<div class="main">' + listHeader(row.left, items.length + " published", extras) + '<div class="list">' + cards + "</div></div>";
+  }
+  function testsView() {
+    const row = rowOf(S.level);
+    const tests = testsOf(S.level);
+    const c = totalsFor(tests);
+    const cards = tests.length ? tests.map(function (n) {
+      const v = verifies(n.id);
+      const cases = (n.cases || []).map(function (cs, i) {
+        const line = typeof cs === "string" ? cs : ((cs.input || "") + " → " + (cs.expected || ""));
+        return "<li>" + esc(line) + "</li>";
+      }).join("");
+      return '<button type="button" class="item" data-act="focus" data-id="' + esc(n.id) + '"><div class="row" style="justify-content:space-between"><div><h3>' + esc(n.title || n.id) + '</h3><div class="id">' + esc(n.id) + "</div></div>" + statusPill(tstStatus(n)) + "</div>" +
+        (v.length ? '<p class="id" style="margin-top:8px">' + esc(v.join(" · ")) + "</p>" : "") +
+        (cases ? '<ul style="margin:8px 0 0;padding-left:16px;color:#cbd5e1;font-size:12px">' + cases + "</ul>" : '<p class="hint" style="margin-top:8px">No cases on this plan.</p>') + "</button>";
+    }).join("") : '<p class="empty">No checks at this level.</p>';
+    const extras = '<button class="chip" data-act="pane" data-pane="spec" type="button">' + esc(row.left) + "</button>";
+    return bar("") + '<div class="main">' + listHeader(row.right || "Tests", summaryLine(c) + " · " + tests.length, extras) + '<div class="list">' + cards + "</div></div>";
+  }
+  function codeView() {
+    const traces = tracesOf();
+    const cards = traces.length ? traces.map(function (t) {
+      return '<button type="button" class="item" data-act="focus" data-id="' + esc(t.id) + '"><div class="row" style="justify-content:space-between"><div><h3>' + esc(t.file) + ":" + t.line + '</h3><div class="id">@trace ' + esc(t.id) + '</div></div><span class="kind">CODE</span></div><pre>' + esc(t.snippet || "") + "</pre></button>";
+    }).join("") : '<p class="empty">No @trace tags in the scanned tree.</p>';
+    return bar("") + '<div class="main">' + listHeader("Coding", traces.length + " tags", "") + '<div class="list">' + cards + "</div></div>";
+  }
+  function reviewView() {
+    const q = lintQueue();
+    const cur = q[S.reviewI] || null;
+    const extras = '<button class="chip" data-act="rev" data-d="-1" type="button">Prev</button><button class="chip" data-act="rev" data-d="1" type="button">Next</button>';
+    let body = '<p class="empty">No lint flags. Broken traces, orphan units, planned TST with no code, and missing links will appear here.</p>';
+    if (cur) {
+      const node = DATA.nodes[cur.id];
+      body = '<p class="kind">' + esc(cur.category) + "</p><h2>" + esc(cur.id) + '</h2><p class="stmt flags">' + esc(cur.message) + "</p>" +
+        (node && node.statement ? '<p class="stmt">' + esc(node.statement) + "</p>" : "") +
+        (node ? '<p style="margin-top:16px"><button class="chip" data-act="focus" data-id="' + esc(cur.id) + '" type="button">Open in Focus</button></p>' : "");
+    }
+    return bar("") + '<div class="main">' + listHeader("Review queue", (S.reviewI + (cur ? 1 : 0)) + " / " + q.length + " flags · not SSOT status", extras) + '<div class="card" style="margin-top:12px">' + body + "</div></div>";
+  }
+  function sidePanel(preview, rings) {
+    const n = preview && preview.trace ? null : (preview && DATA.nodes[preview.src || preview.id]);
+    const t = preview && preview.trace;
+    const kind = t ? "CODE" : (n && n.kind) || "";
+    let html = '<p class="kind">' + (S.world ? "World" : "Focus") + (kind ? " · " + esc(kind) : "") + "</p>";
+    if (t) {
+      html += "<h2>" + esc(t.file) + ":" + t.line + '</h2><p class="id">@trace ' + esc(t.id) + "</p><pre>" + esc(t.snippet || "") + "</pre>";
+      html += '<p style="margin-top:12px"><button class="chip" data-act="focus" data-id="' + esc(t.id) + '" type="button">Goto ' + esc(t.id) + "</button></p>";
+      return html;
+    }
+    if (!n) {
+      html += "<h2>Entire neighborhood</h2><p class=\"hint\">Hover a node to preview. Click to select. Double-click to freeze on it.</p>";
+      return html;
+    }
+    html += "<h2>" + esc(n.title || n.id) + '</h2><p class="id">' + esc(n.id) + "</p>";
+    if (n.statement) html += '<p class="stmt">' + esc(n.statement) + "</p>";
+    if (n.acceptance) html += '<p class="hint">Acceptance: ' + esc(n.acceptance) + "</p>";
+    if (n.kind === "TST") html += "<p>" + statusPill(tstStatus(n)) + "</p>";
+    function pills(caption, items, empty) {
+      html += '<p class="kind" style="margin-top:18px">' + esc(caption) + "</p>";
+      if (!items.length) html += '<p class="hint">' + esc(empty) + "</p>";
+      else html += '<div class="ids">' + items.map(function (x) {
+        const id = x.id || x;
+        return '<button type="button" data-act="peek" data-id="' + esc(id) + '">' + esc(id) + "</button>";
+      }).join("") + "</div>";
+    }
+    if (n.kind === "USR" || n.kind === "REQ") {
+      pills("Satisfied by", (rings.FNC || []).concat(rings.API || []), "No function implements this need.");
+      pills("Verify plans", rings.TST || [], "No test plan verifies this node.");
+    }
+    if (n.kind === "FNC") {
+      pills("Allocated to", rings.CMP || [], "No component allocated.");
+      pills("Refined by", rings.UNT || [], "No units refine this function.");
+      pills("Satisfies", rings.REQ || [], "No requirements on this function.");
+    }
+    if (n.kind === "CMP") {
+      pills("Functions", rings.FNC || [], "No functions allocated to this block.");
+      pills("Ports", (rings.INT || []).concat(rings.API || []), "No interfaces on this block.");
+      pills("Parts", rings.UNT || [], "No units in this block.");
+    }
+    if (n.kind === "API") {
+      pills("Connects", rings.CMP || [], "No components on this contract.");
+      pills("Used by", rings.FNC || [], "No functions use this contract.");
+    }
+    if (n.kind === "INT") {
+      pills("Components", rings.CMP || [], "No components on this seam.");
+      pills("Function", rings.FNC || [], "No function on this seam.");
+    }
+    if (n.kind === "UNT") {
+      const files = (n.source_files || []).concat((rings.CODE || []).map(function (c) { return c.file + ":" + c.line; }));
+      pills("Code @trace", rings.CODE || [], "No @trace for this unit.");
+      if (files.length) html += '<p class="id" style="margin-top:8px">' + esc((n.source_files || []).join(" → ")) + "</p>";
+      pills("Tests", rings.TST || [], "No unit test verifies this unit.");
+    }
+    if (n.kind === "TST") {
+      pills("Verifies", RING.reduce(function (acc, k) {
+        if (k === "TST" || k === "CODE") return acc;
+        return acc.concat(rings[k] || []);
+      }, []), "This test verifies nothing.");
+      pills("Code @trace", rings.CODE || [], "No @trace for this test.");
+    }
+    if (S.peekId && S.peekId !== S.focusId) {
+      html += '<p style="margin-top:16px"><button class="chip" data-act="focus" data-id="' + esc(S.peekId) + '" type="button">Goto</button></p>';
+    }
+    return html;
+  }
+  function graphSvg() {
+    const world = S.world;
+    const local = world ? null : placeFocus(S.focusId);
+    const points = world ? placeWorld() : local.points;
+    const rings = local ? local.rings : neighborMap(S.peekId || S.focusId);
+    const vb = world
+      ? (S.cam.x + " " + S.cam.y + " " + (WORLD.w / S.cam.k) + " " + (WORLD.h / S.cam.k))
+      : "0 0 1100 720";
+    let svg = '<svg id="field-svg" viewBox="' + vb + '" preserveAspectRatio="xMidYMid meet">';
+    if (world) {
+      const lpts = [vxy(-180, 70), vxy(120, 70), vxy(220, 230), vxy(320, 390), vxy(400, 550), WORLD_CODING].map(function (p) { return p.x + "," + p.y; }).join(" ");
+      const rpts = WORLD_RIGHT.map(function (p) { return p.x + "," + p.y; }).concat([WORLD_CODING.x + "," + WORLD_CODING.y]).join(" ");
+      svg += '<polyline points="' + lpts + '" fill="none" stroke="rgba(34,211,238,.08)" stroke-width="88" stroke-linecap="round"></polyline>';
+      svg += '<polyline points="' + rpts + '" fill="none" stroke="rgba(34,211,238,.08)" stroke-width="88" stroke-linecap="round"></polyline>';
+      svg += '<circle cx="' + WORLD_CODING.x + '" cy="' + WORLD_CODING.y + '" r="7" fill="#22d3ee" opacity=".55"></circle>';
+      svg += '<text x="' + WORLD_CODING.x + '" y="' + (WORLD_CODING.y + 22) + '" text-anchor="middle" fill="#67e8f9" font-size="12" opacity=".5">Coding</text>';
+      WORLD_HUBS.forEach(function (h) {
+        svg += '<text x="' + h.x + '" y="' + (h.y - 18) + '" text-anchor="middle" fill="' + (KIND_COLOR[h.kind] || "#67e8f9") + '" font-size="13" opacity=".7">' + esc(h.label) + "</text>";
+      });
+    } else {
+      local.active.forEach(function (k, ri) {
+        const radius = 150 + ri * (local.active.length > 1 ? 160 / (local.active.length - 1) : 0);
+        svg += '<circle cx="550" cy="360" r="' + radius + '" fill="none" stroke="rgba(34,211,238,.12)"></circle>';
+      });
+      points.forEach(function (p) {
+        if (p.center) return;
+        svg += '<line x1="550" y1="360" x2="' + p.x + '" y2="' + p.y + '" stroke="rgba(34,211,238,.22)"></line>';
+      });
+    }
+    points.forEach(function (p) {
+      const selected = (!world && p.center) || p.id === S.focusId || p.id === S.peekId;
+      const r = p.center ? 11 : (p.kind === "CODE" ? 5 : 7);
+      svg += '<circle data-nid="' + esc(p.id) + '" cx="' + p.x + '" cy="' + p.y + '" r="' + r + '" fill="' + (KIND_COLOR[p.kind] || "#67e8f9") + '" stroke="' + (selected ? "#ecfeff" : "transparent") + '" stroke-width="2" style="cursor:pointer"></circle>';
+    });
+    svg += "</svg>";
+    return { svg: svg, rings: rings, points: points };
+  }
+  function focusView() {
+    const g = graphSvg();
+    const previewId = S.peekId || S.focusId;
+    const preview = g.points.filter(function (p) { return p.id === previewId; })[0] || { id: previewId };
+    const tabs = FOCUS_TABS.map(function (t) {
+      const count = t.kind ? ((g.rings[t.kind] || []).length) : "";
+      return '<button class="pill' + (S.tab === t.id ? " on" : "") + '" data-act="tab" data-tab="' + t.id + '" type="button" aria-pressed="' + (S.tab === t.id) + '">' + t.id + (t.kind ? " " + count : "") + "</button>";
+    }).join("");
+    let list = "";
+    const tab = FOCUS_TABS.filter(function (t) { return t.id === S.tab; })[0];
+    if (tab && tab.kind) {
+      const items = g.rings[tab.kind] || [];
+      list = '<div class="list" style="padding:12px">' + (items.length ? items.map(function (it) {
+        const id = it.file ? it.id : it.id;
+        const label = it.file ? (it.file + ":" + it.line) : it.id;
+        return '<button type="button" class="item" data-act="focus" data-id="' + esc(id) + '"><h3>' + esc(it.title || label) + '</h3><div class="id">' + esc(label) + "</div></button>";
+      }).join("") : '<p class="empty">None.</p>') + "</div>";
+    }
+    return '<div class="overlay">' + bar('<button class="chip" data-act="unfocus" type="button">Back</button><button class="chip" data-act="toggle-world" type="button" aria-pressed="' + S.world + '">World</button>') +
+      '<div class="row" style="padding:8px 20px">' + tabs + "</div>" +
+      '<div class="split"><aside class="side">' + sidePanel(preview, g.rings) + "</aside>" +
+      (S.tab === "Connections"
+        ? '<div class="field' + (S.world ? " grab" : "") + '" id="field">' + g.svg + "</div>"
+        : list) +
+      "</div></div>";
+  }
+  function foot() {
+    return '<p class="foot">Plan lineage, not proof. Tests are not run unless evidence (EVD) says otherwise. Last Boss never marks passed from this view.</p>';
+  }
+  function render() {
+    let html = "";
+    if (S.screen === "focus") html = focusView();
+    else if (S.screen === "spec") html = specView();
+    else if (S.screen === "tests") html = testsView();
+    else if (S.screen === "code") html = codeView();
+    else if (S.screen === "review") html = reviewView();
+    else html = landing();
+    root.innerHTML = html + foot();
+    bind();
+  }
+  function worldStartId() {
+    const fn = nodesOf().filter(function (n) { return n.kind === "FNC"; })[0];
+    const rq = nodesOf().filter(function (n) { return n.kind === "REQ"; })[0];
+    const any = nodesOf()[0];
+    return (fn || rq || any || {}).id || null;
+  }
+  function bind() {
+    root.onclick = function (ev) {
+      const t = ev.target.closest("[data-act]");
+      if (!t) return;
+      const act = t.getAttribute("data-act");
+      if (act === "open") {
+        S.level = t.getAttribute("data-level");
+        S.pane = t.getAttribute("data-pane");
+        S.screen = S.pane === "spec" ? "spec" : "tests";
+        render();
+      } else if (act === "back") {
+        S.screen = "landing";
+        S.level = null;
+        render();
+      } else if (act === "pane") {
+        S.pane = t.getAttribute("data-pane");
+        S.screen = S.pane === "spec" ? "spec" : "tests";
+        render();
+      } else if (act === "code") {
+        S.screen = "code";
+        render();
+      } else if (act === "review") {
+        S.screen = "review";
+        S.reviewI = 0;
+        render();
+      } else if (act === "rev") {
+        const q = lintQueue();
+        if (!q.length) return;
+        S.reviewI = (S.reviewI + Number(t.getAttribute("data-d")) + q.length) % q.length;
+        render();
+      } else if (act === "world") {
+        const id = worldStartId();
+        if (!id) return;
+        S.focusId = id;
+        S.world = true;
+        S.peekId = null;
+        S.tab = "Connections";
+        S.screen = "focus";
+        S.cam = { x: 0, y: 0, k: 1 };
+        render();
+      } else if (act === "toggle-world") {
+        S.world = !S.world;
+        S.cam = { x: 0, y: 0, k: 1 };
+        render();
+      } else if (act === "unfocus") {
+        S.screen = "landing";
+        S.focusId = null;
+        S.world = false;
+        S.peekId = null;
+        render();
+      } else if (act === "focus") {
+        const id = t.getAttribute("data-id");
+        if (!DATA.nodes[id]) return;
+        S.focusId = id;
+        S.peekId = id;
+        S.world = false;
+        S.tab = "Connections";
+        S.screen = "focus";
+        render();
+      } else if (act === "peek") {
+        S.peekId = t.getAttribute("data-id");
+        render();
+      } else if (act === "tab") {
+        S.tab = t.getAttribute("data-tab");
+        render();
+      }
+    };
+    const proj = document.getElementById("proj");
+    if (proj) proj.onchange = function () { S.project = proj.value; render(); };
+    const field = document.getElementById("field");
+    const svg = document.getElementById("field-svg");
+    if (field && svg) {
+      let drag = null;
+      field.onpointerdown = function (e) {
+        if (e.button !== 0) return;
+        drag = { x: e.clientX, y: e.clientY, cx: S.cam.x, cy: S.cam.y, moved: false };
+        if (S.world) field.setPointerCapture(e.pointerId);
+      };
+      field.onpointermove = function (e) {
+        if (!drag || !S.world) return;
+        if (Math.hypot(e.clientX - drag.x, e.clientY - drag.y) > 6) drag.moved = true;
+        if (!drag.moved) return;
+        const rect = svg.getBoundingClientRect();
+        const scale = Math.min(rect.width / (WORLD.w / S.cam.k), rect.height / (WORLD.h / S.cam.k));
+        S.cam.x = drag.cx - (e.clientX - drag.x) / scale;
+        S.cam.y = drag.cy - (e.clientY - drag.y) / scale;
+        svg.setAttribute("viewBox", S.cam.x + " " + S.cam.y + " " + (WORLD.w / S.cam.k) + " " + (WORLD.h / S.cam.k));
+      };
+      field.onpointerup = function (e) {
+        const moved = drag && drag.moved;
+        drag = null;
+        if (moved) return;
+        const hit = e.target.closest("[data-nid]");
+        if (!hit) { S.peekId = null; render(); return; }
+        const nid = hit.getAttribute("data-nid");
+        if (nid.indexOf("code:") === 0) {
+          S.peekId = nid;
+          render();
+          return;
+        }
+        if (S.peekId === nid) {
+          S.focusId = nid;
+          S.world = false;
+          S.tab = "Connections";
+          render();
+          return;
+        }
+        S.peekId = nid;
+        render();
+      };
+      field.onwheel = function (e) {
+        if (!S.world) return;
+        e.preventDefault();
+        const factor = e.deltaY < 0 ? 1.12 : 1 / 1.12;
+        const nextK = Math.min(8, Math.max(0.7, S.cam.k * factor));
+        S.cam.k = nextK;
+        svg.setAttribute("viewBox", S.cam.x + " " + S.cam.y + " " + (WORLD.w / S.cam.k) + " " + (WORLD.h / S.cam.k));
+      };
+    }
+  }
+  document.addEventListener("keydown", function (e) {
+    if (e.key === "Escape") {
+      if (S.screen === "focus") { S.screen = "landing"; S.focusId = null; S.world = false; render(); }
+      else if (S.screen !== "landing") { S.screen = "landing"; render(); }
+    }
+  });
+  render();
+})();
+</script>
+</body>
+</html>

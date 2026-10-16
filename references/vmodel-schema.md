@@ -28,7 +28,8 @@ Project-local Single Source of Truth. Every A.I.D publish lives here so a fresh 
 ├── lint/
 │   └── latest.json
 └── docs/                  # rebuilt by /docs; safe to regenerate
-    └── index.html
+    ├── index.html
+    └── v-view.html        # interactive V debug view (ssot-gate / /v-view)
 ```
 
 ## Common node fields
