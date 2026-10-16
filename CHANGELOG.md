@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.3.0 — 2026-10-16
+
+- Adept designs every user-facing screen before coding (`skills/ui-design/SKILL.md`): layout, visual hierarchy, spacing and type scale, colour and contrast (WCAG AA), every state (empty, loading, error, hover, focus, disabled), keyboard/accessibility, responsive breakpoints. Design is recorded in `UNT.ui` or an SSOT doc; code must follow it. Language/framework-agnostic except the confirmed TOL. No new agent.
+- Last Boss is a stage-by-stage checklist (REQ quality, FNC, CMP/INT, UNT, code, tests) plus a strict front-end review against that UI design using screenshots or the running app. Done means proven; she never marks anything passed.
+- `/usr` spawns Last Boss after each stage before moving on, and again before Done.
+- Lint `--code` and ssot-gate publish: flag a planned TST that has no test in code carrying `@trace TST-{PROJECT}-NNN`, alongside the existing UNT `@trace` checks. Kettle example tests under `examples/electric-kettle/tests/` tag `TST-KTL-001..012`.
+
 ## 0.2.0 — 2026-10-16
 
 - Stack/setup check: agents never guess language or tooling.

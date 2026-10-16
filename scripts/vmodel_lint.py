@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Lint a .vmodel/ SSOT tree. Reports inconsistencies, redundancy, unconnected
 variables, orphans, gaps and isolation breaks. Optional --code scan for
-@trace UNT-… tags.
+@trace UNT-… and @trace TST-… tags.
 
 Usage: python3 vmodel_lint.py .vmodel [--write] [--code <dir>]
 """
@@ -21,8 +21,9 @@ SOURCE_EXT = {
     ".java", ".go", ".rs", ".rb", ".swift", ".kt", ".kts",
     ".cs", ".m", ".mm", ".scala", ".php", ".lua",
 }
-# Any @trace … token (well-formed UNT checked separately)
+# Any @trace … token (well-formed UNT/TST checked separately)
 TRACE_ANY_RE = re.compile(r"@trace\s+(\S+)")
+TRACE_ID_RE = re.compile(r"^(UNT|TST)-[A-Z0-9]{2,5}-\d{3,}$")
 
 
 def walk_fields(obj, prefix=""):
@@ -167,7 +168,8 @@ def lint(root):
 def scan_code(code_dir, nodes):
     """Return list of code-trace flags."""
     flags = []
-    tagged = set()  # published UNT ids that appear in at least one well-formed tag
+    tagged_unt = set()
+    tagged_tst = set()
     source_seen = False
 
     def flag(nid, msg):
@@ -195,29 +197,39 @@ def scan_code(code_dir, nodes):
             ssot_projects = {n.get("project") for n in nodes.values() if n.get("project")}
             for m in TRACE_ANY_RE.finditer(text):
                 token = m.group(1).rstrip(",;")
-                um2 = re.match(r"^(UNT-[A-Z0-9]{2,5}-\d{3,})$", token)
+                um2 = TRACE_ID_RE.match(token)
                 if not um2:
                     flag(rel, "malformed tag @trace %s" % token)
                     continue
-                uid = um2.group(1)
+                uid = um2.group(0)
+                kind = um2.group(1)
                 proj = project_of(uid)
                 if proj and ssot_projects and proj not in ssot_projects:
                     flag(uid, "orphan tag in %s (other project)" % rel)
                     continue
                 node = nodes.get(uid)
-                if node is None or node.get("kind") != "UNT":
-                    flag(uid, "orphan tag in %s (not a published UNT)" % rel)
+                if node is None or node.get("kind") != kind:
+                    flag(uid, "orphan tag in %s (not a published %s)" % (rel, kind))
                     continue
                 if node.get("status") == "retired":
-                    flag(uid, "orphan tag in %s (UNT is retired)" % rel)
+                    flag(uid, "orphan tag in %s (%s is retired)" % (rel, kind))
                     continue
-                tagged.add(uid)
+                if kind == "UNT":
+                    tagged_unt.add(uid)
+                else:
+                    tagged_tst.add(uid)
 
     for u in by_kind(nodes, "UNT"):
         if u.get("status") == "retired":
             continue
-        if u["id"] not in tagged:
+        if u["id"] not in tagged_unt:
             flag(u["id"], "untagged unit")
+
+    for t in by_kind(nodes, "TST"):
+        if t.get("status") == "retired":
+            continue
+        if t["id"] not in tagged_tst:
+            flag(t["id"], "planned TST has no test in code carrying this id")
 
     if source_seen:
         live_tol = {t.get("project") for t in by_kind(nodes, "TOL")

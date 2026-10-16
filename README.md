@@ -40,14 +40,14 @@ Verified from [cursor.com/docs/plugins](https://cursor.com/docs/plugins) and [Pl
 
 1. Intake filter (project ask vs research vs junk).
 2. **Stack gate:** confirmed `TOL` entries must exist (or `/usr` stops and runs stack-detect / asks).
-3. req-guardian → USR + REQ.
-4. ssot-gate publishes.
-5. functional-specs → FNC / API.
-6. system-designer → CMP / INT.
-7. unit-designer → UNT.
-8. test-master → TST plans (`not_run`) using the TOL test runner.
-9. ssot-gate publishes again and **always** reports lint (or says there are none).
-10. last-boss challenges claims.
+3. req-guardian → USR + REQ → ssot-gate → **Last Boss (REQ)**.
+4. functional-specs → FNC / API → **Last Boss (FNC)**.
+5. system-designer → CMP / INT → **Last Boss (CMP/INT)**.
+6. unit-designer → UNT (screens include Adept `ui-design`) → **Last Boss (UNT)**.
+7. test-master → TST plans (`not_run`) using the TOL test runner → **Last Boss (tests)**.
+8. Adept (only if this run is implementing): `ui-design` before any screen, then code → **Last Boss (code)**.
+9. ssot-gate publishes again and **always** reports lint (or says there are none), including planned TST ids with no `@trace TST-…` in code.
+10. **Last Boss (Done)** challenges the whole slice (and the running UI against the recorded design). She never marks passed.
 11. `/docs` builds the pictures.
 
 Other commands: `/setup-aid` (labels, models, **stack-detect → TOL**), `/catchup` (sync from your git diff), `/docs`.
@@ -58,14 +58,16 @@ Other commands: `/setup-aid` (labels, models, **stack-detect → TOL**), `/catch
 - Nothing is marked passed without evidence (EVD).
 - Projects are isolated (no cross-project edges).
 - Ids: `USR|REQ|FNC|API|CMP|INT|UNT|TST|TOL|…-{PROJECT}-NNN`.
-- **No guessed stack.** `/usr`, adept and test-master will not write code or tests until the user has confirmed TOL entries (language, test runner, and the other slots). Adept follows that language's comment syntax for `@trace UNT-…` only.
+- **No guessed stack.** `/usr`, adept and test-master will not write code or tests until the user has confirmed TOL entries (language, test runner, and the other slots). Adept follows that language's comment syntax for `@trace UNT-…` on product code and `@trace TST-…` on tests.
+- **UI is designed before it is coded.** Adept follows `ui-design`; Last Boss reviews the running screen against that record.
+- **Last Boss after every stage** and again before Done. Nothing is Done until proven.
 
 ## Example
 
 `examples/electric-kettle/` is a full worked V for a smart kettle, project code **KTL**. Open `examples/electric-kettle/.vmodel/docs/index.html` in a browser. Rebuild with:
 
 ```bash
-python3 scripts/vmodel_lint.py examples/electric-kettle/.vmodel --write --code examples/electric-kettle/src
+python3 scripts/vmodel_lint.py examples/electric-kettle/.vmodel --write --code examples/electric-kettle
 python3 scripts/vmodel_docs.py examples/electric-kettle/.vmodel
 ```
 
@@ -76,8 +78,8 @@ Python 3.8+, no packages. The example stack is recorded as `TOL-KTL-001..006` (P
 ```text
 .cursor-plugin/plugin.json   # Cursor Plugin manifest
 plugin.json                  # Agent Plugins companion
-agents/                      # req-guardian, ssot-gate, tools-manager, adept, …
-skills/                      # usr, setup-aid, stack-detect, reverse-engineer-*, …
+agents/                      # req-guardian, ssot-gate, tools-manager, adept, last-boss, …
+skills/                      # usr, setup-aid, stack-detect, ui-design, reverse-engineer-*, …
 commands/                    # /usr /catchup /docs /setup-aid
 rules/                       # always-on V-model core
 scripts/                     # vmodel_docs.py, vmodel_lint.py

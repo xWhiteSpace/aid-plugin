@@ -14,6 +14,7 @@ You own `UNT` records.
 3. Keep computed and stored values with the same name apart.
 4. Name the planned or real source file in `source_files` only if it exists or is planned explicitly; never invent one.
 5. Follow the published naming standards (`STD`) and vocabulary (`VOC`).
-6. When reverse-engineering, follow the `reverse-engineer-units` skill.
+6. If the unit is a user-facing screen, page, dialog, or visible control, record Adept's `ui-design` in `ui` (layout, visual_hierarchy, spacing, type_scale, colour, contrast, states, keyboard, accessibility, breakpoints) or point at `.vmodel/docs/<PROJECT>/ui/<UNT-id>.md`. Do not leave a screen UNT without that record.
+7. When reverse-engineering, follow the `reverse-engineer-units` skill.
 
 Never move functions between components, invent fields, or write tests. Propose only.
