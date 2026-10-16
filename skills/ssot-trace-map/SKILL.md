@@ -27,7 +27,7 @@ Right rail, top to bottom into the same Coding point: Acceptance test · System 
 A check belongs on the right level named by its published `level`. If the node has no level, put it on unit test. Opening a right level lists that level's checks with status (`passed`, `failed`, `skipped`, `not_run`), cases and a domain filter, plus a donut of those four counts. Opening a left level lists that level's spec items. Empty levels stay empty.
 
 ## Focus
-Opening a node freezes that one node as the center. Rings, in order: `REQ`, `FNC`, `API`, `CMP`, `UNT`, `TST`. Tabs: Connections (default), REQ, FNC, API, CMP, UNT, Tests.
+Opening a node freezes that one node as the center. Rings, in order: `USR`, `REQ`, `FNC`, `API`, `CMP`, `UNT`, `TST` (`INT` shares the API ring). Tabs: Connections (default), USR, REQ, FNC, API, CMP, UNT, Tests.
 
 Walk published links only. A function's neighborhood is:
 - Requirements it `implements`.
@@ -39,7 +39,7 @@ Walk published links only. A function's neighborhood is:
 Do not add a neighbor that has no published link.
 
 ## World
-World clusters every node that has a hub onto the same V, and can pan and zoom. Hubs, left rail: REQ, FNC, API, CMP, UNT. Right rail, tests only, split by level. `USR` and `INT` stay on their landing lists; they are not World hubs.
+World clusters every node that has a hub onto the same V, and can pan and zoom. Hubs, left rail: USR, REQ, FNC, API, CMP, UNT. Right rail, tests only, split by `level`. `INT` sits on the API hub. Coding holds `@trace` points. World is a control, not the first view; enter it from the Globe on landing.
 
 ## Side panel
 - A need (`REQ` or `USR`): Satisfied by (functions that implement it).

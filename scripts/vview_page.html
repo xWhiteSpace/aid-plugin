@@ -6,94 +6,202 @@
 <title>V-model debug view</title>
 <style>
 :root {
-  --bg: #0b1220;
-  --panel: #111827;
-  --ink: #e8eef7;
-  --muted: #9aa8bb;
-  --line: #243044;
-  --cyan: #5eead4;
-  --cyan-dim: #22d3ee;
+  --bg: #020617;
+  --ink: #f1f5f9;
+  --muted: #94a3b8;
+  --line: #1e293b;
+  --cyan: #22d3ee;
+  --focus: #ecfeff;
   --pass: #34d399;
   --fail: #fb7185;
   --skip: #fbbf24;
-  --idle: #94a3b8;
-  --focus: #ecfeff;
+  --idle: #64748b;
 }
 * { box-sizing: border-box; }
-html, body { margin: 0; height: 100%; background: var(--bg); color: var(--ink); font-family: system-ui, sans-serif; }
-button, select { font: inherit; }
+html, body { margin: 0; height: 100%; background: var(--bg); color: var(--ink); font-family: ui-sans-serif, system-ui, sans-serif; }
+button, select, textarea { font: inherit; color: inherit; }
 button { cursor: pointer; }
-button:focus-visible, select:focus-visible, a:focus-visible { outline: 2px solid var(--cyan); outline-offset: 2px; }
-#app { height: 100%; display: flex; flex-direction: column; }
-.bar { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 12px 20px; border-bottom: 1px solid var(--line); flex-shrink: 0; }
-.bar h1 { margin: 0; font-size: 16px; font-weight: 600; }
-.bar p, .hint { margin: 0; color: var(--muted); font-size: 12px; }
+button:focus-visible, select:focus-visible { outline: 2px solid var(--cyan); outline-offset: 2px; }
+#app { height: 100%; display: flex; flex-direction: column; overflow: hidden; }
+.shell { display: flex; flex-direction: column; height: 100%; max-width: 72rem; width: 100%; margin: 0 auto; padding: 20px 24px; gap: 16px; }
+.head { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-shrink: 0; }
+.head h1 { margin: 0; font-size: 15px; font-weight: 600; }
+.head p { margin: 0; color: var(--muted); font-size: 12px; }
 .row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
-.chip, .pill {
-  border: 1px solid #334155; background: transparent; color: var(--ink);
+.chip {
+  border: 1px solid #334155; background: transparent; color: #cbd5e1;
   border-radius: 999px; padding: 4px 12px; font-size: 11px; letter-spacing: .08em; text-transform: uppercase;
 }
-.chip[aria-pressed="true"], .pill.on { background: var(--focus); color: #0b1220; border-color: var(--focus); }
-.chip:hover, .pill:hover { border-color: var(--cyan); color: var(--focus); }
+.chip:hover { border-color: #64748b; color: #fff; }
+.chip[aria-pressed="true"], .chip.on { background: #f1f5f9; color: #0f172a; border-color: #cbd5e1; }
+.chip.cyan { border-color: rgba(34,211,238,.4); color: #cffafe; }
+.chip.cyan:hover, .chip.cyan.on { border-color: #a5f3fc; color: #fff; }
+.chip.cyan.on { background: #cffafe; color: #0f172a; }
 .chip:disabled { opacity: .4; cursor: not-allowed; }
-.main { flex: 1; min-height: 0; display: flex; flex-direction: column; padding: 16px 20px 12px; }
-.card { border: 1px solid var(--line); background: #0f172a; border-radius: 16px; padding: 16px; }
-.stats { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; margin-top: 12px; }
-.stat { text-align: center; border: 1px solid var(--line); border-radius: 12px; padding: 8px; background: #020617; }
-.stat b { display: block; font-size: 22px; }
-.stat span { font-size: 11px; letter-spacing: .08em; text-transform: uppercase; }
-.stage-wrap { position: relative; flex: 1; min-height: 22rem; margin-top: 12px; }
-.stage { position: relative; width: 100%; max-width: 980px; margin: 0 auto; aspect-ratio: 1160 / 892; }
-.stage svg { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; pointer-events: none; }
-.rail { fill: none; stroke: var(--cyan-dim); stroke-width: 2.1; stroke-linecap: round; filter: drop-shadow(0 0 6px #0891b2); }
-.cross { fill: none; stroke-width: 1.2; opacity: .45; }
-.dot { filter: drop-shadow(0 0 3px currentColor); }
-.node {
-  position: absolute; width: 44px; height: 44px; margin: 0; padding: 0; border: 0; background: transparent;
-  transform: translate(-50%, -50%); z-index: 1;
+.card { border: 1px solid var(--line); background: rgba(15,23,42,.7); border-radius: 16px; padding: 16px 20px; flex-shrink: 0; }
+.stats { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; margin-top: 16px; }
+.stat { text-align: center; border: 1px solid var(--line); border-radius: 12px; padding: 8px 12px; background: rgba(2,6,23,.6); }
+.stat b { display: block; font-size: 20px; }
+.stat span { display: block; margin-top: 2px; font-size: 11px; letter-spacing: .08em; text-transform: uppercase; }
+.cam-wrap { position: relative; flex: 1; min-height: 0; overflow: hidden; }
+.globe {
+  position: absolute; left: 16px; bottom: 16px; z-index: 20;
+  width: 40px; height: 40px; display: grid; place-items: center;
+  border-radius: 999px; border: 1px solid rgba(34,211,238,.4);
+  background: rgba(2,6,23,.8); color: #cffafe;
 }
-.lab { position: absolute; top: 50%; width: max-content; max-width: 11rem; transform: translateY(-50%); }
-.lab p { margin: 2px 0 0; font-family: ui-monospace, monospace; font-size: 10px; color: var(--cyan); }
-.lab-l { right: calc(100% + 10px); text-align: right; }
-.lab-r { left: calc(100% + 10px); text-align: left; }
-.lab-a { left: 50%; right: auto; bottom: calc(100% + 8px); top: auto; transform: translateX(-50%); text-align: center; }
-.node:hover .lab, .node:focus-visible .lab { color: var(--focus); text-shadow: 0 0 10px rgba(34,211,238,.6); }
-.coding { position: absolute; transform: translate(-50%, 8px); background: none; border: 0; color: var(--cyan); letter-spacing: .28em; font-size: 10px; text-transform: uppercase; }
-.list { flex: 1; min-height: 0; overflow: auto; display: flex; flex-direction: column; gap: 10px; padding-bottom: 16px; }
-.item { display: block; width: 100%; text-align: left; border: 1px solid var(--line); background: #0f172a; color: inherit; border-radius: 14px; padding: 12px 14px; }
-.item:hover { border-color: rgba(94,234,212,.5); }
-.item .id { font-family: ui-monospace, monospace; font-size: 10px; color: var(--muted); }
-.item h3 { margin: 0 0 4px; font-size: 14px; font-weight: 600; }
-.status { border-radius: 999px; padding: 3px 10px; font-size: 11px; }
-.s-passed { background: rgba(52,211,153,.15); color: var(--pass); }
-.s-failed { background: rgba(251,113,133,.15); color: var(--fail); }
-.s-skipped { background: rgba(251,191,36,.15); color: var(--skip); }
-.s-not_run { background: #1e293b; color: var(--idle); }
-.overlay { position: fixed; inset: 0; background: var(--bg); z-index: 20; display: flex; flex-direction: column; }
+.globe:hover { border-color: #a5f3fc; color: #fff; }
+.globe:disabled { opacity: .4; }
+.vv-world {
+  position: absolute; inset: 0; overflow: hidden; pointer-events: none;
+  perspective: 520px; perspective-origin: 50% 18%;
+}
+.vv-floor {
+  position: absolute; left: 50%; top: 28%; width: 200%; height: 160%;
+  transform: translateX(-50%) rotateX(74deg); transform-origin: center top;
+}
+.vv-floor-near {
+  -webkit-mask-image: linear-gradient(to bottom, transparent 0%, transparent 28%, #000 48%, #000 90%, transparent 98%);
+  mask-image: linear-gradient(to bottom, transparent 0%, transparent 28%, #000 48%, #000 90%, transparent 98%);
+}
+.vv-floor-far {
+  -webkit-mask-image: linear-gradient(to bottom, transparent 0%, #000 10%, #000 22%, transparent 40%);
+  mask-image: linear-gradient(to bottom, transparent 0%, #000 10%, #000 22%, transparent 40%);
+}
+.vv-floor-snakes { position: absolute; inset: 0; width: 100%; height: 100%; overflow: hidden; }
+.vv-floor-grid { fill: none; stroke-width: 1.15; }
+.vv-floor-near .vv-floor-grid { stroke: rgba(34, 211, 238, 0.38); }
+.vv-floor-far .vv-floor-grid { stroke: rgba(22, 101, 52, 0.7); }
+.vv-snake-trail, .vv-snake-core {
+  fill: none; stroke-linecap: square; stroke-linejoin: miter;
+  animation: vv-snake 9s linear infinite;
+}
+.vv-run-a { stroke: #22d3ee; }
+.vv-run-b { stroke: #67e8f9; }
+.vv-run-b .vv-snake-trail, .vv-run-b .vv-snake-core { animation-duration: 13s; animation-delay: -5s; }
+.vv-snake-trail { stroke-width: 3; opacity: 0.08; stroke-dasharray: 260 1740; }
+.vv-snake-core { stroke-width: 1.25; opacity: 0.22; stroke-dasharray: 120 1880; }
+@keyframes vv-snake { to { stroke-dashoffset: -2000; } }
+.vv-world-shade {
+  position: absolute; inset: 0 0 auto; height: 52%;
+  background: linear-gradient(to bottom, rgba(2, 6, 23, 0.88), rgba(2, 6, 23, 0.35) 70%, transparent);
+}
+.vv-horizon {
+  position: absolute; left: 0; right: 0; top: 26%; height: 1px;
+  background: linear-gradient(to right, transparent, rgba(22, 101, 52, 0.7), transparent);
+  box-shadow: 0 0 12px rgba(20, 83, 45, 0.4);
+}
+.vv-camera { position: relative; z-index: 1; height: 100%; min-height: 22rem; }
+.vv-camera[data-hot="true"] { cursor: pointer; }
+.vv-camera[data-busy="true"] { pointer-events: none; }
+.vv-scene {
+  transform: translate3d(0px, 0px, 0px) scale(1);
+  transition: transform 600ms cubic-bezier(0.22, 0.61, 0.36, 1);
+  margin: 0 auto; width: 100%; max-width: 64rem; padding: 48px 160px 24px;
+}
+.vv-stage { position: relative; width: 100%; aspect-ratio: 1160 / 892; }
+.vv-svg { position: absolute; inset: 0; overflow: visible; pointer-events: none; }
+.vv-rail {
+  fill: none; stroke: #22d3ee; stroke-width: 2.1; stroke-linecap: round; stroke-linejoin: round;
+  filter: drop-shadow(0 0 3px #22d3ee) drop-shadow(0 0 10px #0891b2);
+}
+.vv-cross {
+  fill: none; stroke-width: 1.2; stroke-linecap: round; opacity: 0.45;
+  filter: drop-shadow(0 0 4px #22d3ee);
+}
+.vv-dot { filter: drop-shadow(0 0 3px currentColor); }
+.vv-halo { fill: none; stroke-width: 1.4; opacity: 0.95; filter: url(#vv-bloom); animation: vv-halo 1.15s ease-in-out infinite; }
+@keyframes vv-halo { 50% { opacity: 0.4; } }
+.vv-bloom { opacity: 0.35; filter: url(#vv-bloom); }
+.vv-pulse { fill: none; stroke: #ecfeff; stroke-width: 2.8; stroke-dasharray: 18 64; stroke-linecap: round; animation: vv-dash 2.2s linear infinite; }
+@keyframes vv-dash { from { stroke-dashoffset: 0; } to { stroke-dashoffset: -82; } }
+button.vv-node {
+  position: absolute; z-index: 1; width: 40px; height: 40px; margin: 0; padding: 0;
+  border: none; background: transparent; cursor: pointer; pointer-events: none;
+  transform: translate(-50%, -50%);
+}
+.vv-lab-l, .vv-lab-r {
+  position: absolute; top: 50%; width: max-content; max-width: 9.5rem;
+  transform: translateY(-50%); transition: color 160ms ease, text-shadow 160ms ease;
+}
+.vv-lab-l { right: calc(100% + 12px); text-align: right; }
+.vv-lab-r { left: calc(100% + 12px); text-align: left; }
+.vv-lab-a { left: 50%; right: auto; bottom: calc(100% + 10px); top: auto; text-align: center; transform: translateX(-50%); }
+.vv-lab-t { display: block; font-size: 11px; font-weight: 500; letter-spacing: .14em; text-transform: uppercase; color: rgba(207,250,254,.9); }
+.vv-lab-r .vv-lab-t { color: #fff; }
+.vv-sub { margin: 4px 0 0; display: flex; flex-wrap: wrap; gap: 2px 8px; font-size: 10px; line-height: 1.2; }
+.vv-lab-l .vv-sub { justify-content: flex-end; font-family: ui-monospace, monospace; color: rgba(165,243,252,.8); }
+.vv-lab-a .vv-sub { justify-content: center; }
+button.vv-node[data-hot="true"] .vv-lab-l, button.vv-node[data-hot="true"] .vv-lab-r,
+button.vv-node:focus-visible .vv-lab-l, button.vv-node:focus-visible .vv-lab-r {
+  color: #ecfeff; text-shadow: 0 0 12px rgba(34,211,238,.65);
+}
+.vv-coding { position: absolute; z-index: 1; transform: translate(-50%, 10px); pointer-events: none; }
+.vv-coding span { display: block; text-align: center; font-size: 10px; letter-spacing: .32em; text-transform: uppercase; color: rgba(165,243,252,.8); }
+.pane { display: flex; flex-direction: column; gap: 12px; flex: 1; min-height: 0; }
+.list { flex: 1; min-height: 0; overflow: auto; display: flex; flex-direction: column; gap: 12px; padding-bottom: 16px; }
+.item {
+  display: block; width: 100%; text-align: left; border: 1px solid #1e293b;
+  background: rgba(15,23,42,.4); color: inherit; border-radius: 16px; padding: 12px 16px;
+}
+.item:hover { border-color: rgba(6,182,212,.5); }
+.item h3 { margin: 0; font-size: 14px; font-weight: 500; }
+.item .id { margin-top: 2px; font-family: ui-monospace, monospace; font-size: 10px; color: #64748b; }
+.pill { border-radius: 999px; padding: 4px 10px; font-size: 11px; font-weight: 500; flex-shrink: 0; }
+.s-passed { background: rgba(52,211,153,.15); color: #6ee7b7; }
+.s-failed { background: rgba(251,113,133,.15); color: #fda4af; }
+.s-skipped { background: rgba(251,191,36,.15); color: #fde68a; }
+.s-not_run { background: #1e293b; color: #94a3b8; }
+.overlay { position: fixed; inset: 0; z-index: 50; display: flex; flex-direction: column; background: #020617; }
+.ov-head { display: flex; flex-direction: column; gap: 8px; padding: 12px 20px; flex-shrink: 0; }
 .split { display: flex; flex: 1; min-height: 0; }
-.side { width: 320px; min-width: 224px; max-width: 55vw; overflow: auto; padding: 20px; border-right: 1px solid var(--line); }
+.side { overflow: auto; padding: 24px 20px; flex-shrink: 0; }
+.sep { width: 6px; flex-shrink: 0; cursor: col-resize; background: rgba(34,211,238,.15); }
+.sep:hover { background: rgba(103,232,249,.4); }
 .field { flex: 1; min-width: 0; min-height: 0; position: relative; }
 .field svg { width: 100%; height: 100%; display: block; }
 .grab { cursor: grab; }
 .grab:active { cursor: grabbing; }
-.kind { font-family: ui-monospace, monospace; font-size: 11px; letter-spacing: .16em; text-transform: uppercase; color: var(--cyan); }
-.side h2 { margin: 8px 0 4px; font-size: 20px; }
-.side .stmt { color: #cbd5e1; font-size: 14px; line-height: 1.45; }
+.kind { font-family: ui-monospace, monospace; font-size: 11px; letter-spacing: .22em; text-transform: uppercase; color: rgba(165,243,252,.8); }
+.side h2 { margin: 8px 0 0; font-size: 20px; }
+.stmt { color: #cbd5e1; font-size: 14px; line-height: 1.5; }
 .ids { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 8px; }
-.ids button { border: 1px solid #334155; background: none; color: #cbd5e1; border-radius: 999px; padding: 2px 8px; font-family: ui-monospace, monospace; font-size: 10px; }
-.ids button:hover { border-color: var(--cyan); color: white; }
-pre { background: #020617; border: 1px solid var(--line); border-radius: 10px; padding: 10px; overflow: auto; font-size: 11px; color: #ecfeff; }
-.flags { color: #fde68a; }
-.foot { padding: 8px 20px 12px; color: var(--muted); font-size: 11px; flex-shrink: 0; }
+.ids button, .tabx {
+  border: 1px solid #334155; background: none; color: #cbd5e1; border-radius: 999px;
+  padding: 2px 8px; font-family: ui-monospace, monospace; font-size: 10px;
+}
+.ids button:hover, .tabx:hover { border-color: #22d3ee; color: #fff; }
+.tabx.on { background: #cffafe; color: #0f172a; border-color: #cffafe; }
+.zoom {
+  position: absolute; right: 16px; top: 16px; display: flex; flex-direction: column; gap: 6px;
+}
+.zoom button {
+  min-width: 2.75rem; height: 2.75rem; border-radius: 999px; border: 1px solid rgba(34,211,238,.3);
+  background: #0b1220; color: #a5f3fc; font-size: 12px; letter-spacing: .12em; text-transform: uppercase;
+}
+.zoom button:hover { border-color: rgba(165,243,252,.7); color: #ecfeff; }
+.hint { color: var(--muted); font-size: 13px; }
 .empty { color: var(--muted); padding: 24px 4px; }
+pre { background: #020617; border: 1px solid var(--line); border-radius: 12px; padding: 12px; overflow: auto; font-size: 10px; color: #ecfeff; }
+.flags { color: #fde68a; }
+.foot { padding: 0 24px 12px; color: var(--muted); font-size: 11px; flex-shrink: 0; max-width: 72rem; width: 100%; margin: 0 auto; }
+.note { width: 100%; resize: vertical; border-radius: 16px; border: 1px solid #1e293b; background: #020617; padding: 8px 12px; }
+.note:focus { border-color: rgba(6,182,212,.5); outline: none; }
+@keyframes vv-in {
+  from { opacity: 0; transform: translate3d(0, 8px, 0) scale(0.98); }
+  to { opacity: 1; transform: translate3d(0, 0, 0) scale(1); }
+}
+.vv-in { animation: vv-in 280ms cubic-bezier(0.22, 0.61, 0.36, 1); }
 @media (max-width: 720px) {
   .stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .vv-scene { padding: 32px 48px 16px; }
   .split { flex-direction: column; }
-  .side { width: 100%; max-width: none; border-right: 0; border-bottom: 1px solid var(--line); max-height: 40%; }
-  .lab { max-width: 6.5rem; font-size: 10px; }
+  .side { width: 100% !important; max-height: 40%; }
+  .vv-lab-l, .vv-lab-r { max-width: 6.5rem; }
 }
 @media (prefers-reduced-motion: reduce) {
-  * { animation: none !important; transition: none !important; }
+  .vv-scene { transition: none !important; }
+  .vv-pulse, .vv-snake-trail, .vv-snake-core, .vv-halo, .vv-in { animation: none !important; }
 }
 </style>
 </head>
@@ -102,31 +210,61 @@ pre { background: #020617; border: 1px solid var(--line); border-radius: 10px; p
 <script>
 const DATA = __DATA__;
 (function () {
-  const STATUS = { passed: "#34d399", failed: "#fb7185", skipped: "#fbbf24", not_run: "#94a3b8" };
-  const KIND_COLOR = { USR: "#a5f3fc", REQ: "#67e8f9", FNC: "#22d3ee", API: "#818cf8", INT: "#93c5fd", CMP: "#c084fc", UNT: "#34d399", TST: "#fbbf24", CODE: "#e2e8f0", EVD: "#fda4af", TOL: "#94a3b8" };
+  const STATUS_COLOR = { passed: "#34d399", failed: "#fb7185", skipped: "#fbbf24", not_run: "#64748b" };
+  const STATUS_LABEL = { passed: "Passed", failed: "Failed", skipped: "Skipped", not_run: "Not run" };
+  const KIND_COLOR = { USR: "#a5f3fc", REQ: "#67e8f9", FNC: "#22d3ee", API: "#818cf8", INT: "#93c5fd", CMP: "#c084fc", UNT: "#34d399", TST: "#fbbf24" };
   const V_VIEW = { x: -160, y: -72, w: 1160, h: 892 };
-  const USR_HUB = { level: "needs", left: "USR", lx: -90, ly: 70, leftOnly: true };
+  const USR_HUB = { level: "needs", left: "USR", right: "", lx: -90, ly: 70, z: 80, leftOnly: true };
   const V_ROWS = [
-    { level: "acceptance", left: "Requirements", right: "Acceptance test", lx: 120, ly: 70, rx: 880, ry: 70, above: true },
-    { level: "system", left: "Functional", right: "System test", lx: 220, ly: 230, rx: 780, ry: 230 },
-    { level: "integration", left: "System", right: "Integration", lx: 320, ly: 390, rx: 680, ry: 390 },
-    { level: "unit", left: "Unit", right: "Unit test", lx: 400, ly: 550, rx: 600, ry: 550 }
+    { level: "acceptance", left: "Requirements", right: "Acceptance test", lx: 120, ly: 70, rx: 880, ry: 70, z: 64, labelAbove: true },
+    { level: "system", left: "Functional", right: "System test", lx: 220, ly: 230, rx: 780, ry: 230, z: 16 },
+    { level: "integration", left: "System", right: "Integration", lx: 320, ly: 390, rx: 680, ry: 390, z: -28 },
+    { level: "unit", left: "Unit", right: "Unit test", lx: 400, ly: 550, rx: 600, ry: 550, z: -76 }
   ];
-  const CODING = { x: 500, y: 720 };
+  const CODING = { x: 500, y: 720, z: -120 };
+  const RAIL_CYAN = "#22d3ee";
+  const DOLLY_MS = 600;
   const LEFT_KINDS = { needs: ["USR"], acceptance: ["REQ"], system: ["FNC", "API"], integration: ["INT", "CMP"], unit: ["UNT"] };
-  const RING = ["USR", "REQ", "FNC", "API", "CMP", "INT", "UNT", "CODE", "TST"];
-  const FOCUS_TABS = [{ id: "Connections", kind: null }, { id: "USR", kind: "USR" }, { id: "REQ", kind: "REQ" }, { id: "FNC", kind: "FNC" }, { id: "API", kind: "API" }, { id: "CMP", kind: "CMP" }, { id: "INT", kind: "INT" }, { id: "UNT", kind: "UNT" }, { id: "Code", kind: "CODE" }, { id: "Tests", kind: "TST" }];
+  const RING_ORDER = ["USR", "REQ", "FNC", "API", "CMP", "UNT", "TST"];
+  const FOCUS_TABS = [
+    { id: "Connections", kind: null },
+    { id: "USR", kind: "USR" }, { id: "REQ", kind: "REQ" }, { id: "FNC", kind: "FNC" },
+    { id: "API", kind: "API" }, { id: "CMP", kind: "CMP" }, { id: "UNT", kind: "UNT" },
+    { id: "Tests", kind: "TST" }
+  ];
   const GOLDEN = Math.PI * (3 - Math.sqrt(5));
+  const VIEW = { w: 1100, h: 720, cx: 550, cy: 360 };
   const WORLD = { w: 1960, h: 1440 };
   const V_SCALE = 1.65, V_OX = 340, V_OY = 70;
+  const ZOOM_MIN = 0.7, ZOOM_MAX = 8, MAG_PX = 56, MAG_MAX = 3, DRAG_PX = 6;
+  const PANEL_MIN = 224, PANEL_MAX = 720, PANEL_DEFAULT = 320, PANEL_KEY = "aid-vview-panel-w";
+  const REVIEW_KEY = "aid-vview-review-v1";
+  const VERDICTS = [{ id: "keep", label: "Keep" }, { id: "rewrite", label: "Rewrite" }, { id: "reject", label: "Reject" }];
+  const FLOOR = { w: 2240, h: 1400, g: 56 };
+  const GLOBE = '<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"></circle><path d="M2 12h20"></path><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path></svg>';
+
   function vxy(x, y) { return { x: V_OX + x * V_SCALE, y: V_OY + y * V_SCALE }; }
+  function railPoints(side) {
+    const start = side === "left" ? [USR_HUB.lx + "," + USR_HUB.ly] : [];
+    return start.concat(V_ROWS.map(function (row) {
+      return side === "left" ? row.lx + "," + row.ly : row.rx + "," + row.ry;
+    })).concat([CODING.x + "," + CODING.y]).join(" ");
+  }
+  const LEFT_RAIL = railPoints("left");
+  const RIGHT_RAIL = railPoints("right");
+  function floorGridPath() {
+    const parts = [];
+    for (let x = 0; x <= FLOOR.w; x += FLOOR.g) parts.push("M" + x + " 0 V" + FLOOR.h);
+    for (let y = 0; y <= FLOOR.h; y += FLOOR.g) parts.push("M0 " + y + " H" + FLOOR.w);
+    return parts.join(" ");
+  }
+  const FLOOR_GRID_PATH = floorGridPath();
   const WORLD_LEFT = [
     { key: "USR", kind: "USR", label: "USR", ...vxy(-180, 70) },
     { key: "REQ", kind: "REQ", label: "REQ", ...vxy(120, 70) },
     { key: "FNC", kind: "FNC", label: "FNC", ...vxy(220, 230) },
-    { key: "API", kind: "API", label: "API", ...vxy(290, 310) },
-    { key: "CMP", kind: "CMP", label: "CMP", ...vxy(320, 390) },
-    { key: "INT", kind: "INT", label: "INT", ...vxy(360, 460) },
+    { key: "API", kind: "API", label: "API", ...vxy(290, 370) },
+    { key: "CMP", kind: "CMP", label: "CMP", ...vxy(350, 420) },
     { key: "UNT", kind: "UNT", label: "UNT", ...vxy(400, 550) }
   ];
   const WORLD_RIGHT = [
@@ -136,36 +274,59 @@ const DATA = __DATA__;
     { key: "TST-unit", kind: "TST", level: "unit", label: "Unit", ...vxy(600, 550) }
   ];
   const WORLD_CODING = { ...vxy(500, 720), label: "Coding" };
+  const WORLD_RAIL_L_PTS = [vxy(-180, 70), vxy(120, 70), vxy(220, 230), vxy(320, 390), vxy(400, 550), WORLD_CODING].map(function (p) { return p.x + "," + p.y; }).join(" ");
+  const WORLD_RAIL_R_PTS = [vxy(880, 70), vxy(780, 230), vxy(680, 390), vxy(600, 550), WORLD_CODING].map(function (p) { return p.x + "," + p.y; }).join(" ");
   const WORLD_HUBS = WORLD_LEFT.concat(WORLD_RIGHT);
+  const WORLD_ORDER = ["USR", "REQ", "FNC", "API", "CMP", "UNT", "TST"];
+
   const S = {
     project: (DATA.projects && DATA.projects[0]) || "",
-    screen: "landing",
-    level: null,
+    active: null,
     pane: "tests",
+    reviewing: false,
+    filter: "All",
     focusId: null,
-    world: false,
-    peekId: null,
-    tab: "Connections",
-    reviewI: 0,
+    startWorld: false,
+    pages: [],
+    pageI: 0,
+    hot: null,
     cam: { x: 0, y: 0, k: 1 },
-    snippet: null
+    panelW: PANEL_DEFAULT,
+    reviewI: 0,
+    note: "",
+    snippet: null,
+    openFile: null
   };
+  const nodeRefs = {};
+  const poseRef = { current: null };
+  const lockRef = { current: false };
+  const timerRef = { current: null };
+  const dragRef = { current: null };
+  const resizeRef = { current: null };
+  const lastTapRef = { current: { t: 0, id: null } };
+  let dolly = null;
+  let landingHot = null;
   const root = document.getElementById("app");
+
   function esc(s) {
     return String(s == null ? "" : s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
   }
+  function prefersReducedMotion() {
+    return window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  }
+  function nodeKey(level, side) { return level + ":" + side; }
+  function sameHot(hot, level, side) { return Boolean(hot && hot.level === level && hot.side === side); }
+  function emptyTotals() { return { passed: 0, failed: 0, skipped: 0, not_run: 0 }; }
   function nodesOf() {
     return Object.keys(DATA.nodes).map(function (id) { return DATA.nodes[id]; }).filter(function (n) {
       return !S.project || n.project === S.project;
     });
   }
   function byKinds(kinds) {
-    return nodesOf().filter(function (n) { return kinds.indexOf(n.kind) >= 0; }).sort(function (a, b) { return a.id.localeCompare(b.id); });
+    return nodesOf().filter(function (n) { return kinds.indexOf(n.kind) >= 0; }).sort(function (a, b) { return a.id.localeCompare(b.id, "en"); });
   }
   function testsOf(level) {
-    return nodesOf().filter(function (n) {
-      return n.kind === "TST" && (n.level || "unit") === level;
-    }).sort(function (a, b) { return a.id.localeCompare(b.id); });
+    return nodesOf().filter(function (n) { return n.kind === "TST" && (n.level || "unit") === level; }).sort(function (a, b) { return a.id.localeCompare(b.id, "en"); });
   }
   function tracesOf() {
     const ids = {};
@@ -177,542 +338,1234 @@ const DATA = __DATA__;
     if (s === "passed" || s === "failed" || s === "skipped") return s;
     return "not_run";
   }
-  function emptyTotals() { return { passed: 0, failed: 0, skipped: 0, not_run: 0 }; }
-  function addCount(c, s) { c[s] = (c[s] || 0) + 1; }
   function totalsFor(list) {
     const c = emptyTotals();
-    (list || []).forEach(function (n) { addCount(c, tstStatus(n)); });
+    (list || []).forEach(function (n) { c[tstStatus(n)] += 1; });
     return c;
   }
   function allTotals() { return totalsFor(nodesOf().filter(function (n) { return n.kind === "TST"; })); }
   function toneOf(c) {
-    if (c.failed) return STATUS.failed;
-    if (c.passed && !c.not_run) return STATUS.passed;
-    if (c.skipped && !c.passed) return STATUS.skipped;
-    return "#22d3ee";
+    const safe = c || emptyTotals();
+    if (safe.failed) return STATUS_COLOR.failed;
+    if (safe.passed && !safe.not_run) return STATUS_COLOR.passed;
+    if (safe.skipped && !safe.passed) return STATUS_COLOR.skipped;
+    return RAIL_CYAN;
   }
-  function pct(x, y) {
-    return {
-      left: (((x - V_VIEW.x) / V_VIEW.w) * 100) + "%",
-      top: (((y - V_VIEW.y) / V_VIEW.h) * 100) + "%"
-    };
+  function pctX(x) { return ((x - V_VIEW.x) / V_VIEW.w) * 100 + "%"; }
+  function pctY(y) { return ((y - V_VIEW.y) / V_VIEW.h) * 100 + "%"; }
+  function domainOf(n) { return n.domain || n.type || n.who || ""; }
+  function artifact(id) {
+    const n = DATA.nodes[id] || {};
+    return { title: n.title || id, statement: n.statement || "", acceptance: n.acceptance || "", domain: domainOf(n) };
   }
-  function donut(c) {
-    const parts = ["passed", "failed", "skipped", "not_run"].map(function (k) {
-      return { k: k, v: c[k] || 0, color: STATUS[k] };
+  function outs(id, type) {
+    return DATA.edges.filter(function (e) { return e.from === id && (!type || e.type === type); }).map(function (e) { return e.to; });
+  }
+  function ins(id, type) {
+    return DATA.edges.filter(function (e) { return e.to === id && (!type || e.type === type); }).map(function (e) { return e.from; });
+  }
+  function unique(ids) {
+    const seen = {}; const out = [];
+    (ids || []).forEach(function (id) { if (id && !seen[id]) { seen[id] = true; out.push(id); } });
+    return out;
+  }
+  function kindOfId(id) { return String(id || "").split("-")[0]; }
+  function ringKind(kind) { return kind === "INT" ? "API" : kind; }
+  function hubKind(kind) { return kind === "INT" ? "API" : kind; }
+
+  function buildIndex() {
+    const nodes = {};
+    nodesOf().forEach(function (n) {
+      nodes[n.id] = {
+        id: n.id, kind: n.kind, label: n.title || n.id, level: n.level || null,
+        linked_from: n.kind === "REQ" ? (outs(n.id, "derives")[0] || null) : null,
+        links: n.kind === "TST" ? outs(n.id, "verifies") : []
+      };
     });
-    const total = parts.reduce(function (s, p) { return s + p.v; }, 0);
-    const r = 54, circ = 2 * Math.PI * r;
-    let cursor = 0;
-    const slices = parts.map(function (p) {
-      const t = total || 1;
-      const len = (p.v / t) * circ;
-      const el = '<circle cx="70" cy="70" r="' + r + '" fill="none" stroke="' + p.color + '" stroke-width="16" stroke-dasharray="' + len + " " + (circ - len) + '" stroke-dashoffset="' + (-cursor) + '"></circle>';
-      cursor += len;
-      return el;
-    }).join("");
-    return '<svg viewBox="0 0 140 140" width="120" height="120" role="img" aria-label="Check counts"><g transform="rotate(-90 70 70)">' + slices + '</g><text x="70" y="68" text-anchor="middle" fill="#f8fafc" font-size="22">' + total + '</text><text x="70" y="86" text-anchor="middle" fill="#94a3b8" font-size="10">checks</text></svg>';
+    const functions = byKinds(["FNC"]).map(function (fn) {
+      const requirements = outs(fn.id, "implements");
+      const components = outs(fn.id, "allocated_to");
+      const units = ins(fn.id, "refines").filter(function (id) { return (DATA.nodes[id] || {}).kind === "UNT"; });
+      const interfaces = ins(fn.id, "depends_on").concat(nodesOf().filter(function (n) {
+        return n.kind === "INT" && n.implements_fnc === fn.id;
+      }).map(function (n) { return n.id; }));
+      const related = [fn.id].concat(requirements, units, components, interfaces);
+      const tests = [];
+      const seenT = {};
+      DATA.edges.forEach(function (e) {
+        if (e.type !== "verifies" || related.indexOf(e.to) < 0) return;
+        if (seenT[e.from]) { seenT[e.from].links.push(e.to); return; }
+        const t = { id: e.from, links: [e.to] };
+        seenT[e.from] = t;
+        tests.push(t);
+      });
+      return { id: fn.id, requirements: requirements, interfaces: unique(interfaces), components: components, units: units, tests: tests };
+    });
+    const first = functions[0] || byKinds(["REQ"])[0] || nodesOf()[0];
+    return { nodes: nodes, functions: functions, default: first ? first.id : null };
   }
-  function countLine(c) {
-    return ["passed", "failed", "skipped", "not_run"].map(function (k) {
-      return '<span style="color:' + STATUS[k] + '">' + (c[k] || 0) + " " + k.replace("_", " ") + "</span>";
-    }).join(" ");
-  }
-  function kindLine(list, kinds) {
-    return kinds.map(function (k) {
-      const n = list.filter(function (x) { return x.kind === k; }).length;
-      return n + " " + k;
-    }).join(" ");
-  }
-  function verifies(id) {
-    return DATA.edges.filter(function (e) { return e.type === "verifies" && e.from === id; }).map(function (e) { return e.to; });
-  }
-  function neighborMap(id) {
+
+  function focusGraph(index, id) {
+    const nodes = index.nodes || {};
+    const center = nodes[id] || { id: id, kind: kindOfId(id) || "REQ", label: id };
+    const seen = {}; seen[id] = true;
     const rings = {};
-    RING.forEach(function (k) { rings[k] = []; });
-    const seen = {};
-    seen[id] = true;
-    function add(oid) {
-      const n = DATA.nodes[oid];
-      if (!n || seen[oid]) return;
-      if (S.project && n.project !== S.project) return;
-      seen[oid] = true;
-      if (!rings[n.kind]) rings[n.kind] = [];
-      rings[n.kind].push(n);
+    RING_ORDER.forEach(function (k) { rings[k] = []; });
+    function mentions(fn, nid) {
+      if (fn.id === nid) return true;
+      if (fn.requirements.indexOf(nid) >= 0) return true;
+      if (fn.interfaces.indexOf(nid) >= 0) return true;
+      if (fn.components.indexOf(nid) >= 0) return true;
+      if (fn.units.indexOf(nid) >= 0) return true;
+      return fn.tests.some(function (t) { return t.id === nid || t.links.indexOf(nid) >= 0; });
     }
-    DATA.edges.forEach(function (e) {
-      if (e.from === id) add(e.to);
-      if (e.to === id) add(e.from);
-    });
-    const n = DATA.nodes[id];
-    if (n) {
-      ["from_cmp", "to_cmp", "carries_api", "implements_fnc"].forEach(function (k) { if (n[k]) add(n[k]); });
-      (n.source_files || []).forEach(function () {});
+    function collect(fn) {
+      const ids = [fn.id].concat(fn.requirements, fn.interfaces, fn.components, fn.units);
+      fn.tests.forEach(function (t) { ids.push(t.id); t.links.forEach(function (l) { ids.push(l); }); });
+      return ids;
     }
-    (DATA.traces || []).forEach(function (t) {
-      if (t.id === id) rings.CODE.push(t);
+    (index.functions || []).forEach(function (fn) {
+      if (!mentions(fn, id)) return;
+      collect(fn).forEach(function (other) {
+        if (other === id || seen[other]) return;
+        const node = nodes[other];
+        if (!node) return;
+        const kind = RING_ORDER.indexOf(ringKind(node.kind)) >= 0 ? ringKind(node.kind) : null;
+        if (!kind) return;
+        seen[other] = true;
+        rings[kind].push(node);
+      });
     });
-    RING.forEach(function (k) {
-      rings[k].sort(function (a, b) { return String(a.id || a.file).localeCompare(String(b.id || b.file)); });
+    if (center.kind === "USR") {
+      Object.keys(nodes).forEach(function (nid) {
+        const node = nodes[nid];
+        if (node.kind !== "REQ" || node.linked_from !== id || seen[nid]) return;
+        seen[nid] = true;
+        rings.REQ.push(node);
+      });
+    }
+    function parentOf(node) {
+      return node && node.linked_from && nodes[node.linked_from] && nodes[node.linked_from].kind === "USR" ? node.linked_from : null;
+    }
+    if (center.kind === "REQ") {
+      const parent = parentOf(center);
+      if (parent && !seen[parent]) { seen[parent] = true; rings.USR.push(nodes[parent]); }
+    }
+    rings.REQ.forEach(function (req) {
+      const parent = parentOf(req);
+      if (parent && !seen[parent]) { seen[parent] = true; rings.USR.push(nodes[parent]); }
     });
-    return rings;
+    RING_ORDER.forEach(function (k) { rings[k].sort(function (a, b) { return a.id.localeCompare(b.id, "en"); }); });
+    const links = [];
+    rings.TST.forEach(function (test) {
+      (test.links || (nodes[test.id] && nodes[test.id].links) || []).forEach(function (target) {
+        if (target === id || seen[target]) links.push([test.id, target]);
+      });
+    });
+    if (center.kind === "REQ") {
+      const parent = parentOf(center);
+      if (parent) links.push([center.id, parent]);
+    }
+    rings.REQ.forEach(function (req) {
+      const parent = parentOf(req);
+      if (parent && (parent === id || seen[parent])) links.push([req.id, parent]);
+    });
+    return { center: center, rings: rings, links: links, RING_ORDER: RING_ORDER };
   }
-  function hubOf(n) {
-    if (n.kind === "TST") {
-      const level = n.level || "unit";
+
+  function placeRing(items, radius, origin) {
+    const count = Math.max(items.length, 1);
+    return items.map(function (item, index) {
+      const angle = -Math.PI / 2 + (Math.PI * 2 * index) / count;
+      return Object.assign({}, item, { x: origin.cx + Math.cos(angle) * radius, y: origin.cy + Math.sin(angle) * radius });
+    });
+  }
+  function testLevelOf(id) {
+    const n = DATA.nodes[id];
+    if (n && n.level) return n.level;
+    return "unit";
+  }
+  function hubOf(node) {
+    if (node.kind === "TST") {
+      const level = node.level || testLevelOf(node.id);
       return WORLD_RIGHT.filter(function (h) { return h.level === level; })[0] || WORLD_RIGHT[3];
     }
-    return WORLD_LEFT.filter(function (h) { return h.kind === n.kind; })[0];
+    return WORLD_LEFT.filter(function (h) { return h.kind === hubKind(node.kind); })[0];
   }
-  function placeWorld() {
+  function placeWorld(index) {
     const groups = {};
     WORLD_HUBS.forEach(function (h) { groups[h.key] = []; });
-    nodesOf().forEach(function (n) {
-      const h = hubOf(n);
-      if (!h) return;
-      groups[h.key].push(n);
+    Object.keys(index.nodes || {}).forEach(function (id) {
+      const node = index.nodes[id];
+      const hub = hubOf(node);
+      if (!hub) return;
+      groups[hub.key].push(node);
     });
     const points = [];
-    WORLD_HUBS.forEach(function (h) {
-      groups[h.key].sort(function (a, b) { return a.id.localeCompare(b.id); });
-      groups[h.key].forEach(function (n, i) {
-        const compact = h.kind === "USR";
+    const byId = {};
+    WORLD_HUBS.forEach(function (hub) {
+      groups[hub.key].sort(function (a, b) { return a.id.localeCompare(b.id, "en"); });
+      groups[hub.key].forEach(function (node, i) {
+        const compact = hub.kind === "USR";
         const radius = (compact ? 14 : 22) + (compact ? 5 : 9) * Math.sqrt(i);
         const spin = i * GOLDEN;
-        points.push({ id: n.id, kind: n.kind, x: h.x + Math.cos(spin) * radius, y: h.y + Math.sin(spin) * radius });
+        const placed = Object.assign({}, node, { x: hub.x + Math.cos(spin) * radius, y: hub.y + Math.sin(spin) * radius, hub: hub });
+        points.push(placed);
+        byId[node.id] = placed;
       });
     });
     tracesOf().forEach(function (t, i) {
       const radius = 16 + 7 * Math.sqrt(i);
       const spin = i * GOLDEN;
-      points.push({ id: "code:" + t.file + ":" + t.line, kind: "CODE", x: WORLD_CODING.x + Math.cos(spin) * radius, y: WORLD_CODING.y + Math.sin(spin) * radius, trace: t });
+      const placed = { id: "code:" + t.file + ":" + t.line, kind: "UNT", x: WORLD_CODING.x + Math.cos(spin) * radius, y: WORLD_CODING.y + Math.sin(spin) * radius, trace: t, label: t.file };
+      points.push(placed);
+      byId[placed.id] = placed;
     });
-    return points;
+    return { points: points, byId: byId, groups: groups, hubs: WORLD_HUBS };
   }
-  function placeFocus(id) {
-    const rings = neighborMap(id);
-    const center = DATA.nodes[id] || { id: id, kind: String(id).split("-")[0] };
-    const active = RING.filter(function (k) { return (rings[k] || []).length; });
-    const cx = 550, cy = 360;
-    const points = [{ id: center.id, kind: center.kind, x: cx, y: cy, center: true }];
-    active.forEach(function (k, ri) {
-      const items = rings[k];
-      const radius = 150 + ri * (active.length > 1 ? 160 / (active.length - 1) : 0);
-      items.forEach(function (item, i) {
-        const ang = -Math.PI / 2 + (Math.PI * 2 * i) / Math.max(items.length, 1);
-        const pid = item.file ? ("code:" + item.file + ":" + item.line) : item.id;
-        points.push({ id: pid, kind: k === "CODE" ? "CODE" : item.kind, x: cx + Math.cos(ang) * radius, y: cy + Math.sin(ang) * radius, trace: item.file ? item : null, src: item.id });
+  function worldRings(nodes) {
+    const rings = {};
+    FOCUS_TABS.filter(function (t) { return t.kind; }).forEach(function (t) { rings[t.kind] = []; });
+    Object.keys(nodes || {}).forEach(function (id) {
+      const node = nodes[id];
+      const kind = hubKind(node.kind);
+      if (!rings[kind]) return;
+      rings[kind].push(node);
+    });
+    Object.keys(rings).forEach(function (k) { rings[k].sort(function (a, b) { return a.id.localeCompare(b.id, "en"); }); });
+    return rings;
+  }
+  function magScale(node, cursor) {
+    if (!cursor) return 1;
+    const distPx = Math.hypot(node.x - cursor.x, node.y - cursor.y) * cursor.px;
+    if (distPx >= MAG_PX) return 1;
+    const t = 1 - distPx / MAG_PX;
+    const ease = t * t * (3 - 2 * t);
+    return 1 + (MAG_MAX - 1) * ease;
+  }
+  function nearestNode(cursor, points) {
+    if (!cursor || !points || !points.length) return null;
+    const range = MAG_PX / Math.max(cursor.px, 0.001);
+    let best = null, bestD = range;
+    points.forEach(function (node) {
+      const dist = Math.hypot(node.x - cursor.x, node.y - cursor.y);
+      if (dist < bestD) { bestD = dist; best = node; }
+    });
+    return best;
+  }
+
+  function loadReviewMarks() {
+    try {
+      const parsed = JSON.parse(window.localStorage.getItem(REVIEW_KEY) || "{}");
+      return parsed && typeof parsed === "object" ? parsed : {};
+    } catch (e) { return {}; }
+  }
+  function saveReviewMark(id, mark) {
+    const all = loadReviewMarks();
+    if (!mark || !mark.verdict) delete all[id];
+    else all[id] = { verdict: mark.verdict, note: String(mark.note || ""), at: Date.now() };
+    window.localStorage.setItem(REVIEW_KEY, JSON.stringify(all));
+    return all;
+  }
+  function reviewLineage(index) {
+    const parents = {}, satisfy = {}, verify = {};
+    Object.keys(index.nodes || {}).forEach(function (id) {
+      const node = index.nodes[id];
+      if (node.linked_from) { (parents[id] || (parents[id] = [])).push(node.linked_from); }
+      if (node.kind === "TST") (node.links || []).forEach(function (t) { (verify[t] || (verify[t] = [])).push(id); });
+    });
+    (index.functions || []).forEach(function (fn) {
+      (fn.requirements || []).forEach(function (req) {
+        (satisfy[req] || (satisfy[req] = [])).push(fn.id);
+        if (kindOfId(req) === "USR") (parents[fn.id] || (parents[fn.id] = [])).push(req);
+      });
+      (fn.interfaces || []).forEach(function (iface) { (satisfy[iface] || (satisfy[iface] = [])).push(fn.id); });
+      (fn.units || []).forEach(function (unit) { (satisfy[unit] || (satisfy[unit] = [])).push(fn.id); });
+      (fn.components || []).forEach(function (cmp) { (satisfy[cmp] || (satisfy[cmp] = [])).push(fn.id); });
+      (fn.tests || []).forEach(function (test) {
+        (verify[fn.id] || (verify[fn.id] = [])).push(test.id);
+        (test.links || []).forEach(function (link) { (verify[link] || (verify[link] = [])).push(test.id); });
       });
     });
-    return { points: points, rings: rings, center: center, active: active };
+    function pack(obj) {
+      const out = {};
+      Object.keys(obj).forEach(function (id) { out[id] = unique(obj[id]); });
+      return out;
+    }
+    return { parents: pack(parents), satisfy: pack(satisfy), verify: pack(verify) };
   }
-  function lintQueue() {
-    return (DATA.lint || []).filter(function (f) {
-      if (!S.project) return true;
-      return String(f.id || "").indexOf(S.project) >= 0 || String(f.message || "").indexOf(S.project) >= 0;
+  function titleLooksTruncated(title, statement) {
+    const rawTitle = String(title || "").replace(/^[A-Z]+-[A-Z0-9]+-\d+:\s*/, "").trim();
+    const rawStatement = String(statement || "").trim();
+    if (!rawTitle || !rawStatement) return false;
+    if (rawTitle === rawStatement) return rawTitle.length > 72;
+    if (rawStatement.indexOf(rawTitle) !== 0) return false;
+    if (rawTitle.length < 24) return false;
+    if (/(\.\.\.|…)$/.test(rawTitle)) return true;
+    if (/\s(and|the|a|an|to|with|when|unless|that|for)$/i.test(rawTitle)) return true;
+    return rawStatement.length > rawTitle.length + 8;
+  }
+  function sameText(a, b) {
+    return String(a || "").replace(/\s+/g, " ").trim().toLowerCase() === String(b || "").replace(/\s+/g, " ").trim().toLowerCase();
+  }
+  function reviewFlags(item, meta, lineage) {
+    const kind = item.kind;
+    const parents = lineage.parents[item.id] || [];
+    const functions = lineage.satisfy[item.id] || [];
+    const tests = lineage.verify[item.id] || [];
+    const title = meta.title || item.id;
+    const statement = meta.statement || "";
+    const acceptance = meta.acceptance || "";
+    const flags = [];
+    if (kind === "REQ" && parents.filter(function (id) { return kindOfId(id) === "USR"; }).length === 0) flags.push("no USR parent");
+    if ((kind === "REQ" || kind === "USR") && functions.length === 0) flags.push("no FNC satisfy");
+    if (["USR", "REQ", "FNC", "TST"].indexOf(kind) < 0 && functions.length === 0) flags.push("no FNC link");
+    if (kind !== "TST" && tests.length === 0) flags.push("no TST verify plan");
+    if (titleLooksTruncated(title, statement)) flags.push("title is a truncated statement");
+    if (kind === "REQ" && (!acceptance || sameText(acceptance, statement))) flags.push(acceptance ? "acceptance copies statement" : "acceptance criteria missing");
+    (DATA.lint || []).forEach(function (f) {
+      if (f.id === item.id) flags.push(f.category + ": " + f.message);
+    });
+    return { parents: parents.filter(function (id) { return kindOfId(id) === "USR"; }), functions: functions, tests: tests, flags: flags };
+  }
+  function queueFor(items) {
+    return items.slice().sort(function (a, b) {
+      const da = artifact(a.id).domain || "(none)";
+      const db = artifact(b.id).domain || "(none)";
+      if (da !== db) return da.localeCompare(db, "en");
+      return a.id.localeCompare(b.id, "en");
     });
   }
-  function summaryLine(c) {
-    const done = c.passed + c.failed + c.skipped;
-    if (!done) return "These checks are planned. None have been run yet.";
+  function withChecks(nodes, checks) {
+    const byId = {};
+    nodes.forEach(function (n) { byId[n.id] = { id: n.id, kind: n.kind, checks: [] }; });
+    (checks || []).forEach(function (check) {
+      (check.verifies || outs(check.id, "verifies")).forEach(function (id) {
+        if (byId[id]) byId[id].checks.push(check);
+      });
+    });
+    return Object.keys(byId).map(function (id) { return byId[id]; });
+  }
+  function checksOf(level) {
+    return testsOf(level).map(function (n) {
+      return { id: n.id, title: n.title || n.id, status: tstStatus(n), domain: domainOf(n), verifies: outs(n.id, "verifies"), cases: n.cases || [] };
+    });
+  }
+  function summaryLine(totals) {
+    const done = totals.passed + totals.failed + totals.skipped;
+    if (done === 0) return "These checks are planned. None have been run yet.";
     const bits = [];
-    if (c.passed) bits.push(c.passed + " passed");
-    if (c.failed) bits.push(c.failed + " failed");
-    if (c.skipped) bits.push(c.skipped + " skipped");
-    if (c.not_run) bits.push(c.not_run + " not run");
+    if (totals.passed) bits.push(totals.passed + " passed");
+    if (totals.failed) bits.push(totals.failed + " failed");
+    if (totals.skipped) bits.push(totals.skipped + " skipped");
+    if (totals.not_run) bits.push(totals.not_run + " not run");
     return bits.join(" · ");
   }
-  function statusPill(s) {
-    return '<span class="status s-' + s + '">' + s.replace("_", " ") + "</span>";
+  function donut(totals) {
+    const parts = ["passed", "failed", "skipped", "not_run"].map(function (key) {
+      return { key: key, value: totals[key] || 0, color: STATUS_COLOR[key] };
+    });
+    const total = parts.reduce(function (s, p) { return s + p.value; }, 0);
+    const radius = 54, circumference = 2 * Math.PI * radius;
+    let cursor = 0;
+    const slices = parts.map(function (part) {
+      const length = ((part.value) / (total || 1)) * circumference;
+      const el = '<circle cx="70" cy="70" r="' + radius + '" fill="none" stroke="' + part.color + '" stroke-width="16" stroke-dasharray="' + length + " " + (circumference - length) + '" stroke-dashoffset="' + (-cursor) + '"></circle>';
+      cursor += length;
+      return el;
+    }).join("");
+    return '<svg viewBox="0 0 140 140" width="144" height="144" role="img" aria-label="Passed, failed, skipped, and not run"><g transform="rotate(-90 70 70)">' + slices + '</g><text x="70" y="68" text-anchor="middle" fill="#f8fafc" font-size="22" font-family="ui-sans-serif, system-ui, sans-serif">' + total + '</text><text x="70" y="86" text-anchor="middle" fill="#94a3b8" font-size="10" font-family="ui-sans-serif, system-ui, sans-serif">checks</text></svg>';
   }
-  function caseLines(n) {
-    return (n.cases || []).map(function (c) {
-      if (typeof c === "string") return esc(c);
-      return esc((c.input || "") + " → " + (c.expected || ""));
+  function statusPill(status) {
+    return '<span class="pill s-' + status + '">' + esc(STATUS_LABEL[status] || status) + "</span>";
+  }
+  function countLine(counts) {
+    const safe = counts || emptyTotals();
+    return ["passed", "failed", "skipped", "not_run"].map(function (key) {
+      return '<span style="color:' + STATUS_COLOR[key] + '">' + (safe[key] || 0) + " " + STATUS_LABEL[key].toLowerCase() + "</span>";
     }).join("");
   }
-  function bar(extra) {
-    const projects = (DATA.projects || []).map(function (p) {
-      return '<option value="' + esc(p) + '"' + (p === S.project ? " selected" : "") + ">" + esc(p) + "</option>";
+  function kindLine(list, kinds) {
+    return kinds.map(function (kind) {
+      const n = list.filter(function (x) { return x.kind === kind; }).length;
+      return "<span>" + n + " " + kind + "</span>";
     }).join("");
-    return '<header class="bar"><div><h1>V-model debug view</h1><p>Graph ' + esc(DATA.meta.graph_version) + " · source " + esc(DATA.meta.source_commit || "n/a") + '</p></div><div class="row">' +
-      ((DATA.projects || []).length > 1 ? '<label class="hint">Project <select id="proj">' + projects + "</select></label>" : "") +
-      extra + "</div></header>";
   }
-  function landing() {
-    const tot = allTotals();
-    const leftRail = [USR_HUB.lx + "," + USR_HUB.ly].concat(V_ROWS.map(function (r) { return r.lx + "," + r.ly; })).concat([CODING.x + "," + CODING.y]).join(" ");
-    const rightRail = V_ROWS.map(function (r) { return r.rx + "," + r.ry; }).concat([CODING.x + "," + CODING.y]).join(" ");
-    let nodes = "";
-    function nodeBtn(id, x, y, side, label, sub, above) {
-      const p = pct(x, y);
-      const lab = "lab " + (side === "l" ? "lab-l" : "lab-r") + (above ? " lab-a" : "");
-      nodes += '<button type="button" class="node" data-act="open" data-level="' + id + '" data-pane="' + (side === "l" ? "spec" : "tests") + '" style="left:' + p.left + ";top:" + p.top + '" aria-label="' + esc(label) + '"><span class="' + lab + '"><span>' + esc(label) + "</span><p>" + sub + "</p></span></button>";
-    }
-    const usr = byKinds(["USR"]);
-    nodeBtn("needs", USR_HUB.lx, USR_HUB.ly, "l", "USR", kindLine(usr, ["USR"]), true);
-    V_ROWS.forEach(function (row) {
-      const kinds = LEFT_KINDS[row.level];
-      const specs = byKinds(kinds);
-      const tests = testsOf(row.level);
-      const counts = totalsFor(tests);
-      nodeBtn(row.level, row.lx, row.ly, "l", row.left, kindLine(specs, kinds), row.above);
-      nodeBtn(row.level, row.rx, row.ry, "r", row.right, countLine(counts), row.above);
-    });
-    const cp = pct(CODING.x, CODING.y);
-    nodes += '<button type="button" class="coding" data-act="code" style="left:' + cp.left + ";top:" + cp.top + '">coding · ' + tracesOf().length + " @trace</button>";
-    let dots = "";
-    function circ(x, y, fill) {
-      dots += '<circle class="dot" cx="' + x + '" cy="' + y + '" r="8" fill="' + fill + '"></circle>';
-    }
-    circ(USR_HUB.lx, USR_HUB.ly, "#22d3ee");
-    V_ROWS.forEach(function (row) {
-      const tone = toneOf(totalsFor(testsOf(row.level)));
-      dots += '<line class="cross" x1="' + row.lx + '" y1="' + row.ly + '" x2="' + row.rx + '" y2="' + row.ry + '" stroke="' + tone + '"></line>';
-      circ(row.lx, row.ly, tone);
-      circ(row.rx, row.ry, tone);
-    });
-    circ(CODING.x, CODING.y, "#22d3ee");
-    return bar('<button class="chip" data-act="review" type="button">Review queue · ' + lintQueue().length + '</button><button class="chip" data-act="world" type="button">World</button>') +
-      '<div class="main"><section class="card"><div class="row" style="align-items:center;gap:20px">' + donut(tot) +
-      '<div style="flex:1"><h2 style="margin:0 0 6px;font-size:18px">What we check</h2><p class="hint">' + esc(summaryLine(tot)) + "</p>" +
-      '<div class="stats">' + ["passed", "failed", "skipped", "not_run"].map(function (k) {
-        return '<div class="stat"><b>' + tot[k] + '</b><span style="color:' + STATUS[k] + '">' + k.replace("_", " ") + "</span></div>";
-      }).join("") + "</div></div></div></section>" +
-      '<div class="stage-wrap"><div class="stage"><svg viewBox="' + V_VIEW.x + " " + V_VIEW.y + " " + V_VIEW.w + " " + V_VIEW.h + '" aria-hidden="true"><polyline class="rail" points="' + leftRail + '"></polyline><polyline class="rail" points="' + rightRail + '"></polyline>' + dots + "</svg>" + nodes + "</div></div></div>";
+  function caseLine(cs) {
+    if (typeof cs === "string") return cs;
+    return (cs.input || "") + " → " + (cs.expected || "");
+  }
+  function worldStartId(index) {
+    if (index.default && index.nodes[index.default]) return index.default;
+    const ids = Object.keys(index.nodes || {});
+    return ids.filter(function (id) { return id.indexOf("FNC-") === 0; })[0] || ids.filter(function (id) { return id.indexOf("REQ-") === 0; })[0] || ids[0] || null;
   }
   function rowOf(level) {
     if (level === "needs") return USR_HUB;
     return V_ROWS.filter(function (r) { return r.level === level; })[0];
   }
-  function listHeader(title, sub, extras) {
-    return '<div class="row" style="margin-bottom:12px"><button class="chip" data-act="back" type="button">Back</button>' + (extras || "") + '</div><h2 style="margin:0 0 4px">' + esc(title) + '</h2><p class="hint">' + esc(sub) + "</p>";
+  function makePage(id, extras) {
+    return Object.assign({ focusId: id, peekId: null, world: false, blankWorld: false, section: "Connections", linkId: null }, extras || {});
   }
-  function specView() {
-    const row = rowOf(S.level);
-    const kinds = LEFT_KINDS[S.level] || [];
-    const items = byKinds(kinds);
-    const cards = items.length ? items.map(function (n) {
-      const checks = DATA.edges.filter(function (e) { return e.type === "verifies" && e.to === n.id; }).map(function (e) { return e.from; });
-      return '<button type="button" class="item" data-act="focus" data-id="' + esc(n.id) + '"><div class="row" style="justify-content:space-between"><div><h3>' + esc(n.title || n.id) + '</h3><div class="id">' + esc(n.id) + '</div></div><span class="kind">' + esc(n.kind) + "</span></div>" +
-        (n.statement ? '<p class="hint" style="margin-top:8px">' + esc(n.statement) + "</p>" : "") +
-        (checks.length ? '<p class="id" style="margin-top:8px">' + esc(checks.join(" · ")) + "</p>" : "") + "</button>";
-    }).join("") : '<p class="empty">No published items at this level.</p>';
-    const extras = '<button class="chip" data-act="pane" data-pane="tests" type="button"' + (row.leftOnly ? " disabled" : "") + ">" + esc(row.right || "Tests") + '</button><button class="chip" data-act="review" type="button">Review</button>';
-    return bar("") + '<div class="main">' + listHeader(row.left, items.length + " published", extras) + '<div class="list">' + cards + "</div></div>";
+  function clampPanel(width) {
+    const cap = Math.min(PANEL_MAX, Math.floor(window.innerWidth * 0.55) || PANEL_MAX);
+    return Math.min(cap, Math.max(PANEL_MIN, width));
   }
-  function testsView() {
-    const row = rowOf(S.level);
-    const tests = testsOf(S.level);
-    const c = totalsFor(tests);
-    const cards = tests.length ? tests.map(function (n) {
-      const v = verifies(n.id);
-      const cases = (n.cases || []).map(function (cs, i) {
-        const line = typeof cs === "string" ? cs : ((cs.input || "") + " → " + (cs.expected || ""));
-        return "<li>" + esc(line) + "</li>";
-      }).join("");
-      return '<button type="button" class="item" data-act="focus" data-id="' + esc(n.id) + '"><div class="row" style="justify-content:space-between"><div><h3>' + esc(n.title || n.id) + '</h3><div class="id">' + esc(n.id) + "</div></div>" + statusPill(tstStatus(n)) + "</div>" +
-        (v.length ? '<p class="id" style="margin-top:8px">' + esc(v.join(" · ")) + "</p>" : "") +
-        (cases ? '<ul style="margin:8px 0 0;padding-left:16px;color:#cbd5e1;font-size:12px">' + cases + "</ul>" : '<p class="hint" style="margin-top:8px">No cases on this plan.</p>') + "</button>";
-    }).join("") : '<p class="empty">No checks at this level.</p>';
-    const extras = '<button class="chip" data-act="pane" data-pane="spec" type="button">' + esc(row.left) + "</button>";
-    return bar("") + '<div class="main">' + listHeader(row.right || "Tests", summaryLine(c) + " · " + tests.length, extras) + '<div class="list">' + cards + "</div></div>";
+  function grainOf(kind) {
+    if (kind === "USR" || kind === "REQ") return "need";
+    if (kind === "FNC") return "allocation";
+    if (kind === "CMP") return "architecture";
+    if (kind === "API" || kind === "INT") return "contract";
+    if (kind === "UNT") return "unit";
+    return null;
   }
-  function codeView() {
-    const traces = tracesOf();
-    const cards = traces.length ? traces.map(function (t) {
-      return '<button type="button" class="item" data-act="focus" data-id="' + esc(t.id) + '"><div class="row" style="justify-content:space-between"><div><h3>' + esc(t.file) + ":" + t.line + '</h3><div class="id">@trace ' + esc(t.id) + '</div></div><span class="kind">CODE</span></div><pre>' + esc(t.snippet || "") + "</pre></button>";
-    }).join("") : '<p class="empty">No @trace tags in the scanned tree.</p>';
-    return bar("") + '<div class="main">' + listHeader("Coding", traces.length + " tags", "") + '<div class="list">' + cards + "</div></div>";
-  }
-  function reviewView() {
-    const q = lintQueue();
-    const cur = q[S.reviewI] || null;
-    const extras = '<button class="chip" data-act="rev" data-d="-1" type="button">Prev</button><button class="chip" data-act="rev" data-d="1" type="button">Next</button>';
-    let body = '<p class="empty">No lint flags. Broken traces, orphan units, planned TST with no code, and missing links will appear here.</p>';
-    if (cur) {
-      const node = DATA.nodes[cur.id];
-      body = '<p class="kind">' + esc(cur.category) + "</p><h2>" + esc(cur.id) + '</h2><p class="stmt flags">' + esc(cur.message) + "</p>" +
-        (node && node.statement ? '<p class="stmt">' + esc(node.statement) + "</p>" : "") +
-        (node ? '<p style="margin-top:16px"><button class="chip" data-act="focus" data-id="' + esc(cur.id) + '" type="button">Open in Focus</button></p>' : "");
+  function lineageOf(id) {
+    const n = DATA.nodes[id];
+    if (!n) return { grain: null, functions: [], components: [], interfaces: [], units: [], requirements: [], files: [] };
+    const grain = grainOf(n.kind);
+    function pill(ids) {
+      return unique(ids).filter(function (x) { return DATA.nodes[x]; }).map(function (x) {
+        return { id: x, label: DATA.nodes[x].title || x };
+      });
     }
-    return bar("") + '<div class="main">' + listHeader("Review queue", (S.reviewI + (cur ? 1 : 0)) + " / " + q.length + " flags · not SSOT status", extras) + '<div class="card" style="margin-top:12px">' + body + "</div></div>";
-  }
-  function sidePanel(preview, rings) {
-    const n = preview && preview.trace ? null : (preview && DATA.nodes[preview.src || preview.id]);
-    const t = preview && preview.trace;
-    const kind = t ? "CODE" : (n && n.kind) || "";
-    let html = '<p class="kind">' + (S.world ? "World" : "Focus") + (kind ? " · " + esc(kind) : "") + "</p>";
-    if (t) {
-      html += "<h2>" + esc(t.file) + ":" + t.line + '</h2><p class="id">@trace ' + esc(t.id) + "</p><pre>" + esc(t.snippet || "") + "</pre>";
-      html += '<p style="margin-top:12px"><button class="chip" data-act="focus" data-id="' + esc(t.id) + '" type="button">Goto ' + esc(t.id) + "</button></p>";
-      return html;
-    }
-    if (!n) {
-      html += "<h2>Entire neighborhood</h2><p class=\"hint\">Hover a node to preview. Click to select. Double-click to freeze on it.</p>";
-      return html;
-    }
-    html += "<h2>" + esc(n.title || n.id) + '</h2><p class="id">' + esc(n.id) + "</p>";
-    if (n.statement) html += '<p class="stmt">' + esc(n.statement) + "</p>";
-    if (n.acceptance) html += '<p class="hint">Acceptance: ' + esc(n.acceptance) + "</p>";
-    if (n.kind === "TST") html += "<p>" + statusPill(tstStatus(n)) + "</p>";
-    function pills(caption, items, empty) {
-      html += '<p class="kind" style="margin-top:18px">' + esc(caption) + "</p>";
-      if (!items.length) html += '<p class="hint">' + esc(empty) + "</p>";
-      else html += '<div class="ids">' + items.map(function (x) {
-        const id = x.id || x;
-        return '<button type="button" data-act="peek" data-id="' + esc(id) + '">' + esc(id) + "</button>";
-      }).join("") + "</div>";
-    }
-    if (n.kind === "USR" || n.kind === "REQ") {
-      pills("Satisfied by", (rings.FNC || []).concat(rings.API || []), "No function implements this need.");
-      pills("Verify plans", rings.TST || [], "No test plan verifies this node.");
-    }
-    if (n.kind === "FNC") {
-      pills("Allocated to", rings.CMP || [], "No component allocated.");
-      pills("Refined by", rings.UNT || [], "No units refine this function.");
-      pills("Satisfies", rings.REQ || [], "No requirements on this function.");
-    }
-    if (n.kind === "CMP") {
-      pills("Functions", rings.FNC || [], "No functions allocated to this block.");
-      pills("Ports", (rings.INT || []).concat(rings.API || []), "No interfaces on this block.");
-      pills("Parts", rings.UNT || [], "No units in this block.");
-    }
-    if (n.kind === "API") {
-      pills("Connects", rings.CMP || [], "No components on this contract.");
-      pills("Used by", rings.FNC || [], "No functions use this contract.");
-    }
-    if (n.kind === "INT") {
-      pills("Components", rings.CMP || [], "No components on this seam.");
-      pills("Function", rings.FNC || [], "No function on this seam.");
-    }
+    const files = [];
     if (n.kind === "UNT") {
-      const files = (n.source_files || []).concat((rings.CODE || []).map(function (c) { return c.file + ":" + c.line; }));
-      pills("Code @trace", rings.CODE || [], "No @trace for this unit.");
-      if (files.length) html += '<p class="id" style="margin-top:8px">' + esc((n.source_files || []).join(" → ")) + "</p>";
-      pills("Tests", rings.TST || [], "No unit test verifies this unit.");
+      (n.source_files || []).forEach(function (p) { files.push({ path: p, symbol: "" }); });
+      tracesOf().filter(function (t) { return t.id === id; }).forEach(function (t) {
+        files.push({ path: t.file, symbol: t.id, snippet: t.snippet, start: t.start, end: t.end });
+      });
     }
-    if (n.kind === "TST") {
-      pills("Verifies", RING.reduce(function (acc, k) {
-        if (k === "TST" || k === "CODE") return acc;
-        return acc.concat(rings[k] || []);
-      }, []), "This test verifies nothing.");
-      pills("Code @trace", rings.CODE || [], "No @trace for this test.");
-    }
-    if (S.peekId && S.peekId !== S.focusId) {
-      html += '<p style="margin-top:16px"><button class="chip" data-act="focus" data-id="' + esc(S.peekId) + '" type="button">Goto</button></p>';
-    }
-    return html;
+    return {
+      grain: grain,
+      functions: pill(n.kind === "CMP" ? ins(id, "allocated_to") : (n.kind === "API" || n.kind === "INT" ? outs(id, "depends_on").concat(ins(id, "depends_on")) : (n.kind === "USR" ? ins(id, "derives").reduce(function (acc, req) { return acc.concat(ins(req, "implements")); }, []) : ins(id, "implements")))),
+      components: pill(n.kind === "FNC" ? outs(id, "allocated_to") : (n.kind === "API" || n.kind === "INT" ? outs(id, "integrates_with").concat(ins(id, "integrates_with")) : [])),
+      interfaces: pill(n.kind === "CMP" ? ins(id, "integrates_with").concat(ins(id, "depends_on")) : (n.kind === "FNC" ? ins(id, "depends_on") : [])),
+      units: pill(n.kind === "FNC" || n.kind === "CMP" ? ins(id, "refines") : []),
+      requirements: pill(n.kind === "FNC" ? outs(id, "implements") : []),
+      files: files
+    };
   }
-  function graphSvg() {
-    const world = S.world;
-    const local = world ? null : placeFocus(S.focusId);
-    const points = world ? placeWorld() : local.points;
-    const rings = local ? local.rings : neighborMap(S.peekId || S.focusId);
-    const vb = world
-      ? (S.cam.x + " " + S.cam.y + " " + (WORLD.w / S.cam.k) + " " + (WORLD.h / S.cam.k))
-      : "0 0 1100 720";
-    let svg = '<svg id="field-svg" viewBox="' + vb + '" preserveAspectRatio="xMidYMid meet">';
-    if (world) {
-      const lpts = [vxy(-180, 70), vxy(120, 70), vxy(220, 230), vxy(320, 390), vxy(400, 550), WORLD_CODING].map(function (p) { return p.x + "," + p.y; }).join(" ");
-      const rpts = WORLD_RIGHT.map(function (p) { return p.x + "," + p.y; }).concat([WORLD_CODING.x + "," + WORLD_CODING.y]).join(" ");
-      svg += '<polyline points="' + lpts + '" fill="none" stroke="rgba(34,211,238,.08)" stroke-width="88" stroke-linecap="round"></polyline>';
-      svg += '<polyline points="' + rpts + '" fill="none" stroke="rgba(34,211,238,.08)" stroke-width="88" stroke-linecap="round"></polyline>';
-      svg += '<circle cx="' + WORLD_CODING.x + '" cy="' + WORLD_CODING.y + '" r="7" fill="#22d3ee" opacity=".55"></circle>';
-      svg += '<text x="' + WORLD_CODING.x + '" y="' + (WORLD_CODING.y + 22) + '" text-anchor="middle" fill="#67e8f9" font-size="12" opacity=".5">Coding</text>';
-      WORLD_HUBS.forEach(function (h) {
-        svg += '<text x="' + h.x + '" y="' + (h.y - 18) + '" text-anchor="middle" fill="' + (KIND_COLOR[h.kind] || "#67e8f9") + '" font-size="13" opacity=".7">' + esc(h.label) + "</text>";
-      });
-    } else {
-      local.active.forEach(function (k, ri) {
-        const radius = 150 + ri * (local.active.length > 1 ? 160 / (local.active.length - 1) : 0);
-        svg += '<circle cx="550" cy="360" r="' + radius + '" fill="none" stroke="rgba(34,211,238,.12)"></circle>';
-      });
-      points.forEach(function (p) {
-        if (p.center) return;
-        svg += '<line x1="550" y1="360" x2="' + p.x + '" y2="' + p.y + '" stroke="rgba(34,211,238,.22)"></line>';
-      });
-    }
-    points.forEach(function (p) {
-      const selected = (!world && p.center) || p.id === S.focusId || p.id === S.peekId;
-      const r = p.center ? 11 : (p.kind === "CODE" ? 5 : 7);
-      svg += '<circle data-nid="' + esc(p.id) + '" cx="' + p.x + '" cy="' + p.y + '" r="' + r + '" fill="' + (KIND_COLOR[p.kind] || "#67e8f9") + '" stroke="' + (selected ? "#ecfeff" : "transparent") + '" stroke-width="2" style="cursor:pointer"></circle>';
-    });
-    svg += "</svg>";
-    return { svg: svg, rings: rings, points: points };
-  }
-  function focusView() {
-    const g = graphSvg();
-    const previewId = S.peekId || S.focusId;
-    const preview = g.points.filter(function (p) { return p.id === previewId; })[0] || { id: previewId };
-    const tabs = FOCUS_TABS.map(function (t) {
-      const count = t.kind ? ((g.rings[t.kind] || []).length) : "";
-      return '<button class="pill' + (S.tab === t.id ? " on" : "") + '" data-act="tab" data-tab="' + t.id + '" type="button" aria-pressed="' + (S.tab === t.id) + '">' + t.id + (t.kind ? " " + count : "") + "</button>";
+
+  function header(extra) {
+    const projects = (DATA.projects || []).map(function (p) {
+      return '<option value="' + esc(p) + '"' + (p === S.project ? " selected" : "") + ">" + esc(p) + "</option>";
     }).join("");
-    let list = "";
-    const tab = FOCUS_TABS.filter(function (t) { return t.id === S.tab; })[0];
-    if (tab && tab.kind) {
-      const items = g.rings[tab.kind] || [];
-      list = '<div class="list" style="padding:12px">' + (items.length ? items.map(function (it) {
-        const id = it.file ? it.id : it.id;
-        const label = it.file ? (it.file + ":" + it.line) : it.id;
-        return '<button type="button" class="item" data-act="focus" data-id="' + esc(id) + '"><h3>' + esc(it.title || label) + '</h3><div class="id">' + esc(label) + "</div></button>";
-      }).join("") : '<p class="empty">None.</p>') + "</div>";
-    }
-    return '<div class="overlay">' + bar('<button class="chip" data-act="unfocus" type="button">Back</button><button class="chip" data-act="toggle-world" type="button" aria-pressed="' + S.world + '">World</button>') +
-      '<div class="row" style="padding:8px 20px">' + tabs + "</div>" +
-      '<div class="split"><aside class="side">' + sidePanel(preview, g.rings) + "</aside>" +
-      (S.tab === "Connections"
-        ? '<div class="field' + (S.world ? " grab" : "") + '" id="field">' + g.svg + "</div>"
-        : list) +
-      "</div></div>";
+    return '<header class="head"><div><h1>V-model debug view</h1><p>Graph ' + esc(DATA.meta.graph_version) + " · source " + esc(DATA.meta.source_commit || "n/a") + "</p></div><div class=\"row\">" +
+      ((DATA.projects || []).length > 1 ? '<label class="hint">Project <select id="proj">' + projects + "</select></label>" : "") +
+      (extra || "") + "</div></header>";
   }
   function foot() {
     return '<p class="foot">Plan lineage, not proof. Tests are not run unless evidence (EVD) says otherwise. Last Boss never marks passed from this view.</p>';
   }
+
+  function landingHtml() {
+    const tot = allTotals();
+    const index = buildIndex();
+    const start = worldStartId(index);
+    let dots = "";
+    function halo(x, y, fill, key) {
+      dots += '<g data-halo="' + key + '" hidden><circle class="vv-bloom" cx="' + x + '" cy="' + y + '" r="28" fill="' + fill + '"></circle><circle class="vv-halo" cx="' + x + '" cy="' + y + '" r="22" stroke="' + fill + '"></circle></g>';
+    }
+    halo(USR_HUB.lx, USR_HUB.ly, RAIL_CYAN, nodeKey(USR_HUB.level, "spec"));
+    dots += '<circle class="vv-dot" cx="' + USR_HUB.lx + '" cy="' + USR_HUB.ly + '" r="8" fill="' + RAIL_CYAN + '"></circle>';
+    V_ROWS.forEach(function (row) {
+      const counts = totalsFor(testsOf(row.level));
+      const tone = toneOf(counts);
+      dots += '<line class="vv-cross" x1="' + row.lx + '" y1="' + row.ly + '" x2="' + row.rx + '" y2="' + row.ry + '" stroke="' + tone + '"></line>';
+      halo(row.lx, row.ly, tone, nodeKey(row.level, "spec"));
+      halo(row.rx, row.ry, tone, nodeKey(row.level, "tests"));
+      dots += '<circle class="vv-dot" cx="' + row.lx + '" cy="' + row.ly + '" r="9" fill="' + tone + '"></circle>';
+      dots += '<circle class="vv-dot" cx="' + row.rx + '" cy="' + row.ry + '" r="9" fill="' + tone + '"></circle>';
+    });
+    dots += '<circle class="vv-dot" cx="' + CODING.x + '" cy="' + CODING.y + '" r="10" fill="' + RAIL_CYAN + '" data-z="' + CODING.z + '"></circle>';
+    let nodes = "";
+    function nodeBtn(row, side, x, y, label, sub, above, aria) {
+      const key = nodeKey(row.level, side);
+      const lab = (side === "spec" ? "vv-lab-l" : "vv-lab-r") + (above ? " vv-lab-a" : "");
+      nodes += '<button type="button" class="vv-node" data-key="' + key + '" data-level="' + row.level + '" data-side="' + side + '" data-z="' + (row.z || 0) + '" style="left:' + pctX(x) + ";top:" + pctY(y) + '" aria-label="' + esc(aria) + '"><span class="' + lab + '"><span class="vv-lab-t">' + esc(label) + '</span><p class="vv-sub">' + sub + "</p></span></button>";
+    }
+    const usr = byKinds(["USR"]);
+    nodeBtn(USR_HUB, "spec", USR_HUB.lx, USR_HUB.ly, "USR", kindLine(usr, ["USR"]), true, "USR. " + usr.length + " published items.");
+    V_ROWS.forEach(function (row) {
+      const kinds = LEFT_KINDS[row.level] || [];
+      const traces = byKinds(kinds);
+      const counts = totalsFor(testsOf(row.level));
+      nodeBtn(row, "spec", row.lx, row.ly, row.left, kindLine(traces, kinds), row.labelAbove, row.left + ". " + traces.length + " published items.");
+      nodeBtn(row, "tests", row.rx, row.ry, row.right, countLine(counts), row.labelAbove, row.right + ". " + counts.passed + " passed, " + counts.failed + " failed, " + counts.skipped + " skipped, " + counts.not_run + " not run.");
+    });
+    const floor = '<div class="vv-world" aria-hidden="true">' +
+      '<div class="vv-floor vv-floor-near"><svg class="vv-floor-snakes" viewBox="0 0 ' + FLOOR.w + " " + FLOOR.h + '" preserveAspectRatio="none">' +
+      '<defs><path id="vv-path-a" d="M112 336 H560 V672 H1008 V224 H1512 V784 H1792 V448 H1232 V1008 H448 V336 H112"></path><path id="vv-path-b" d="M280 168 H840 V504 H392 V952 H1288 V392 H1904 V840 H1456 V168 H280"></path></defs>' +
+      '<path class="vv-floor-grid" d="' + FLOOR_GRID_PATH + '"></path>' +
+      '<g class="vv-run-a"><use href="#vv-path-a" class="vv-snake-trail"></use><use href="#vv-path-a" class="vv-snake-core"></use></g>' +
+      '<g class="vv-run-b"><use href="#vv-path-b" class="vv-snake-trail"></use><use href="#vv-path-b" class="vv-snake-core"></use></g></svg></div>' +
+      '<div class="vv-floor vv-floor-far"><svg class="vv-floor-snakes" viewBox="0 0 ' + FLOOR.w + " " + FLOOR.h + '" preserveAspectRatio="none"><path class="vv-floor-grid" d="' + FLOOR_GRID_PATH + '"></path></svg></div>' +
+      '<div class="vv-world-shade"></div><div class="vv-horizon"></div></div>';
+    return header("") +
+      '<section class="card"><div class="row" style="align-items:center;gap:16px">' + donut(tot) +
+      '<div style="flex:1;min-width:0"><h2 style="margin:0;font-size:18px">What we check</h2><p class="hint" style="margin:4px 0 0">' + esc(summaryLine(tot)) + "</p>" +
+      '<div class="stats">' + ["passed", "failed", "skipped", "not_run"].map(function (k) {
+        return '<div class="stat"><b>' + tot[k] + '</b><span style="color:' + STATUS_COLOR[k] + '">' + STATUS_LABEL[k] + "</span></div>";
+      }).join("") + "</div></div></div></section>" +
+      '<div class="cam-wrap"><button type="button" class="globe" data-act="world" aria-label="World view" title="World view"' + (start ? "" : " disabled") + ">" + GLOBE + "</button>" +
+      floor +
+      '<div class="vv-camera" data-busy="false" data-hot="false"><div class="vv-scene"><div class="vv-stage">' +
+      '<svg class="vv-svg" viewBox="' + V_VIEW.x + " " + V_VIEW.y + " " + V_VIEW.w + " " + V_VIEW.h + '" preserveAspectRatio="xMidYMid meet" aria-hidden="true">' +
+      '<defs><filter id="vv-bloom" x="-80%" y="-80%" width="260%" height="260%"><feGaussianBlur stdDeviation="3.2" result="blur"></feGaussianBlur><feMerge><feMergeNode in="blur"></feMergeNode><feMergeNode in="blur"></feMergeNode><feMergeNode in="SourceGraphic"></feMergeNode></feMerge></filter></defs>' +
+      '<polyline class="vv-rail" points="' + LEFT_RAIL + '"></polyline><polyline class="vv-rail" points="' + RIGHT_RAIL + '"></polyline>' +
+      '<polyline class="vv-pulse" points="' + LEFT_RAIL + '"></polyline><polyline class="vv-pulse" points="' + RIGHT_RAIL + '"></polyline>' +
+      dots + "</svg>" + nodes +
+      '<div class="vv-coding" style="left:' + pctX(CODING.x) + ";top:" + pctY(CODING.y) + '"><span>coding</span></div>' +
+      "</div></div></div></div>";
+  }
+
+  function filterChips(names, current, act) {
+    return '<div class="row" style="margin-top:12px">' + names.map(function (name) {
+      const on = name === current;
+      return '<button type="button" class="chip' + (on ? " on" : "") + '" data-act="' + act + '" data-val="' + esc(name) + '" aria-pressed="' + on + '">' + esc(name) + "</button>";
+    }).join("") + "</div>";
+  }
+
+  function levelView() {
+    const row = rowOf(S.active);
+    const checks = checksOf(S.active);
+    const domains = [];
+    const seen = {};
+    checks.forEach(function (c) { if (c.domain && !seen[c.domain]) { seen[c.domain] = true; domains.push(c.domain); } });
+    const shown = S.filter === "All" ? checks : checks.filter(function (c) { return c.domain === S.filter; });
+    const cards = shown.length ? shown.map(function (check) {
+      const cases = (check.cases || []).map(function (line, i) {
+        return '<li style="white-space:pre-wrap;border-left:2px solid #1e293b;padding-left:8px;font-size:12px;color:#cbd5e1">' + esc(caseLine(line)) + "</li>";
+      }).join("");
+      return '<div class="item"><div class="row" style="justify-content:space-between;align-items:flex-start"><div><h3>' + esc(check.title) + '</h3><div class="id">' + esc(check.id) + "</div></div>" + statusPill(check.status) + "</div>" +
+        (check.verifies.length ? '<p class="id" style="margin-top:8px">' + esc(check.verifies.join(" · ")) + "</p>" : "") +
+        (cases ? '<ul style="margin:12px 0 0;padding:8px 0 0;border-top:1px solid rgba(30,41,59,.8);display:flex;flex-direction:column;gap:6px">' + cases + "</ul>" : '<p class="hint" style="margin-top:12px">No cases on this plan.</p>') + "</div>";
+    }).join("") : '<p class="empty">' + (checks.length ? "No checks in this domain." : "No checks at this level.") + "</p>";
+    return header("") + '<div class="pane"><div><button type="button" class="chip" data-act="back">Back</button>' +
+      (row.left ? '<div><button type="button" class="chip" style="margin-top:12px;border:0;letter-spacing:.18em;color:#64748b" data-act="pane" data-pane="spec">' + esc(row.left) + "</button></div>" : "") +
+      "<h2 style=\"margin:4px 0 0;font-size:18px\">" + esc(row.right) + "</h2><p class=\"hint\">" + esc(summaryLine(totalsFor(testsOf(S.active)))) + "</p>" +
+      '<div class="row" style="justify-content:flex-end"><span class="id">' + checks.length + "</span></div>" +
+      filterChips(["All"].concat(domains), S.filter, "filter") + "</div><div class=\"list\">" + cards + "</div></div>";
+  }
+
+  function specView() {
+    const row = rowOf(S.active);
+    const kinds = LEFT_KINDS[S.active] || [];
+    const items = withChecks(byKinds(kinds), checksOf(S.active));
+    if (S.reviewing) return reviewView(items, kinds);
+    const shown = S.filter === "All" ? items : items.filter(function (it) { return it.kind === S.filter; });
+    const cards = shown.length ? shown.map(function (item) {
+      const meta = artifact(item.id);
+      return '<button type="button" class="item" data-act="focus" data-id="' + esc(item.id) + '"><div class="row" style="justify-content:space-between;align-items:flex-start"><div><h3>' + esc(meta.title) + '</h3><div class="id">' + esc(item.id) + '</div></div><span class="kind">' + esc(item.kind) + "</span></div>" +
+        (meta.domain ? '<p class="hint" style="margin-top:8px;letter-spacing:.14em;text-transform:uppercase;font-size:11px">' + esc(meta.domain) + "</p>" : "") +
+        (meta.statement ? '<p class="stmt" style="margin-top:8px;font-size:12px">' + esc(meta.statement) + "</p>" : "") +
+        (item.checks.length ? '<p class="id" style="margin-top:12px">' + esc(item.checks.map(function (c) { return c.id; }).join(" · ")) + "</p>" : "") + "</button>";
+    }).join("") : '<p class="empty">' + (items.length ? "No " + S.filter + " items." : "No published items at this level.") + "</p>";
+    return header("") + '<div class="pane"><div><button type="button" class="chip" data-act="back">Back</button>' +
+      '<p class="kind" style="margin-top:12px">' + esc(row.left) + "</p><h2 style=\"margin:4px 0 0;font-size:18px\">" + esc(row.left) + "</h2>" +
+      (row.right ? '<button type="button" class="chip" style="margin-top:4px;border:0;color:#94a3b8" data-act="pane" data-pane="tests">' + esc(row.right) + "</button>" : "") +
+      '<div class="row" style="justify-content:flex-end;gap:8px"><span class="id">' + items.length + '</span><button type="button" class="chip cyan" data-act="review"' + (shown.length ? "" : " disabled") + ">Review</button></div>" +
+      filterChips(["All"].concat(kinds), S.filter, "filter") + "</div><div class=\"list\">" + cards + "</div></div>";
+  }
+
+  function reviewView(items, kinds) {
+    const queue = queueFor(items);
+    const current = queue[S.reviewI] || null;
+    const marks = loadReviewMarks();
+    const reviewed = queue.filter(function (it) { return marks[it.id] && marks[it.id].verdict; }).length;
+    const kindLabel = kinds.length === 1 ? kinds[0] : "published";
+    let body = '<p class="empty">No published items in this filter.</p>';
+    if (current) {
+      const meta = artifact(current.id);
+      const index = buildIndex();
+      const review = reviewFlags(current, meta, reviewLineage(index));
+      const mark = marks[current.id];
+      function pills(caption, empty, ids) {
+        return '<div style="margin-top:16px"><p class="kind">' + esc(caption) + "</p>" +
+          (ids.length ? '<div class="ids">' + ids.map(function (id) {
+            return '<button type="button" data-act="focus" data-id="' + esc(id) + '">' + esc(id) + "</button>";
+          }).join("") + "</div>" : '<p class="hint" style="margin-top:8px">' + esc(empty) + "</p>") + "</div>";
+      }
+      body = '<p class="kind">' + esc(meta.domain || "(none)") + " · " + esc(current.kind) + (mark && mark.verdict ? " · " + esc(mark.verdict) : "") + "</p>" +
+        "<h2 style=\"margin:8px 0 0;font-size:20px\">" + esc(meta.title) + '</h2><p class="id">' + esc(current.id) + "</p>" +
+        (meta.statement ? '<p class="stmt" style="margin-top:16px">' + esc(meta.statement) + "</p>" : "") +
+        (meta.acceptance ? '<p class="hint" style="margin-top:12px">Acceptance: ' + esc(meta.acceptance) + "</p>" : "") +
+        pills("Stakeholder need", "No stakeholder need.", review.parents) +
+        pills("Satisfied by", "No function allocated to this need.", review.functions) +
+        pills("Verify plans", "No test plan verifies this node.", review.tests) +
+        '<div style="margin-top:24px"><p class="kind">Auto flags</p>' +
+        (review.flags.length ? '<ul class="flags" style="margin:8px 0 0;padding-left:18px">' + review.flags.map(function (f) { return "<li>" + esc(f) + "</li>"; }).join("") + "</ul>" : '<p class="hint" style="margin-top:8px">No automatic flags. Still needs your mark.</p>') + "</div>" +
+        '<label style="display:block;margin-top:24px"><span class="kind">Note</span><textarea class="note" data-role="note" rows="3">' + esc(S.note) + "</textarea></label>" +
+        '<div class="row" style="margin-top:16px">' + VERDICTS.map(function (v) {
+          const on = mark && mark.verdict === v.id;
+          return '<button type="button" class="chip' + (on ? " on" : "") + '" data-act="verdict" data-val="' + v.id + '" aria-pressed="' + on + '">' + v.label + "</button>";
+        }).join("") + '<button type="button" class="chip cyan" data-act="focus" data-id="' + esc(current.id) + '">Neighborhood</button></div>';
+    }
+    return header("") + '<div class="pane"><div><button type="button" class="chip" data-act="close-review">Close review</button>' +
+      '<p class="kind" style="margin-top:12px">Human review · not SSOT</p><h2 style="margin:4px 0 0;font-size:18px">Review queue</h2>' +
+      '<p class="hint" style="font-family:ui-monospace,monospace">' + reviewed + " / " + queue.length + " " + esc(kindLabel) + "</p>" +
+      '<div class="row" style="justify-content:flex-end"><button type="button" class="chip" data-act="rev" data-d="-1"' + (queue.length ? "" : " disabled") + ">Prev</button>" +
+      '<button type="button" class="chip" data-act="rev" data-d="1"' + (queue.length ? "" : " disabled") + ">Next</button></div></div>" +
+      '<div class="list">' + body + "</div></div>";
+  }
+
+  function page() {
+    return S.pages[S.pageI] || S.pages[0] || makePage(S.focusId);
+  }
+
+  function focusHtml() {
+    const pg = page();
+    const index = buildIndex();
+    const focusId = pg.focusId || S.focusId;
+    const tab = pg.section || "Connections";
+    const world = Boolean(pg.world);
+    const blankWorld = Boolean(pg.blankWorld);
+    const peekId = pg.peekId || null;
+    const linkId = pg.linkId || null;
+    const graph = focusGraph(index, focusId);
+    const worldMap = placeWorld(index);
+    const censusRings = worldRings(index.nodes);
+    const center = graph.center;
+    const hot = S.hot;
+    const previewId = hot || peekId || (world ? null : focusId);
+    const previewNode = previewId ? (index.nodes[previewId] || (previewId.indexOf("code:") === 0 ? { id: previewId, kind: "UNT", label: previewId } : { id: previewId, kind: kindOfId(previewId), label: previewId })) : null;
+    const previewMeta = previewId && DATA.nodes[previewId] ? artifact(previewId) : {};
+    const canGoto = Boolean(peekId) && (world || peekId !== focusId) && DATA.nodes[peekId];
+    const peekGraph = (world && linkId) ? focusGraph(index, linkId) : null;
+    const related = { ids: {}, counts: {}, spokes: [], links: [] };
+    if (peekGraph) {
+      peekGraph.RING_ORDER.forEach(function (kind) {
+        const nodes = peekGraph.rings[kind];
+        if (!nodes.length) return;
+        related.counts[kind] = nodes.length;
+        nodes.forEach(function (node) { related.ids[node.id] = true; related.spokes.push(node.id); });
+      });
+      related.links = peekGraph.links;
+    }
+    const activeKinds = graph.RING_ORDER.filter(function (kind) { return graph.rings[kind].length > 0; });
+    const localPoints = [];
+    const localById = {};
+    localById[center.id] = Object.assign({}, center, { x: VIEW.cx, y: VIEW.cy });
+    activeKinds.forEach(function (kind, ringIndex) {
+      const radius = 150 + ringIndex * (activeKinds.length > 1 ? 160 / (activeKinds.length - 1) : 0);
+      placeRing(graph.rings[kind], radius, VIEW).forEach(function (node) {
+        localPoints.push(node);
+        localById[node.id] = node;
+      });
+    });
+    const listKind = (FOCUS_TABS.filter(function (t) { return t.id === tab; })[0] || {}).kind;
+    const listRings = world ? censusRings : graph.rings;
+    const list = listKind ? (listRings[listKind] || []) : [];
+    const showTabs = S.pages.length > 1 || !(world && blankWorld);
+    const field = world ? worldMap : { points: localPoints, byId: localById };
+    const camera = world ? WORLD : VIEW;
+    const selectedId = blankWorld ? null : focusId;
+    const pin = selectedId ? field.byId[selectedId] : null;
+    const peek = peekId ? field.byId[peekId] : null;
+    const linkNode = linkId ? field.byId[linkId] : null;
+    const viewBox = world
+      ? (S.cam.x + " " + S.cam.y + " " + (camera.w / S.cam.k) + " " + (camera.h / S.cam.k))
+      : "0 0 " + camera.w + " " + camera.h;
+    const lin = previewId && DATA.nodes[previewId] ? lineageOf(previewId) : { grain: null, functions: [], components: [], interfaces: [], units: [], requirements: [], files: [] };
+
+    function lineageRow(caption, empty, items) {
+      return '<div style="margin-top:24px"><p class="kind">' + esc(caption) + "</p>" +
+        (items.length ? '<div class="ids">' + items.map(function (item) {
+          return '<button type="button" data-act="peek" data-id="' + esc(item.id) + '">' + esc(item.label && item.label !== item.id ? item.label : item.id) + "</button>";
+        }).join("") + "</div>" : '<p class="hint" style="margin-top:12px">' + esc(empty) + "</p>") + "</div>";
+    }
+    let copy = '<p class="kind">' + (world ? "World" + (previewNode ? " · " + esc(previewNode.kind) : "") : esc((previewNode && previewNode.kind) || center.kind)) + (hot ? " · Hover" : peekId ? " · Selected" : "") + "</p>";
+    copy += "<h2>" + esc(previewNode ? (previewMeta.title || previewNode.label || previewId) : "Entire neighborhood") + "</h2>";
+    if (previewId) copy += '<p class="id">' + esc(previewId) + "</p>";
+    if (!previewNode) copy += '<p class="hint" style="margin-top:16px">Hover a node to preview. Click to select.</p>';
+    if (previewMeta.domain) copy += '<p class="hint" style="margin-top:12px;letter-spacing:.14em;text-transform:uppercase;font-size:11px">' + esc(previewMeta.domain) + "</p>";
+    if (previewMeta.statement) copy += '<p class="stmt" style="margin-top:16px">' + esc(previewMeta.statement) + "</p>";
+    if (canGoto || peekId) {
+      copy += '<div class="row" style="margin-top:24px">';
+      if (canGoto) copy += '<button type="button" class="chip on" data-act="goto">Goto</button>';
+      if (peekId) copy += '<button type="button" class="chip" data-act="clear-peek">Clear</button>';
+      if (world && peekId) copy += '<button type="button" class="chip cyan' + (linkId === peekId ? " on" : "") + '" data-act="see-link">' + (linkId === peekId ? "Hide connection" : "See connection") + (linkId === peekId && related.spokes.length ? " " + related.spokes.length : "") + "</button>";
+      copy += "</div>";
+    }
+    if (world && linkId) {
+      copy += '<p class="hint" style="margin-top:16px;font-family:ui-monospace,monospace">Frozen on ' + esc(linkId) + ". " +
+        (related.spokes.length === 0 ? "No traced neighbors for this node." : WORLD_ORDER.filter(function (k) { return related.counts[k]; }).map(function (k) { return k + " " + related.counts[k]; }).join(" · ")) + "</p>";
+    }
+    if (previewNode && lin.grain === "need") copy += lineageRow("Satisfied by", "No functions allocated to this need.", lin.functions);
+    if (previewNode && lin.grain === "allocation") {
+      copy += lineageRow("Allocated to", "No component allocated.", lin.components);
+      copy += lineageRow("Refined by", "No units refine this function.", lin.units);
+      copy += lineageRow("Satisfies", "No requirements on this function.", lin.requirements);
+    }
+    if (previewNode && lin.grain === "architecture") {
+      copy += '<p class="kind" style="margin-top:32px">Architecture</p>';
+      copy += lineageRow("Functions", "No functions allocated to this block.", lin.functions);
+      copy += lineageRow("Ports", "No interfaces on this block.", lin.interfaces);
+      copy += lineageRow("Parts", "No units in this block.", lin.units);
+    }
+    if (previewNode && lin.grain === "contract") {
+      copy += lineageRow("Connects", "No components on this contract.", lin.components);
+      copy += lineageRow("Used by", "No functions use this contract.", lin.functions);
+    }
+    if (previewNode && lin.grain === "unit") {
+      copy += '<div style="margin-top:32px"><p class="kind">Code</p>';
+      if (!lin.files.length) copy += '<p class="hint" style="margin-top:12px">No source files on this unit yet.</p>';
+      else copy += '<div class="ids" style="margin-top:12px">' + lin.files.map(function (file, i) {
+        return (i ? '<span style="color:#475569">→</span>' : "") + '<button type="button" data-act="open-file" data-path="' + esc(file.path) + '" data-symbol="' + esc(file.symbol || "") + '">' + esc(String(file.path).split("/").pop()) + "</button>";
+      }).join("") + "</div>";
+      const snip = lin.files.filter(function (f) { return f.snippet && (!S.openFile || (S.openFile.path === f.path && S.openFile.symbol === f.symbol)); })[0];
+      if (S.openFile) {
+        const hit = lin.files.filter(function (f) { return f.path === S.openFile.path && (f.symbol || "") === (S.openFile.symbol || ""); })[0];
+        if (hit && hit.snippet) copy += "<pre style=\"margin-top:16px\"><p style=\"color:#64748b;margin:0 0 8px\">" + esc(hit.path) + (hit.start ? ":" + hit.start + "–" + hit.end : "") + "</p>" + esc(hit.snippet) + "</pre>";
+        else if (hit) copy += '<p class="hint" style="margin-top:12px">Could not read that file.</p>';
+      } else if (snip) copy += "";
+      copy += "</div>";
+    }
+
+    let svg = '<svg id="field-svg" viewBox="' + viewBox + '" preserveAspectRatio="xMidYMid meet">';
+    if (world) {
+      svg += '<polyline points="' + WORLD_RAIL_L_PTS + '" fill="none" stroke="rgba(34,211,238,0.08)" stroke-width="88" stroke-linecap="round" stroke-linejoin="round"></polyline>';
+      svg += '<polyline points="' + WORLD_RAIL_R_PTS + '" fill="none" stroke="rgba(34,211,238,0.08)" stroke-width="88" stroke-linecap="round" stroke-linejoin="round"></polyline>';
+      svg += '<circle cx="' + WORLD_CODING.x + '" cy="' + WORLD_CODING.y + '" r="7" fill="#22d3ee" opacity="0.55"></circle>';
+      svg += '<text x="' + WORLD_CODING.x + '" y="' + (WORLD_CODING.y + 22) + '" text-anchor="middle" fill="#67e8f9" font-size="12" font-family="ui-monospace, monospace" opacity="0.45">Coding</text>';
+      WORLD_HUBS.forEach(function (hub) {
+        svg += '<text x="' + hub.x + '" y="' + (hub.y - 18) + '" text-anchor="middle" fill="' + (KIND_COLOR[hub.kind] || "#67e8f9") + '" font-size="13" font-family="ui-monospace, monospace" opacity="0.7">' + esc(hub.label) + "</text>";
+      });
+    } else {
+      activeKinds.forEach(function (kind, ringIndex) {
+        const radius = 150 + ringIndex * (activeKinds.length > 1 ? 160 / (activeKinds.length - 1) : 0);
+        svg += '<circle cx="' + VIEW.cx + '" cy="' + VIEW.cy + '" r="' + radius + '" fill="none" stroke="rgba(34,211,238,0.12)" stroke-width="1"></circle>';
+      });
+      localPoints.forEach(function (node) {
+        svg += '<line x1="' + VIEW.cx + '" y1="' + VIEW.cy + '" x2="' + node.x + '" y2="' + node.y + '" stroke="rgba(34,211,238,0.22)" stroke-width="1"></line>';
+      });
+    }
+    if (world && linkNode) {
+      related.spokes.forEach(function (id) {
+        const other = worldMap.byId[id];
+        if (!other) return;
+        svg += '<line x1="' + linkNode.x + '" y1="' + linkNode.y + '" x2="' + other.x + '" y2="' + other.y + '" stroke="' + (KIND_COLOR[other.kind] || "#67e8f9") + '" stroke-width="1" opacity="0.42"></line>';
+      });
+      related.links.forEach(function (pair, i) {
+        const a = worldMap.byId[pair[0]], b = worldMap.byId[pair[1]];
+        if (!a || !b) return;
+        svg += '<line x1="' + a.x + '" y1="' + a.y + '" x2="' + b.x + '" y2="' + b.y + '" stroke="rgba(251,191,36,0.35)" stroke-width="1"></line>';
+      });
+    }
+    if (!world) {
+      graph.links.forEach(function (pair) {
+        const a = localById[pair[0]], b = localById[pair[1]];
+        if (!a || !b) return;
+        svg += '<line x1="' + a.x + '" y1="' + a.y + '" x2="' + b.x + '" y2="' + b.y + '" stroke="rgba(251,191,36,0.28)" stroke-width="1"></line>';
+      });
+    }
+    field.points.forEach(function (node) {
+      const color = KIND_COLOR[node.kind] || "#67e8f9";
+      const lit = hot === node.id;
+      const peeked = node.id === peekId;
+      const pinned = Boolean(selectedId) && node.id === selectedId;
+      const frozen = node.id === linkId;
+      const tied = Boolean(linkId) && (related.ids[node.id] || frozen);
+      const dim = world && linkId && !peeked && !tied;
+      const base = world ? (peeked || frozen ? 6 : tied ? 4.2 : pinned ? 4.5 : 2.6) : (peeked ? 9 : 7);
+      const r = base;
+      svg += '<g opacity="' + (dim ? "0.14" : "1") + '" class="pointer-events-none">';
+      if (lit || peeked || tied) svg += '<circle cx="' + node.x + '" cy="' + node.y + '" r="' + (r + 6) + '" fill="none" stroke="' + color + '" stroke-width="1.2" opacity="0.8"></circle>';
+      svg += '<circle data-nid="' + esc(node.id) + '" cx="' + node.x + '" cy="' + node.y + '" r="' + r + '" fill="' + color + '" style="cursor:pointer"><title>' + esc(node.id) + "</title></circle>";
+      if (!world) svg += '<text x="' + (node.x + 10) + '" y="' + (node.y - 8) + '" fill="#a5f3fc" font-size="9" font-family="ui-monospace, monospace">' + esc(node.id) + "</text>";
+      svg += "</g>";
+    });
+    if (!world) {
+      svg += '<circle cx="' + VIEW.cx + '" cy="' + VIEW.cy + '" r="26" fill="' + (KIND_COLOR[center.kind] || "#67e8f9") + '"></circle>';
+      svg += '<circle cx="' + VIEW.cx + '" cy="' + VIEW.cy + '" r="34" fill="none" stroke="' + (KIND_COLOR[center.kind] || "#67e8f9") + '" stroke-width="1.4" opacity="0.45"></circle>';
+    }
+    if (world && pin) svg += '<circle cx="' + pin.x + '" cy="' + pin.y + '" r="10" fill="none" stroke="' + (KIND_COLOR[center.kind] || "#67e8f9") + '" stroke-width="1.6"></circle>';
+    if (world && linkNode) svg += '<circle cx="' + linkNode.x + '" cy="' + linkNode.y + '" r="14" fill="none" stroke="#22d3ee" stroke-width="1.6"></circle>';
+    if (peek && peekId !== center.id && peekId !== linkId) svg += '<circle cx="' + peek.x + '" cy="' + peek.y + '" r="' + (world ? 12 : 16) + '" fill="none" stroke="#ecfeff" stroke-width="1.4"></circle>';
+    svg += "</svg>";
+
+    const tabs = FOCUS_TABS.map(function (item) {
+      const count = item.kind ? ((listRings[item.kind] || []).length) : null;
+      const on = tab === item.id;
+      return '<button type="button" class="chip' + (on ? " on" : "") + '" data-act="tab" data-tab="' + item.id + '" aria-pressed="' + on + '">' + item.id + (count != null ? " " + count : "") + "</button>";
+    }).join("");
+    let pageTabs = "";
+    if (showTabs) {
+      pageTabs = '<div class="row">' + S.pages.map(function (item, index) {
+        const on = index === S.pageI;
+        const label = index === 0 && item.blankWorld ? "World" : item.focusId;
+        return '<button type="button" class="tabx' + (on ? " on" : "") + '" data-act="page" data-i="' + index + '" aria-pressed="' + on + '"><span>' + esc(label) + "</span>" +
+          (index > 0 ? '<span data-act="close-page" data-i="' + index + '" style="margin-left:6px">×</span>' : "") + "</button>";
+      }).join("") + "</div>";
+    }
+    let fieldHtml;
+    if (tab === "Connections") {
+      fieldHtml = '<div class="field' + (world ? " grab" : "") + ' vv-in" id="field">' + svg +
+        (world ? '<div class="zoom"><button type="button" data-act="zoom" data-k="1.25" aria-label="Zoom in">+</button><button type="button" data-act="zoom" data-k="' + (1 / 1.25) + '" aria-label="Zoom out">−</button><button type="button" data-act="fit" aria-label="Fit world">Fit</button></div>' : "") +
+        (world && (hot || peek) ? '<p style="position:absolute;bottom:16px;left:50%;transform:translateX(-50%);font-family:ui-monospace,monospace;font-size:12px;color:#cffafe;pointer-events:none">' + esc((field.byId[hot] || peek).id) + "</p>" : "") +
+        "</div>";
+    } else {
+      fieldHtml = '<ul class="list vv-in" style="padding:0 20px 16px">' + (list.length ? list.map(function (node) {
+        const meta = artifact(node.id);
+        const status = node.kind === "TST" ? tstStatus(DATA.nodes[node.id]) : null;
+        const on = node.id === peekId;
+        return '<li><button type="button" class="item" data-act="peek" data-id="' + esc(node.id) + '" data-dbl="focus" style="' + (on ? "border-color:#67e8f9" : "") + '"><div class="row" style="justify-content:space-between"><div><h3>' + esc(meta.title || node.label || node.id) + '</h3><div class="id">' + esc(node.id) + '</div></div><span class="kind" style="color:' + (KIND_COLOR[node.kind] || "") + '">' + esc(node.kind) + "</span></div>" +
+          (status ? '<p class="hint" style="margin-top:8px;letter-spacing:.08em;text-transform:uppercase;font-size:11px">' + esc(status) + "</p>" : "") + "</button></li>";
+      }).join("") : '<li class="empty">No ' + esc(tab) + " in this neighborhood.</li>") + "</ul>";
+    }
+    return '<div class="overlay"><div class="ov-head"><div class="row" style="justify-content:space-between"><div class="row"><button type="button" class="chip" data-act="unfocus">Back</button><button type="button" class="chip cyan' + (world ? " on" : "") + '" data-act="toggle-world" aria-pressed="' + world + '">World</button></div><div class="row" style="border:1px solid rgba(34,211,238,.2);border-radius:999px;padding:6px 8px;background:rgba(2,6,23,.8)">' + tabs + "</div></div>" + pageTabs + "</div>" +
+      '<div class="split"><aside class="side vv-in" id="copy" style="width:' + S.panelW + 'px">' + copy + '</aside><div class="sep" id="sep" role="separator" aria-orientation="vertical" aria-label="Resize preview panel"></div>' + fieldHtml + "</div></div>";
+  }
+
+  function applySceneStyle() {
+    const scene = root.querySelector(".vv-scene");
+    if (!scene) return;
+    if (!dolly) {
+      scene.style.transformOrigin = "";
+      scene.style.transform = "";
+      scene.style.transition = "";
+      return;
+    }
+    scene.style.transformOrigin = dolly.originX + "px " + dolly.originY + "px";
+    scene.style.transform = dolly.atRest
+      ? "translate3d(0px, 0px, 0px) scale(1)"
+      : "translate3d(" + dolly.x + "px, " + dolly.y + "px, 0px) scale(" + dolly.scale + ")";
+    scene.style.transition = dolly.animate ? "" : "none";
+  }
+  function cacheLandingRefs() {
+    Object.keys(nodeRefs).forEach(function (k) { delete nodeRefs[k]; });
+    root.querySelectorAll(".vv-node").forEach(function (el) { nodeRefs[el.getAttribute("data-key")] = el; });
+  }
+  function paintHot(hot) {
+    landingHot = hot;
+    const cam = root.querySelector(".vv-camera");
+    if (cam) cam.setAttribute("data-hot", hot ? "true" : "false");
+    root.querySelectorAll(".vv-node").forEach(function (el) {
+      const on = hot && el.getAttribute("data-level") === hot.level && el.getAttribute("data-side") === hot.side;
+      el.setAttribute("data-hot", on ? "true" : "false");
+    });
+    root.querySelectorAll("[data-halo]").forEach(function (g) {
+      const on = hot && g.getAttribute("data-halo") === nodeKey(hot.level, hot.side);
+      if (on) g.removeAttribute("hidden");
+      else g.setAttribute("hidden", "");
+    });
+  }
+  function pickTarget(clientX, clientY) {
+    let best = null, bestScore = Infinity;
+    [USR_HUB].concat(V_ROWS).forEach(function (row) {
+      (row.leftOnly ? ["spec"] : ["spec", "tests"]).forEach(function (side) {
+        const el = nodeRefs[nodeKey(row.level, side)];
+        if (!el) return;
+        const box = el.getBoundingClientRect();
+        const padX = 150;
+        const left = side === "spec" ? box.left - padX : box.left - 22;
+        const right = side === "tests" ? box.right + padX : box.right + 22;
+        if (clientX < left || clientX > right || clientY < box.top - 18 || clientY > box.bottom + 18) return;
+        const score = Math.hypot(clientX - (box.left + box.width / 2), clientY - (box.top + box.height / 2));
+        if (score < bestScore) { best = { level: row.level, side: side }; bestScore = score; }
+      });
+    });
+    return best;
+  }
+  function measurePose(level, side) {
+    const camera = root.querySelector(".vv-camera");
+    const scene = root.querySelector(".vv-scene");
+    const nodeEl = nodeRefs[nodeKey(level, side)];
+    if (!camera || !scene || !nodeEl) return null;
+    const cam = camera.getBoundingClientRect();
+    const sceneBox = scene.getBoundingClientRect();
+    const node = nodeEl.getBoundingClientRect();
+    if (cam.width < 8 || cam.height < 8 || node.width < 1 || node.height < 1) return null;
+    const nodeCx = node.left + node.width / 2;
+    const nodeCy = node.top + node.height / 2;
+    const fit = Math.min((cam.width * 0.28) / node.width, (cam.height * 0.28) / node.height);
+    function round(v) { return Math.round(v * 100) / 100; }
+    const pose = {
+      level: level, side: side,
+      originX: round(nodeCx - sceneBox.left), originY: round(nodeCy - sceneBox.top),
+      x: round((cam.left + cam.width / 2) - nodeCx), y: round((cam.top + cam.height / 2) - nodeCy),
+      scale: round(Math.min(4.4, Math.max(2.4, fit))),
+      z: (rowOf(level) && rowOf(level).z) || (level === "needs" ? USR_HUB.z : 0)
+    };
+    if (![pose.originX, pose.originY, pose.x, pose.y, pose.scale].every(Number.isFinite)) return null;
+    return pose;
+  }
+  function goLevel(id, side) {
+    S.active = id;
+    S.pane = side;
+    S.filter = "All";
+    S.reviewing = false;
+    S.reviewI = 0;
+    dolly = null;
+    render();
+  }
+  function openLevel(id, side) {
+    if (lockRef.current) return;
+    if (prefersReducedMotion()) { goLevel(id, side); return; }
+    const pose = measurePose(id, side);
+    if (!pose) { goLevel(id, side); return; }
+    lockRef.current = true;
+    poseRef.current = pose;
+    dolly = Object.assign({ phase: "in", animate: true, atRest: false }, pose);
+    const cam = root.querySelector(".vv-camera");
+    if (cam) cam.setAttribute("data-busy", "true");
+    applySceneStyle();
+    if (timerRef.current) clearTimeout(timerRef.current);
+    timerRef.current = setTimeout(function () {
+      timerRef.current = null;
+      lockRef.current = false;
+      goLevel(id, side);
+    }, DOLLY_MS);
+  }
+  function backLanding() {
+    if (timerRef.current) { clearTimeout(timerRef.current); timerRef.current = null; }
+    const pose = poseRef.current;
+    if (prefersReducedMotion() || !pose || pose.level !== S.active) {
+      lockRef.current = false;
+      dolly = null;
+      S.active = null;
+      S.pane = "tests";
+      S.reviewing = false;
+      render();
+      return;
+    }
+    lockRef.current = true;
+    S.active = null;
+    S.pane = "tests";
+    S.reviewing = false;
+    dolly = Object.assign({ phase: "out", animate: false, atRest: false }, pose);
+    render();
+    requestAnimationFrame(function () {
+      requestAnimationFrame(function () {
+        if (!dolly || dolly.phase !== "out") return;
+        dolly = Object.assign({}, dolly, { animate: true, atRest: true });
+        applySceneStyle();
+        timerRef.current = setTimeout(function () {
+          timerRef.current = null;
+          lockRef.current = false;
+          dolly = null;
+          applySceneStyle();
+          const cam = root.querySelector(".vv-camera");
+          if (cam) cam.setAttribute("data-busy", "false");
+        }, DOLLY_MS);
+      });
+    });
+  }
+
+  function openFocus(id, startWorld) {
+    if (id && id.indexOf("code:") === 0) return;
+    if (id && !DATA.nodes[id]) return;
+    S.focusId = id;
+    S.startWorld = Boolean(startWorld);
+    S.pages = [makePage(id, { world: Boolean(startWorld), blankWorld: Boolean(startWorld) })];
+    S.pageI = 0;
+    S.hot = null;
+    S.cam = { x: 0, y: 0, k: 1 };
+    S.snippet = null;
+    S.openFile = null;
+    render();
+  }
+  function patchPage(patch) {
+    S.pages = S.pages.map(function (item, i) {
+      if (i !== S.pageI) return item;
+      const next = typeof patch === "function" ? patch(item) : patch;
+      return Object.assign({}, item, next);
+    });
+  }
+
   function render() {
-    let html = "";
-    if (S.screen === "focus") html = focusView();
-    else if (S.screen === "spec") html = specView();
-    else if (S.screen === "tests") html = testsView();
-    else if (S.screen === "code") html = codeView();
-    else if (S.screen === "review") html = reviewView();
-    else html = landing();
-    root.innerHTML = html + foot();
+    let html;
+    if (S.focusId) html = focusHtml();
+    else if (S.active && S.pane === "spec") html = specView();
+    else if (S.active) html = levelView();
+    else html = landingHtml();
+    root.innerHTML = '<div class="shell">' + html + "</div>" + foot();
+    if (!S.active && !S.focusId) {
+      cacheLandingRefs();
+      applySceneStyle();
+      paintHot(landingHot);
+      const cam = root.querySelector(".vv-camera");
+      if (cam) cam.setAttribute("data-busy", lockRef.current ? "true" : "false");
+    }
     bind();
   }
-  function worldStartId() {
-    const fn = nodesOf().filter(function (n) { return n.kind === "FNC"; })[0];
-    const rq = nodesOf().filter(function (n) { return n.kind === "REQ"; })[0];
-    const any = nodesOf()[0];
-    return (fn || rq || any || {}).id || null;
+
+  function bindLandingCamera() {
+    const cam = root.querySelector(".vv-camera");
+    if (!cam) return;
+    cam.onclick = function (ev) {
+      if (ev.target.closest("[data-act]")) return;
+      const target = pickTarget(ev.clientX, ev.clientY);
+      if (target) openLevel(target.level, target.side);
+    };
+    cam.onmousemove = function (ev) { paintHot(pickTarget(ev.clientX, ev.clientY)); };
+    cam.onmouseleave = function () { paintHot(null); };
+    root.querySelectorAll(".vv-node").forEach(function (el) {
+      el.onclick = function (ev) {
+        ev.stopPropagation();
+        openLevel(el.getAttribute("data-level"), el.getAttribute("data-side"));
+      };
+      el.onfocus = function () { paintHot({ level: el.getAttribute("data-level"), side: el.getAttribute("data-side") }); };
+      el.onblur = function () { paintHot(null); };
+    });
   }
+
+  function clientToSvg(clientX, clientY) {
+    const svg = document.getElementById("field-svg");
+    if (!svg) return null;
+    const ctm = svg.getScreenCTM && svg.getScreenCTM();
+    if (ctm && typeof ctm.inverse === "function") {
+      const inv = ctm.inverse();
+      return { x: inv.a * clientX + inv.c * clientY + inv.e, y: inv.b * clientX + inv.d * clientY + inv.f, px: Math.hypot(ctm.a, ctm.b) };
+    }
+    const rect = svg.getBoundingClientRect();
+    const pg = page();
+    const k = S.cam.k;
+    const vbW = pg.world ? WORLD.w / k : VIEW.w;
+    const vbH = pg.world ? WORLD.h / k : VIEW.h;
+    const scale = Math.min(rect.width / Math.max(vbW, 1), rect.height / Math.max(vbH, 1));
+    const originX = pg.world ? S.cam.x : 0;
+    const originY = pg.world ? S.cam.y : 0;
+    return {
+      x: originX + (clientX - rect.left - (rect.width - vbW * scale) / 2) / scale,
+      y: originY + (clientY - rect.top - (rect.height - vbH * scale) / 2) / scale,
+      px: scale
+    };
+  }
+  function zoomAt(clientX, clientY, factor) {
+    const svg = document.getElementById("field-svg");
+    if (!svg) return;
+    const rect = svg.getBoundingClientRect();
+    const current = S.cam;
+    const nextK = Math.min(ZOOM_MAX, Math.max(ZOOM_MIN, current.k * factor));
+    if (nextK === current.k) return;
+    const before = clientToSvg(clientX, clientY);
+    if (!before) return;
+    const vbW = WORLD.w / nextK, vbH = WORLD.h / nextK;
+    const scale = Math.min(rect.width / Math.max(vbW, 1), rect.height / Math.max(vbH, 1));
+    const offsetX = (rect.width - vbW * scale) / 2;
+    const offsetY = (rect.height - vbH * scale) / 2;
+    S.cam = { k: nextK, x: before.x - (clientX - rect.left - offsetX) / scale, y: before.y - (clientY - rect.top - offsetY) / scale };
+    svg.setAttribute("viewBox", S.cam.x + " " + S.cam.y + " " + (WORLD.w / S.cam.k) + " " + (WORLD.h / S.cam.k));
+  }
+
+  function bindFocusField() {
+    const field = document.getElementById("field");
+    const svg = document.getElementById("field-svg");
+    if (!field || !svg) return;
+    const pg = page();
+    const index = buildIndex();
+    const worldMap = placeWorld(index);
+    const graph = focusGraph(index, pg.focusId);
+    const activeKinds = graph.RING_ORDER.filter(function (kind) { return graph.rings[kind].length > 0; });
+    const localPoints = [];
+    activeKinds.forEach(function (kind, ringIndex) {
+      const radius = 150 + ringIndex * (activeKinds.length > 1 ? 160 / (activeKinds.length - 1) : 0);
+      placeRing(graph.rings[kind], radius, VIEW).forEach(function (node) { localPoints.push(node); });
+    });
+    const points = pg.world ? worldMap.points : localPoints;
+    field.onpointerdown = function (e) {
+      if (e.button !== 0) return;
+      dragRef.current = { x: e.clientX, y: e.clientY, camX: S.cam.x, camY: S.cam.y, moved: false };
+      if (pg.world) field.setPointerCapture(e.pointerId);
+    };
+    field.onpointermove = function (e) {
+      const point = clientToSvg(e.clientX, e.clientY);
+      if (point) {
+        const near = nearestNode(point, points);
+        const nid = near ? near.id : null;
+        if (nid !== S.hot) { S.hot = nid; }
+      }
+      const drag = dragRef.current;
+      if (!drag || !pg.world) return;
+      if (Math.hypot(e.clientX - drag.x, e.clientY - drag.y) > DRAG_PX) drag.moved = true;
+      if (!drag.moved) return;
+      const rect = svg.getBoundingClientRect();
+      const scale = Math.min(rect.width / (WORLD.w / S.cam.k), rect.height / (WORLD.h / S.cam.k));
+      S.cam = { k: S.cam.k, x: drag.camX - (e.clientX - drag.x) / scale, y: drag.camY - (e.clientY - drag.y) / scale };
+      svg.setAttribute("viewBox", S.cam.x + " " + S.cam.y + " " + (WORLD.w / S.cam.k) + " " + (WORLD.h / S.cam.k));
+    };
+    field.onpointerup = function (e) {
+      const drag = dragRef.current;
+      dragRef.current = null;
+      if (field.hasPointerCapture(e.pointerId)) field.releasePointerCapture(e.pointerId);
+      if (drag && drag.moved) return;
+      const point = clientToSvg(e.clientX, e.clientY);
+      const near = nearestNode(point, points);
+      if (!near) {
+        patchPage({ peekId: null, linkId: null });
+        S.hot = null;
+        lastTapRef.current = { t: 0, id: null };
+        render();
+        return;
+      }
+      const now = Date.now();
+      const last = lastTapRef.current;
+      if (last.id === near.id && now - last.t < 400) {
+        lastTapRef.current = { t: 0, id: null };
+        if (DATA.nodes[near.id]) openFocusTab(near.id);
+        return;
+      }
+      lastTapRef.current = { t: now, id: near.id };
+      patchPage({ peekId: near.id });
+      render();
+    };
+    field.onpointerleave = function () {
+      if (dragRef.current) return;
+      S.hot = null;
+    };
+    field.onwheel = function (e) {
+      if (!pg.world) return;
+      e.preventDefault();
+      zoomAt(e.clientX, e.clientY, e.deltaY < 0 ? 1.12 : 1 / 1.12);
+    };
+  }
+
+  function openFocusTab(id) {
+    const existing = S.pages.findIndex(function (item) { return !item.blankWorld && item.focusId === id; });
+    S.hot = null;
+    if (existing >= 0) { S.pageI = existing; render(); return; }
+    S.pages = S.pages.concat([makePage(id)]);
+    S.pageI = S.pages.length - 1;
+    render();
+  }
+
   function bind() {
+    const proj = document.getElementById("proj");
+    if (proj) proj.onchange = function () { S.project = proj.value; S.active = null; S.focusId = null; render(); };
+    bindLandingCamera();
+    bindFocusField();
+    const sep = document.getElementById("sep");
+    if (sep) {
+      sep.onpointerdown = function (e) {
+        if (e.button !== 0) return;
+        resizeRef.current = { x: e.clientX, width: S.panelW, last: S.panelW };
+        sep.setPointerCapture(e.pointerId);
+      };
+      sep.onpointermove = function (e) {
+        const drag = resizeRef.current;
+        if (!drag) return;
+        const next = clampPanel(drag.width + (e.clientX - drag.x));
+        drag.last = next;
+        S.panelW = next;
+        const copy = document.getElementById("copy");
+        if (copy) copy.style.width = next + "px";
+      };
+      sep.onpointerup = function (e) {
+        const last = (resizeRef.current && resizeRef.current.last) || S.panelW;
+        resizeRef.current = null;
+        if (sep.hasPointerCapture(e.pointerId)) sep.releasePointerCapture(e.pointerId);
+        try { sessionStorage.setItem(PANEL_KEY, String(last)); } catch (err) {}
+      };
+      sep.ondblclick = function () {
+        S.panelW = PANEL_DEFAULT;
+        try { sessionStorage.setItem(PANEL_KEY, String(PANEL_DEFAULT)); } catch (err) {}
+        const copy = document.getElementById("copy");
+        if (copy) copy.style.width = PANEL_DEFAULT + "px";
+      };
+    }
+    const note = root.querySelector("[data-role=note]");
+    if (note) note.oninput = function () { S.note = note.value; };
     root.onclick = function (ev) {
       const t = ev.target.closest("[data-act]");
       if (!t) return;
       const act = t.getAttribute("data-act");
-      if (act === "open") {
-        S.level = t.getAttribute("data-level");
-        S.pane = t.getAttribute("data-pane");
-        S.screen = S.pane === "spec" ? "spec" : "tests";
-        render();
-      } else if (act === "back") {
-        S.screen = "landing";
-        S.level = null;
-        render();
-      } else if (act === "pane") {
-        S.pane = t.getAttribute("data-pane");
-        S.screen = S.pane === "spec" ? "spec" : "tests";
-        render();
-      } else if (act === "code") {
-        S.screen = "code";
-        render();
-      } else if (act === "review") {
-        S.screen = "review";
-        S.reviewI = 0;
-        render();
-      } else if (act === "rev") {
-        const q = lintQueue();
+      if (act === "world") {
+        const id = worldStartId(buildIndex());
+        if (!id) return;
+        openFocus(id, true);
+      } else if (act === "back") backLanding();
+      else if (act === "pane") { S.pane = t.getAttribute("data-pane"); S.filter = "All"; S.reviewing = false; render(); }
+      else if (act === "filter") { S.filter = t.getAttribute("data-val"); render(); }
+      else if (act === "review") { S.reviewing = true; S.reviewI = 0; S.note = ""; render(); }
+      else if (act === "close-review") { S.reviewing = false; render(); }
+      else if (act === "rev") {
+        const row = rowOf(S.active);
+        const kinds = LEFT_KINDS[S.active] || [];
+        const items = S.filter === "All" ? withChecks(byKinds(kinds), checksOf(S.active)) : withChecks(byKinds(kinds), checksOf(S.active)).filter(function (it) { return it.kind === S.filter; });
+        const q = queueFor(items);
         if (!q.length) return;
         S.reviewI = (S.reviewI + Number(t.getAttribute("data-d")) + q.length) % q.length;
+        const cur = q[S.reviewI];
+        const marks = loadReviewMarks();
+        S.note = (cur && marks[cur.id] && marks[cur.id].note) || "";
         render();
-      } else if (act === "world") {
-        const id = worldStartId();
-        if (!id) return;
-        S.focusId = id;
-        S.world = true;
-        S.peekId = null;
-        S.tab = "Connections";
-        S.screen = "focus";
-        S.cam = { x: 0, y: 0, k: 1 };
-        render();
-      } else if (act === "toggle-world") {
-        S.world = !S.world;
-        S.cam = { x: 0, y: 0, k: 1 };
-        render();
-      } else if (act === "unfocus") {
-        S.screen = "landing";
-        S.focusId = null;
-        S.world = false;
-        S.peekId = null;
+      } else if (act === "verdict") {
+        const row = rowOf(S.active);
+        const kinds = LEFT_KINDS[S.active] || [];
+        const items = S.filter === "All" ? withChecks(byKinds(kinds), checksOf(S.active)) : withChecks(byKinds(kinds), checksOf(S.active)).filter(function (it) { return it.kind === S.filter; });
+        const q = queueFor(items);
+        const current = q[S.reviewI];
+        if (!current) return;
+        saveReviewMark(current.id, { verdict: t.getAttribute("data-val"), note: S.note });
+        if (S.reviewI < q.length - 1) S.reviewI += 1;
+        const next = q[S.reviewI];
+        const marks = loadReviewMarks();
+        S.note = (next && marks[next.id] && marks[next.id].note) || "";
         render();
       } else if (act === "focus") {
         const id = t.getAttribute("data-id");
-        if (!DATA.nodes[id]) return;
-        S.focusId = id;
-        S.peekId = id;
-        S.world = false;
-        S.tab = "Connections";
-        S.screen = "focus";
+        openFocus(id, false);
+      } else if (act === "unfocus") {
+        S.focusId = null;
+        S.startWorld = false;
+        S.pages = [];
+        S.hot = null;
         render();
-      } else if (act === "peek") {
-        S.peekId = t.getAttribute("data-id");
+      } else if (act === "toggle-world") {
+        patchPage(function (item) {
+          if (item.world) return { world: false, linkId: null };
+          return { world: true, section: "Connections" };
+        });
+        S.cam = { x: 0, y: 0, k: 1 };
+        S.hot = null;
         render();
-      } else if (act === "tab") {
-        S.tab = t.getAttribute("data-tab");
+      } else if (act === "tab") { patchPage({ section: t.getAttribute("data-tab") }); render(); }
+      else if (act === "page") { S.pageI = Number(t.getAttribute("data-i")); S.hot = null; render(); }
+      else if (act === "close-page") {
+        const i = Number(t.getAttribute("data-i"));
+        if (i <= 0) return;
+        S.pages = S.pages.filter(function (_, idx) { return idx !== i; });
+        if (S.pageI === i) S.pageI = Math.max(0, i - 1);
+        else if (S.pageI > i) S.pageI -= 1;
+        S.hot = null;
         render();
+      } else if (act === "peek") { patchPage({ peekId: t.getAttribute("data-id") }); render(); }
+      else if (act === "clear-peek") { patchPage({ peekId: null, linkId: null }); S.hot = null; render(); }
+      else if (act === "goto") {
+        const id = page().peekId;
+        if (!id || !DATA.nodes[id]) return;
+        if (S.pageI === 0) openFocusTab(id);
+        else { patchPage({ focusId: id, peekId: null, world: false, blankWorld: false, linkId: null, section: "Connections" }); S.hot = null; render(); }
+      } else if (act === "see-link") {
+        const peekId = page().peekId;
+        patchPage(function (item) { return { linkId: item.linkId === peekId ? null : peekId }; });
+        render();
+      } else if (act === "open-file") {
+        S.openFile = { path: t.getAttribute("data-path"), symbol: t.getAttribute("data-symbol") || "" };
+        render();
+      } else if (act === "zoom") {
+        const svg = document.getElementById("field-svg");
+        if (!svg) return;
+        const rect = svg.getBoundingClientRect();
+        zoomAt(rect.left + rect.width / 2, rect.top + rect.height / 2, Number(t.getAttribute("data-k")));
+      } else if (act === "fit") {
+        S.cam = { x: 0, y: 0, k: 1 };
+        const svg = document.getElementById("field-svg");
+        if (svg) svg.setAttribute("viewBox", "0 0 " + WORLD.w + " " + WORLD.h);
       }
     };
-    const proj = document.getElementById("proj");
-    if (proj) proj.onchange = function () { S.project = proj.value; render(); };
-    const field = document.getElementById("field");
-    const svg = document.getElementById("field-svg");
-    if (field && svg) {
-      let drag = null;
-      field.onpointerdown = function (e) {
-        if (e.button !== 0) return;
-        drag = { x: e.clientX, y: e.clientY, cx: S.cam.x, cy: S.cam.y, moved: false };
-        if (S.world) field.setPointerCapture(e.pointerId);
-      };
-      field.onpointermove = function (e) {
-        if (!drag || !S.world) return;
-        if (Math.hypot(e.clientX - drag.x, e.clientY - drag.y) > 6) drag.moved = true;
-        if (!drag.moved) return;
-        const rect = svg.getBoundingClientRect();
-        const scale = Math.min(rect.width / (WORLD.w / S.cam.k), rect.height / (WORLD.h / S.cam.k));
-        S.cam.x = drag.cx - (e.clientX - drag.x) / scale;
-        S.cam.y = drag.cy - (e.clientY - drag.y) / scale;
-        svg.setAttribute("viewBox", S.cam.x + " " + S.cam.y + " " + (WORLD.w / S.cam.k) + " " + (WORLD.h / S.cam.k));
-      };
-      field.onpointerup = function (e) {
-        const moved = drag && drag.moved;
-        drag = null;
-        if (moved) return;
-        const hit = e.target.closest("[data-nid]");
-        if (!hit) { S.peekId = null; render(); return; }
-        const nid = hit.getAttribute("data-nid");
-        if (nid.indexOf("code:") === 0) {
-          S.peekId = nid;
-          render();
-          return;
-        }
-        if (S.peekId === nid) {
-          S.focusId = nid;
-          S.world = false;
-          S.tab = "Connections";
-          render();
-          return;
-        }
-        S.peekId = nid;
-        render();
-      };
-      field.onwheel = function (e) {
-        if (!S.world) return;
-        e.preventDefault();
-        const factor = e.deltaY < 0 ? 1.12 : 1 / 1.12;
-        const nextK = Math.min(8, Math.max(0.7, S.cam.k * factor));
-        S.cam.k = nextK;
-        svg.setAttribute("viewBox", S.cam.x + " " + S.cam.y + " " + (WORLD.w / S.cam.k) + " " + (WORLD.h / S.cam.k));
-      };
-    }
   }
+
   document.addEventListener("keydown", function (e) {
-    if (e.key === "Escape") {
-      if (S.screen === "focus") { S.screen = "landing"; S.focusId = null; S.world = false; render(); }
-      else if (S.screen !== "landing") { S.screen = "landing"; render(); }
-    }
+    if (e.key !== "Escape") return;
+    if (S.focusId) { S.focusId = null; S.startWorld = false; render(); }
+    else if (S.active) backLanding();
   });
+  try {
+    const saved = Number(sessionStorage.getItem(PANEL_KEY));
+    if (Number.isFinite(saved)) S.panelW = clampPanel(saved);
+  } catch (err) {}
   render();
 })();
 </script>

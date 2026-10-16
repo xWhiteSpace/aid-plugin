@@ -1,6 +1,6 @@
 ---
 name: aid-v-view
-description: Rebuild the offline V-model debug view (.vmodel/docs/v-view.html) from published registries and graph/edges.json. V landing, per-level spec and test lists, Focus walk (USR>REQ>FNC/API>CMP/INT>UNT>code @trace>TST), World, and a review queue of lint flags. Owned by ssot-gate; agent-invoked on every publish and from the /v-view command. Inline JS/CSS, no CDN.
+description: Rebuild the offline V-model debug view (.vmodel/docs/v-view.html) from published registries and graph/edges.json. V landing with fly-in camera, perspective floor, rails, donut and pills, Globe World entry, Focus graph (tabs and edges), and a ReviewQueue of published items. Owned by ssot-gate; agent-invoked on every publish and from the /v-view command. Inline JS/CSS/SVG, no CDN.
 user-invocable: false
 ---
 
@@ -23,12 +23,13 @@ python3 <plugin>/scripts/vmodel_vview.py .vmodel --code <project-tree>
 `--code` is the tree that contains product source **and** tests (same as lint). Omit it only when there is no source yet. Output: `.vmodel/docs/v-view.html` (self-contained, inline CSS/JS, no network, no CDN). Reads published registries, `graph/edges.json`, lint flags, and `@trace` tags from `--code`.
 
 ## Page contract
-1. **Landing is a V.** Left rail, top to bottom: USR · Requirements (`REQ`) · Functional (`FNC`, `API`) · System (`INT`, `CMP`) · Unit (`UNT`). Coding at the bottom. Right rail into the same Coding point: Acceptance test · System test · Integration · Unit test. A donut and status pills count TST `passed` / `failed` / `skipped` / `not_run`. Empty levels stay empty.
-2. **Level view (right node).** That level's checks, status pills, cases, `verifies` targets.
-3. **Spec view (left node).** Published items of that level's kinds. Opening an item enters Focus.
-4. **Focus.** One node in the centre. Walk published edges only: USR ↔ REQ ↔ FNC/API ↔ CMP/INT ↔ UNT ↔ `@trace` in code ↔ TST (and back). Tabs: Connections, USR, REQ, FNC, API, CMP, INT, UNT, Code, Tests. Code chips are scanned `@trace` hits (file, line, snippet from disk at publish time). Never invent a snippet.
-5. **World.** Whole graph on the same V, pan and zoom. Hubs on the left rail (USR, REQ, FNC, API, CMP, INT, UNT) and tests on the right split by `level`. Coding holds `@trace` points. World is a control, not the first view.
-6. **Review queue.** Lint flags only: broken `@trace`, orphan UNT, planned TST with no code carrying that id, missing links (orphan/gap), and other lint categories. Prev/Next. Open in Focus when the flag id is a published node. This queue does not write SSOT and does not mark passed.
+1. **Landing is a V.** Left rail, top to bottom: USR · Requirements (`REQ`) · Functional (`FNC`, `API`) · System (`INT`, `CMP`) · Unit (`UNT`). Coding at the bottom (`z: -120`). Right rail into the same Coding point: Acceptance test · System test · Integration · Unit test. Rails from `railPoints`. Perspective floor (`FLOOR`, `floorGridPath`). A donut and status pills count TST `passed` / `failed` / `skipped` / `not_run`. Empty levels stay empty.
+2. **Fly-in camera.** Clicking a level dot runs `measurePose` (origin, translate3d, scale). Reduced-motion skips the dolly. Hot/hover halos on the nearest node.
+3. **Level view (right node).** That level's checks, status pills, cases, `verifies` targets, domain filter.
+4. **Spec view (left node).** Published items of that level's kinds, kind filter. Opening an item enters Focus. **Review** opens the ReviewQueue.
+5. **Focus.** One node in the centre. Walk published edges only. Tabs: Connections, USR, REQ, FNC, API, CMP, UNT, Tests. `INT` shares the API ring/hub. Unit code chips are scanned `@trace` hits (file, line, snippet from disk at publish time). Never invent a snippet.
+6. **World.** Globe icon on landing (inline SVG). Whole graph on the same V, pan and zoom, Fit / ±. Hubs: USR, REQ, FNC, API, CMP, UNT; tests on the right split by `level`. Coding holds `@trace` points. World is a control, not the first view.
+7. **Review queue.** Published items at that spec level (not SSOT writes). Auto flags: missing USR/FNC/TST links, truncated titles, plus lint for that id. Keep / Rewrite / Reject and a note stay in local storage. Prev/Next. Neighborhood opens Focus. This queue does not mark passed.
 
 ## Never
 - Hardcode a product, game, or brand. `PROJECT` comes from the SSOT.
