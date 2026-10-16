@@ -1,6 +1,7 @@
 ---
-name: v-view
-description: Rebuild the offline V-model debug view (.vmodel/docs/v-view.html) from published registries and graph/edges.json. V landing, per-level spec and test lists, Focus walk (USR>REQ>FNC/API>CMP/INT>UNT>code @trace>TST), World, and a review queue of lint flags. Owned by ssot-gate; run on every publish and via /v-view. Inline JS/CSS, no CDN.
+name: aid-v-view
+description: Rebuild the offline V-model debug view (.vmodel/docs/v-view.html) from published registries and graph/edges.json. V landing, per-level spec and test lists, Focus walk (USR>REQ>FNC/API>CMP/INT>UNT>code @trace>TST), World, and a review queue of lint flags. Owned by ssot-gate; agent-invoked on every publish and from the /v-view command. Inline JS/CSS, no CDN.
+user-invocable: false
 ---
 
 # V debug view

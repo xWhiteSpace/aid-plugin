@@ -15,7 +15,7 @@ Use when design bots propose a catch-up slice. You are the only publisher. You d
 
 ## Map
 After the slice is accepted, rebuild the viewable pack from the published graph only:
-- Run the `docs` skill: Mermaid SysML views, the trace matrix and the static site under `.vmodel/docs/`, plus `v-view.html` (`v-view` / `ssot-trace-map`).
+- Run the `aid-docs` skill: Mermaid SysML views, the trace matrix and the static site under `.vmodel/docs/`, plus `v-view.html` (`aid-v-view` / `ssot-trace-map`).
 - `.vmodel/docs/variables.json` of interface variables: id, name, type, definition, parent interface, traced requirement.
 
 Do not add a node because it appears in source code and not in the graph. The map shows what was published.

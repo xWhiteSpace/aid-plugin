@@ -2,7 +2,7 @@
 name: v-view
 description: Rebuild the offline V-model debug view from .vmodel/ and open .vmodel/docs/v-view.html.
 ---
-Run the `v-view` skill from the A.I.D plugin.
+Run the `aid-v-view` skill from the A.I.D plugin.
 
 1. Locate `scripts/vmodel_vview.py` in the A.I.D plugin (search `~/.cursor/plugins/` for a path ending in `aid-plugin/scripts/vmodel_vview.py` if needed).
 2. From the project root, rebuild:

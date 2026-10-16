@@ -1,7 +1,7 @@
 ---
-name: catchup
-description: Bring the V-model up to date after you changed code yourself. Reads the local git diff since the last SSOT baseline and runs it through as reverse-engineering (new behavior) or an amendment (changed behavior). Use for /catchup or "sync the docs with my code".
-disable-model-invocation: true
+name: aid-catchup
+description: Bring the V-model up to date after local code changes. Reads the git diff since the last SSOT baseline and runs it through as reverse-engineering (new behavior) or an amendment (changed behavior). Agent-invoked from the /catchup command, or when the user asks to sync the docs with their code.
+user-invocable: false
 ---
 
 # /catchup
@@ -21,7 +21,7 @@ For each changed behavior, find the UNT/FNC whose `source_files` or rules cover 
 - A test file with no TST → `test-master` proposes a TST with status `not_run`.
 
 ## 4. Publish and map
-Run `reverse-engineer-publish-and-map` as `ssot-gate`, with `source_commit` set to `HEAD`. Then run the `docs` skill.
+Run `reverse-engineer-publish-and-map` as `ssot-gate`, with `source_commit` set to `HEAD`. Then run the `aid-docs` skill.
 
 ## Reply
 The range, amended ids, new ids, items left out (with the reason), lint flags, and open questions for the user.
