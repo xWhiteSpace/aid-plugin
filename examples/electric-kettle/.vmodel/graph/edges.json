@@ -253,5 +253,55 @@
     "from": "TST-KTL-012",
     "to": "UNT-KTL-001",
     "type": "verifies"
+  },
+  {
+    "from": "UNT-KTL-001",
+    "to": "TOL-KTL-001",
+    "type": "uses"
+  },
+  {
+    "from": "UNT-KTL-002",
+    "to": "TOL-KTL-001",
+    "type": "uses"
+  },
+  {
+    "from": "UNT-KTL-003",
+    "to": "TOL-KTL-001",
+    "type": "uses"
+  },
+  {
+    "from": "UNT-KTL-004",
+    "to": "TOL-KTL-001",
+    "type": "uses"
+  },
+  {
+    "from": "UNT-KTL-005",
+    "to": "TOL-KTL-001",
+    "type": "uses"
+  },
+  {
+    "from": "TST-KTL-008",
+    "to": "TOL-KTL-004",
+    "type": "uses"
+  },
+  {
+    "from": "TST-KTL-009",
+    "to": "TOL-KTL-004",
+    "type": "uses"
+  },
+  {
+    "from": "TST-KTL-010",
+    "to": "TOL-KTL-004",
+    "type": "uses"
+  },
+  {
+    "from": "TST-KTL-011",
+    "to": "TOL-KTL-004",
+    "type": "uses"
+  },
+  {
+    "from": "TST-KTL-012",
+    "to": "TOL-KTL-004",
+    "type": "uses"
   }
 ]

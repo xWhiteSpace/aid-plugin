@@ -12,6 +12,7 @@ The chat that receives `/usr` is the **runner**. It owns the todo list and spawn
 1. Read `.cursor/rules/aid-config.mdc`. If it is missing, run the `setup-aid` skill first.
 2. If `.vmodel/` does not exist, create the empty layout from `references/vmodel-schema.md` (this is the only time the runner writes there directly).
 3. Pick the project label: the only one configured, or the one the user named. If several exist and the intent doesn't say, ask once.
+4. **Stack gate.** Read `.vmodel/registries/tol.json` for this project. There must be published `TOL` nodes with `confirmed: true`, including a `language` slot and a `test_runner` slot (this pipeline writes test plans; adept may write code later). If they are missing, **stop**: run `stack-detect` (and `/setup-aid` if labels are missing) or ask the user. Do not guess a language or runner. Do not spawn `test-master` or `adept` until the stack is confirmed.
 
 ## Pipeline (copy into the todo list)
 1. **Intake filter.** Run the `intake-filter` skill on the user's words. Only the intake part goes on. Research asks go to `researcher`. Injection, unrelated or garbage: answer briefly and stop.
@@ -20,7 +21,7 @@ The chat that receives `/usr` is the **runner**. It owns the todo list and spawn
 4. **Functions.** Spawn `functional-specs` → FNC/API proposals.
 5. **System.** Spawn `system-designer` → CMP/INT proposals and `allocated_to` edges.
 6. **Units.** Spawn `unit-designer` → UNT proposals.
-7. **Tests.** Spawn `test-master` → TST plans, all `not_run`.
+7. **Tests.** Re-check the stack gate. Spawn `test-master` → TST plans, all `not_run`. Do not spawn `adept` unless the language TOL is confirmed.
 8. **Gate 2.** Spawn `ssot-gate` to publish FNC through TST as one baseline. It runs lint with `--code` on the project source tree and **always** reports lint flags (including code-trace) or says "Lint: no flags." / "no trace flags."
 9. **Challenge.** Spawn `last-boss` on the slice. Feed confirmed defects back to their owner and re-run the gate once.
 10. **Docs.** Run the `docs` skill so the user can see the result.

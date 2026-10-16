@@ -1,5 +1,7 @@
 {
   "total": 0,
   "by_category": {},
-  "flags": []
+  "flags": [],
+  "trace_flags": [],
+  "trace_total": 0
 }

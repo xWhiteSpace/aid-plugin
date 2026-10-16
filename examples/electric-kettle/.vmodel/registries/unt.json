@@ -5,7 +5,7 @@
     "project": "KTL",
     "title": "start_guard",
     "statement": "heater_on = start_pressed and on_base and not locked and water_present",
-    "version": 1,
+    "version": 2,
     "status": "published",
     "created_at": "2026-10-16T00:00:00+09:00",
     "updated_at": "2026-10-16T00:00:00+09:00",
@@ -35,7 +35,9 @@
     "rules": [
       "heater_on = start_pressed and on_base and not locked and water_present"
     ],
-    "source_files": []
+    "source_files": [
+      "src/start_guard.py"
+    ]
   },
   "UNT-KTL-002": {
     "id": "UNT-KTL-002",
@@ -43,7 +45,7 @@
     "project": "KTL",
     "title": "boil_detector",
     "statement": "water_temp_c >= 100 -> heater_off, state = idle",
-    "version": 1,
+    "version": 2,
     "status": "published",
     "created_at": "2026-10-16T00:00:00+09:00",
     "updated_at": "2026-10-16T00:00:00+09:00",
@@ -61,7 +63,9 @@
     "rules": [
       "water_temp_c >= 100 -> heater_off, state = idle"
     ],
-    "source_files": []
+    "source_files": [
+      "src/boil_detector.py"
+    ]
   },
   "UNT-KTL-003": {
     "id": "UNT-KTL-003",
@@ -69,7 +73,7 @@
     "project": "KTL",
     "title": "dry_guard",
     "statement": "element_temp_c > 140 -> heater_off, fault = true (latched until off base)",
-    "version": 1,
+    "version": 2,
     "status": "published",
     "created_at": "2026-10-16T00:00:00+09:00",
     "updated_at": "2026-10-16T00:00:00+09:00",
@@ -87,7 +91,9 @@
     "rules": [
       "element_temp_c > 140 -> heater_off, fault = true (latched until off base)"
     ],
-    "source_files": []
+    "source_files": [
+      "src/dry_guard.py"
+    ]
   },
   "UNT-KTL-004": {
     "id": "UNT-KTL-004",
@@ -95,7 +101,7 @@
     "project": "KTL",
     "title": "keep_warm_loop",
     "statement": "water_temp_c < 75 -> pulse on; water_temp_c >= 85 -> pulse off; elapsed_s >= 1800 -> keep_warm_on = false",
-    "version": 1,
+    "version": 2,
     "status": "published",
     "created_at": "2026-10-16T00:00:00+09:00",
     "updated_at": "2026-10-16T00:00:00+09:00",
@@ -119,7 +125,9 @@
       "water_temp_c >= 85 -> pulse off",
       "elapsed_s >= 1800 -> keep_warm_on = false"
     ],
-    "source_files": []
+    "source_files": [
+      "src/keep_warm_loop.py"
+    ]
   },
   "UNT-KTL-005": {
     "id": "UNT-KTL-005",
@@ -127,7 +135,7 @@
     "project": "KTL",
     "title": "lock_button",
     "statement": "lock_hold_ms >= 3000 -> locked = not locked",
-    "version": 1,
+    "version": 2,
     "status": "published",
     "created_at": "2026-10-16T00:00:00+09:00",
     "updated_at": "2026-10-16T00:00:00+09:00",
@@ -145,6 +153,8 @@
     "rules": [
       "lock_hold_ms >= 3000 -> locked = not locked"
     ],
-    "source_files": []
+    "source_files": [
+      "src/lock_button.py"
+    ]
   }
 }

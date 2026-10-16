@@ -1,0 +1,20 @@
+---
+description: A.I.D project labels, isolation, per-role models and confirmed stack (overrides plugin defaults)
+alwaysApply: true
+---
+# A.I.D configuration. One line per item.
+projects: KTL
+scope KTL: Smart electric kettle (1.7 L) with keep-warm and child lock; home kettle users, parents, tea drinkers
+isolation: strict (no cross-project edges; counterpart ids as plain text only)
+stack KTL: language=Python 3; framework=none; package_manager=none; test_runner=pytest; linter=none; deploy_target=none
+tol KTL: TOL-KTL-001, TOL-KTL-002, TOL-KTL-003, TOL-KTL-004, TOL-KTL-005, TOL-KTL-006
+adept: grok-4.6-fast
+req-guardian: inherit-parent
+functional-specs: inherit-parent
+system-designer: inherit-parent
+unit-designer: inherit-parent
+test-master: inherit-parent
+tools-manager: inherit-parent
+ssot-gate: inherit-parent
+last-boss: inherit-parent
+researcher: inherit-parent

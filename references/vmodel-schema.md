@@ -57,7 +57,7 @@ Kind-specific extras (all optional unless noted):
 - **TST:** `level` (required), `cases[]` `{input,expected}`, `verifies` is carried as edges
 - **EVD:** `command`, `commit`, `ran_at`, `outcome`, `artifact_path`
 - **RSH:** `question`, `answer`, `sources[]`, `asked_by`
-- **TOL:** `tool`, `version`, `purpose`
+- **TOL:** `slot` (required: `language` \| `framework` \| `package_manager` \| `test_runner` \| `linter` \| `deploy_target`), `tool` (required; the chosen name, or `none`), `tool_version` (semver, exact, or `unspecified`; do not overload the node integer `version`), `purpose`, `evidence[]` (repo files that justified detection; empty if the user stated the slot), `confirmed` (required boolean; `true` only after the user accepted the stack), `comment_syntax` (language slot: how source comments are written, e.g. `#`, `//`, `/* */`, `--`, `<!-- -->`), `command` (test_runner / package_manager / linter invocation). One live TOL per slot per project. `tools-manager` is the only author.
 - **STD / VOC:** `rule` or `term` + `definition`
 
 ## Proposal shape
@@ -77,7 +77,7 @@ Kind-specific extras (all optional unless noted):
 For `create`, omit `previous` and set `base_version` to `0`. For `retire`, `new_full.status` is `retired`.
 
 ## Edge types
-`derives` (REQ→USR), `implements` (FNC|API→REQ), `allocated_to` (FNC→CMP), `integrates_with` (INT→CMP), `depends_on`, `refines` (UNT→FNC|CMP), `verifies` (TST→REQ|FNC|UNT|API|INT|CMP), `supersedes`, `evidences` (EVD→TST). Both ends of an edge must share the same `project`.
+`derives` (REQ→USR), `implements` (FNC|API→REQ), `allocated_to` (FNC→CMP), `integrates_with` (INT→CMP), `depends_on`, `refines` (UNT→FNC|CMP), `verifies` (TST→REQ|FNC|UNT|API|INT|CMP), `uses` (UNT|TST→TOL), `supersedes`, `evidences` (EVD→TST). Both ends of an edge must share the same `project`. `uses` is optional catalog linkage (a unit or test names the tool it depends on); TOL nodes are valid with no incoming edges.
 
 ## Empty bootstrap
 `/setup-aid` creates empty registries (`{}`), `edges.json` as `[]`, and `meta.json` with `graph_version: 0`.
@@ -86,9 +86,12 @@ For `create`, omit `previous` and set `base_version` to `0`. For `retire`, `new_
 ## Code traceability
 Source that implements a published `UNT` carries a machine tag and nothing else as a comment:
 
-- Form: `@trace UNT-{PROJECT}-NNN` inside the language's comment syntax.
+- Form: `@trace UNT-{PROJECT}-NNN` inside the **confirmed language TOL** `comment_syntax` (never guessed).
 - Place one tag on each function or module that implements the unit. A unit may span several functions; each carries the same UNT id.
 - Only the UNT id appears in the tag. REQ / FNC / CMP lineage is read from the graph (`UNT refines CMP|FNC`, `FNC implements REQ`).
 - Tags name only published UNT ids. Adept never mints ids.
 - No explanatory human comments; names and small functions explain the logic.
-- Lint: `python3 <plugin>/scripts/vmodel_lint.py .vmodel --code <src-dir>` reports orphan tags, untagged published units and malformed tags under a **code trace** heading (or "no trace flags").
+- Lint: `python3 <plugin>/scripts/vmodel_lint.py .vmodel --code <src-dir>` reports orphan tags, untagged published units, malformed tags, and a project that has source or UNT records but no published TOL, under a **code trace** heading (or "no trace flags").
+
+## Stack (TOL)
+A project that has product code (published `UNT`, or source files in a `--code` scan) must have at least one published `TOL`. `/setup-aid` runs `stack-detect`, the user confirms, `tools-manager` proposes, `ssot-gate` publishes. Adept, Test Master and `/usr` refuse to write code or tests until `confirmed: true` language and test_runner slots exist. Never assume a stack when the repo is empty or unclear.

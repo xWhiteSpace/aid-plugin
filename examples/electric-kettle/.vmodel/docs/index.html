@@ -4,7 +4,7 @@ td,th{border:1px solid #ccd;padding:4px 8px;font-size:13px;vertical-align:top}.g
 pre{background:#f6f8fa;padding:8px;overflow:auto;font-size:12px}.s{font-size:11px;fill:#556;color:#556}
 svg.v{max-width:760px;font-size:13px}.pane{display:none}button{margin-right:6px;padding:4px 12px}
 </style></head><body><h1>V-model documentation</h1>
-<p>Graph version 1 · source n/a · <b>Plan lineage, not proof. Tests are not run unless evidence (EVD) says otherwise.</b></p>
+<p>Graph version 2 · source n/a · <b>Plan lineage, not proof. Tests are not run unless evidence (EVD) says otherwise.</b></p>
 <div><button onclick="show('KTL')">KTL</button></div><h2>Lint</h2><p>Lint: no flags.</p><section id="p-KTL" class="pane">
 <h2>KTL</h2>
 <svg viewBox="0 0 760 360" class="v" xmlns="http://www.w3.org/2000/svg"><polyline points="40,30 380,330 720,30" fill="none" stroke="#9ab" stroke-width="3"/><g><rect x="0" y="40" width="170" height="40" rx="6" fill="#e8f0fe" stroke="#4a6"/><text x="10" y="57">Requirements</text><text x="10" y="73" class="s">USR/REQ: 8</text></g><g><rect x="75" y="110" width="170" height="40" rx="6" fill="#e8f0fe" stroke="#4a6"/><text x="85" y="127">Functional</text><text x="85" y="143" class="s">FNC/API: 6</text></g><g><rect x="150" y="180" width="170" height="40" rx="6" fill="#e8f0fe" stroke="#4a6"/><text x="160" y="197">System</text><text x="160" y="213" class="s">CMP/INT: 10</text></g><g><rect x="225" y="250" width="170" height="40" rx="6" fill="#e8f0fe" stroke="#4a6"/><text x="235" y="267">Unit</text><text x="235" y="283" class="s">UNT: 5</text></g><g><rect x="580" y="40" width="170" height="40" rx="6" fill="#fef3e8" stroke="#c84"/><text x="590" y="57">Acceptance test</text><text x="590" y="73" class="s">TST: 5 (not run 5)</text></g><g><rect x="505" y="110" width="170" height="40" rx="6" fill="#fef3e8" stroke="#c84"/><text x="515" y="127">System test</text><text x="515" y="143" class="s">TST: 1 (not run 1)</text></g><g><rect x="430" y="180" width="170" height="40" rx="6" fill="#fef3e8" stroke="#c84"/><text x="440" y="197">Integration test</text><text x="440" y="213" class="s">TST: 1 (not run 1)</text></g><g><rect x="355" y="250" width="170" height="40" rx="6" fill="#fef3e8" stroke="#c84"/><text x="365" y="267">Unit test</text><text x="365" y="283" class="s">TST: 5 (not run 5)</text></g><text x="345" y="352">Coding</text></svg>
@@ -156,6 +156,12 @@ svg.v{max-width:760px;font-size:13px}.pane{display:none}button{margin-right:6px;
 <tr><td id='REQ-KTL-003'>REQ-KTL-003</td><td>Boil-dry protection</td><td>published</td><td>The kettle never heats with no water.</td></tr>
 <tr><td id='REQ-KTL-004'>REQ-KTL-004</td><td>Keep-warm</td><td>published</td><td>After boiling, water can be held warm.</td></tr>
 <tr><td id='REQ-KTL-005'>REQ-KTL-005</td><td>Child lock</td><td>published</td><td>A child lock prevents starting.</td></tr>
+<tr><td id='TOL-KTL-001'>TOL-KTL-001</td><td>language: Python</td><td>published</td><td>Implementation language is Python 3 for src/*.py units.</td></tr>
+<tr><td id='TOL-KTL-002'>TOL-KTL-002</td><td>framework: none</td><td>published</td><td>No application framework; units are plain Python modules.</td></tr>
+<tr><td id='TOL-KTL-003'>TOL-KTL-003</td><td>package_manager: none</td><td>published</td><td>No package manager; no pyproject.toml, requirements.txt or lockfile.</td></tr>
+<tr><td id='TOL-KTL-004'>TOL-KTL-004</td><td>test_runner: pytest</td><td>published</td><td>Unit tests run with pytest.</td></tr>
+<tr><td id='TOL-KTL-005'>TOL-KTL-005</td><td>linter: none</td><td>published</td><td>No project linter is configured.</td></tr>
+<tr><td id='TOL-KTL-006'>TOL-KTL-006</td><td>deploy_target: none</td><td>published</td><td>No deploy target; the example is local controller logic.</td></tr>
 <tr><td id='TST-KTL-001'>TST-KTL-001</td><td>Acceptance: Boil water</td><td>not_run</td><td>Acceptance: Boil water</td></tr>
 <tr><td id='TST-KTL-002'>TST-KTL-002</td><td>Acceptance: Auto shut-off at boil</td><td>not_run</td><td>Acceptance: Auto shut-off at boil</td></tr>
 <tr><td id='TST-KTL-003'>TST-KTL-003</td><td>Acceptance: Boil-dry protection</td><td>not_run</td><td>Acceptance: Boil-dry protection</td></tr>
