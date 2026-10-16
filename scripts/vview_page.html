@@ -143,8 +143,11 @@ button.vv-node:focus-visible .vv-lab-l, button.vv-node:focus-visible .vv-lab-r {
 .item {
   display: block; width: 100%; text-align: left; border: 1px solid #1e293b;
   background: rgba(15,23,42,.4); color: inherit; border-radius: 16px; padding: 12px 16px;
+  user-select: none;
 }
 .item:hover { border-color: rgba(6,182,212,.5); }
+.item[data-hot="true"] { border-color: rgba(34,211,238,.4); background: rgba(15,23,42,.5); }
+.item[data-peek="true"] { border-color: #67e8f9; background: rgba(15,23,42,.7); }
 .item h3 { margin: 0; font-size: 14px; font-weight: 500; }
 .item .id { margin-top: 2px; font-family: ui-monospace, monospace; font-size: 10px; color: #64748b; }
 .pill { border-radius: 999px; padding: 4px 10px; font-size: 11px; font-weight: 500; flex-shrink: 0; }
@@ -169,6 +172,7 @@ button.vv-node:focus-visible .vv-lab-l, button.vv-node:focus-visible .vv-lab-r {
 .ids button, .tabx {
   border: 1px solid #334155; background: none; color: #cbd5e1; border-radius: 999px;
   padding: 2px 8px; font-family: ui-monospace, monospace; font-size: 10px;
+  user-select: none;
 }
 .ids button:hover, .tabx:hover { border-color: #22d3ee; color: #fff; }
 .tabx.on { background: #cffafe; color: #0f172a; border-color: #cffafe; }
@@ -304,6 +308,8 @@ const DATA = __DATA__;
   const dragRef = { current: null };
   const resizeRef = { current: null };
   const lastTapRef = { current: { t: 0, id: null } };
+  const cursorRef = { current: null };
+  const fieldRef = { current: { points: [], byId: {} } };
   let dolly = null;
   let landingHot = null;
   const root = document.getElementById("app");
@@ -913,6 +919,93 @@ const DATA = __DATA__;
     return S.pages[S.pageI] || S.pages[0] || makePage(S.focusId);
   }
 
+  function buildFocusCopy() {
+    const pg = page();
+    const index = buildIndex();
+    const focusId = pg.focusId || S.focusId;
+    const world = Boolean(pg.world);
+    const peekId = pg.peekId || null;
+    const linkId = pg.linkId || null;
+    const graph = focusGraph(index, focusId);
+    const center = graph.center;
+    const hot = S.hot;
+    const previewId = hot || peekId || (world ? null : focusId);
+    const previewNode = previewId ? (index.nodes[previewId] || (previewId.indexOf("code:") === 0 ? { id: previewId, kind: "UNT", label: previewId } : { id: previewId, kind: kindOfId(previewId), label: previewId })) : null;
+    const previewMeta = previewId && DATA.nodes[previewId] ? artifact(previewId) : {};
+    const canGoto = Boolean(peekId) && (world || peekId !== focusId) && DATA.nodes[peekId];
+    const peekGraph = (world && linkId) ? focusGraph(index, linkId) : null;
+    const related = { counts: {}, spokes: [] };
+    if (peekGraph) {
+      peekGraph.RING_ORDER.forEach(function (kind) {
+        const nodes = peekGraph.rings[kind];
+        if (!nodes.length) return;
+        related.counts[kind] = nodes.length;
+        nodes.forEach(function (node) { related.spokes.push(node.id); });
+      });
+    }
+    const lin = previewId && DATA.nodes[previewId] ? lineageOf(previewId) : { grain: null, functions: [], components: [], interfaces: [], units: [], requirements: [], files: [] };
+    function lineageRow(caption, empty, items) {
+      return '<div style="margin-top:24px"><p class="kind">' + esc(caption) + "</p>" +
+        (items.length ? '<div class="ids">' + items.map(function (item) {
+          return '<button type="button" data-act="peek" data-open-tab="1" data-id="' + esc(item.id) + '">' + esc(item.label && item.label !== item.id ? item.label : item.id) + "</button>";
+        }).join("") + "</div>" : '<p class="hint" style="margin-top:12px">' + esc(empty) + "</p>") + "</div>";
+    }
+    let copy = '<p class="kind">' + (world ? "World" + (previewNode ? " · " + esc(previewNode.kind) : "") : esc((previewNode && previewNode.kind) || center.kind)) + (hot ? " · Hover" : peekId ? " · Selected" : "") + "</p>";
+    copy += "<h2>" + esc(previewNode ? (previewMeta.title || previewNode.label || previewId) : "Entire neighborhood") + "</h2>";
+    if (previewId) copy += '<p class="id">' + esc(previewId) + "</p>";
+    if (!previewNode) copy += '<p class="hint" style="margin-top:16px">Hover a node to preview. Click to select.</p>';
+    if (previewMeta.domain) copy += '<p class="hint" style="margin-top:12px;letter-spacing:.14em;text-transform:uppercase;font-size:11px">' + esc(previewMeta.domain) + "</p>";
+    if (previewMeta.statement) copy += '<p class="stmt" style="margin-top:16px">' + esc(previewMeta.statement) + "</p>";
+    if (previewNode && !previewMeta.statement && (canGoto || (previewNode.label && previewNode.label !== previewId))) {
+      copy += '<p class="hint" style="margin-top:16px">' + esc(previewNode.label && previewNode.label !== previewId ? previewNode.label : "No statement on this node. Goto opens its neighborhood.") + "</p>";
+    }
+    if (canGoto || peekId) {
+      copy += '<div class="row" style="margin-top:24px">';
+      if (canGoto) copy += '<button type="button" class="chip on" data-act="goto">Goto</button>';
+      if (peekId) copy += '<button type="button" class="chip" data-act="clear-peek">Clear</button>';
+      if (world && peekId) copy += '<button type="button" class="chip cyan' + (linkId === peekId ? " on" : "") + '" data-act="see-link">' + (linkId === peekId ? "Hide connection" : "See connection") + (linkId === peekId && related.spokes.length ? " " + related.spokes.length : "") + "</button>";
+      copy += "</div>";
+    }
+    if (world && linkId) {
+      copy += '<p class="hint" style="margin-top:16px;font-family:ui-monospace,monospace">Frozen on ' + esc(linkId) + ". " +
+        (related.spokes.length === 0 ? "No traced neighbors for this node." : WORLD_ORDER.filter(function (k) { return related.counts[k]; }).map(function (k) { return k + " " + related.counts[k]; }).join(" · ")) + "</p>";
+    }
+    if (previewNode && lin.grain === "need") copy += lineageRow("Satisfied by", "No functions allocated to this need.", lin.functions);
+    if (previewNode && lin.grain === "allocation") {
+      copy += lineageRow("Allocated to", "No component allocated.", lin.components);
+      copy += lineageRow("Refined by", "No units refine this function.", lin.units);
+      copy += lineageRow("Satisfies", "No requirements on this function.", lin.requirements);
+    }
+    if (previewNode && lin.grain === "architecture") {
+      copy += '<p class="kind" style="margin-top:32px">Architecture</p>';
+      copy += lineageRow("Functions", "No functions allocated to this block.", lin.functions);
+      copy += lineageRow("Ports", "No interfaces on this block.", lin.interfaces);
+      copy += lineageRow("Parts", "No units in this block.", lin.units);
+    }
+    if (previewNode && lin.grain === "contract") {
+      copy += lineageRow("Connects", "No components on this contract.", lin.components);
+      copy += lineageRow("Used by", "No functions use this contract.", lin.functions);
+    }
+    if (previewNode && lin.grain === "unit") {
+      copy += '<div style="margin-top:32px"><p class="kind">Code</p>';
+      if (!lin.files.length) copy += '<p class="hint" style="margin-top:12px">No source files on this unit yet.</p>';
+      else copy += '<div class="ids" style="margin-top:12px">' + lin.files.map(function (file, i) {
+        return (i ? '<span style="color:#475569">→</span>' : "") + '<button type="button" data-act="open-file" data-path="' + esc(file.path) + '" data-symbol="' + esc(file.symbol || "") + '">' + esc(String(file.path).split("/").pop()) + "</button>";
+      }).join("") + "</div>";
+      if (S.openFile) {
+        const hit = lin.files.filter(function (f) { return f.path === S.openFile.path && (f.symbol || "") === (S.openFile.symbol || ""); })[0];
+        if (hit && hit.snippet) copy += "<pre style=\"margin-top:16px\"><p style=\"color:#64748b;margin:0 0 8px\">" + esc(hit.path) + (hit.start ? ":" + hit.start + "–" + hit.end : "") + "</p>" + esc(hit.snippet) + "</pre>";
+        else if (hit) copy += '<p class="hint" style="margin-top:12px">Could not read that file.</p>';
+      }
+      copy += "</div>";
+    }
+    return copy;
+  }
+  function refreshCopy() {
+    const el = document.getElementById("copy");
+    if (el) el.innerHTML = buildFocusCopy();
+  }
+
   function focusHtml() {
     const pg = page();
     const index = buildIndex();
@@ -927,10 +1020,6 @@ const DATA = __DATA__;
     const censusRings = worldRings(index.nodes);
     const center = graph.center;
     const hot = S.hot;
-    const previewId = hot || peekId || (world ? null : focusId);
-    const previewNode = previewId ? (index.nodes[previewId] || (previewId.indexOf("code:") === 0 ? { id: previewId, kind: "UNT", label: previewId } : { id: previewId, kind: kindOfId(previewId), label: previewId })) : null;
-    const previewMeta = previewId && DATA.nodes[previewId] ? artifact(previewId) : {};
-    const canGoto = Boolean(peekId) && (world || peekId !== focusId) && DATA.nodes[peekId];
     const peekGraph = (world && linkId) ? focusGraph(index, linkId) : null;
     const related = { ids: {}, counts: {}, spokes: [], links: [] };
     if (peekGraph) {
@@ -966,61 +1055,7 @@ const DATA = __DATA__;
     const viewBox = world
       ? (S.cam.x + " " + S.cam.y + " " + (camera.w / S.cam.k) + " " + (camera.h / S.cam.k))
       : "0 0 " + camera.w + " " + camera.h;
-    const lin = previewId && DATA.nodes[previewId] ? lineageOf(previewId) : { grain: null, functions: [], components: [], interfaces: [], units: [], requirements: [], files: [] };
-
-    function lineageRow(caption, empty, items) {
-      return '<div style="margin-top:24px"><p class="kind">' + esc(caption) + "</p>" +
-        (items.length ? '<div class="ids">' + items.map(function (item) {
-          return '<button type="button" data-act="peek" data-id="' + esc(item.id) + '">' + esc(item.label && item.label !== item.id ? item.label : item.id) + "</button>";
-        }).join("") + "</div>" : '<p class="hint" style="margin-top:12px">' + esc(empty) + "</p>") + "</div>";
-    }
-    let copy = '<p class="kind">' + (world ? "World" + (previewNode ? " · " + esc(previewNode.kind) : "") : esc((previewNode && previewNode.kind) || center.kind)) + (hot ? " · Hover" : peekId ? " · Selected" : "") + "</p>";
-    copy += "<h2>" + esc(previewNode ? (previewMeta.title || previewNode.label || previewId) : "Entire neighborhood") + "</h2>";
-    if (previewId) copy += '<p class="id">' + esc(previewId) + "</p>";
-    if (!previewNode) copy += '<p class="hint" style="margin-top:16px">Hover a node to preview. Click to select.</p>';
-    if (previewMeta.domain) copy += '<p class="hint" style="margin-top:12px;letter-spacing:.14em;text-transform:uppercase;font-size:11px">' + esc(previewMeta.domain) + "</p>";
-    if (previewMeta.statement) copy += '<p class="stmt" style="margin-top:16px">' + esc(previewMeta.statement) + "</p>";
-    if (canGoto || peekId) {
-      copy += '<div class="row" style="margin-top:24px">';
-      if (canGoto) copy += '<button type="button" class="chip on" data-act="goto">Goto</button>';
-      if (peekId) copy += '<button type="button" class="chip" data-act="clear-peek">Clear</button>';
-      if (world && peekId) copy += '<button type="button" class="chip cyan' + (linkId === peekId ? " on" : "") + '" data-act="see-link">' + (linkId === peekId ? "Hide connection" : "See connection") + (linkId === peekId && related.spokes.length ? " " + related.spokes.length : "") + "</button>";
-      copy += "</div>";
-    }
-    if (world && linkId) {
-      copy += '<p class="hint" style="margin-top:16px;font-family:ui-monospace,monospace">Frozen on ' + esc(linkId) + ". " +
-        (related.spokes.length === 0 ? "No traced neighbors for this node." : WORLD_ORDER.filter(function (k) { return related.counts[k]; }).map(function (k) { return k + " " + related.counts[k]; }).join(" · ")) + "</p>";
-    }
-    if (previewNode && lin.grain === "need") copy += lineageRow("Satisfied by", "No functions allocated to this need.", lin.functions);
-    if (previewNode && lin.grain === "allocation") {
-      copy += lineageRow("Allocated to", "No component allocated.", lin.components);
-      copy += lineageRow("Refined by", "No units refine this function.", lin.units);
-      copy += lineageRow("Satisfies", "No requirements on this function.", lin.requirements);
-    }
-    if (previewNode && lin.grain === "architecture") {
-      copy += '<p class="kind" style="margin-top:32px">Architecture</p>';
-      copy += lineageRow("Functions", "No functions allocated to this block.", lin.functions);
-      copy += lineageRow("Ports", "No interfaces on this block.", lin.interfaces);
-      copy += lineageRow("Parts", "No units in this block.", lin.units);
-    }
-    if (previewNode && lin.grain === "contract") {
-      copy += lineageRow("Connects", "No components on this contract.", lin.components);
-      copy += lineageRow("Used by", "No functions use this contract.", lin.functions);
-    }
-    if (previewNode && lin.grain === "unit") {
-      copy += '<div style="margin-top:32px"><p class="kind">Code</p>';
-      if (!lin.files.length) copy += '<p class="hint" style="margin-top:12px">No source files on this unit yet.</p>';
-      else copy += '<div class="ids" style="margin-top:12px">' + lin.files.map(function (file, i) {
-        return (i ? '<span style="color:#475569">→</span>' : "") + '<button type="button" data-act="open-file" data-path="' + esc(file.path) + '" data-symbol="' + esc(file.symbol || "") + '">' + esc(String(file.path).split("/").pop()) + "</button>";
-      }).join("") + "</div>";
-      const snip = lin.files.filter(function (f) { return f.snippet && (!S.openFile || (S.openFile.path === f.path && S.openFile.symbol === f.symbol)); })[0];
-      if (S.openFile) {
-        const hit = lin.files.filter(function (f) { return f.path === S.openFile.path && (f.symbol || "") === (S.openFile.symbol || ""); })[0];
-        if (hit && hit.snippet) copy += "<pre style=\"margin-top:16px\"><p style=\"color:#64748b;margin:0 0 8px\">" + esc(hit.path) + (hit.start ? ":" + hit.start + "–" + hit.end : "") + "</p>" + esc(hit.snippet) + "</pre>";
-        else if (hit) copy += '<p class="hint" style="margin-top:12px">Could not read that file.</p>';
-      } else if (snip) copy += "";
-      copy += "</div>";
-    }
+    const copy = buildFocusCopy();
 
     let svg = '<svg id="field-svg" viewBox="' + viewBox + '" preserveAspectRatio="xMidYMid meet">';
     if (world) {
@@ -1068,10 +1103,12 @@ const DATA = __DATA__;
       const tied = Boolean(linkId) && (related.ids[node.id] || frozen);
       const dim = world && linkId && !peeked && !tied;
       const base = world ? (peeked || frozen ? 6 : tied ? 4.2 : pinned ? 4.5 : 2.6) : (peeked ? 9 : 7);
-      const r = base;
+      const grow = magScale(node, cursorRef.current);
+      const r = base * grow;
+      const showHalo = lit || peeked || tied || grow > 1.05;
       svg += '<g opacity="' + (dim ? "0.14" : "1") + '" class="pointer-events-none">';
-      if (lit || peeked || tied) svg += '<circle cx="' + node.x + '" cy="' + node.y + '" r="' + (r + 6) + '" fill="none" stroke="' + color + '" stroke-width="1.2" opacity="0.8"></circle>';
-      svg += '<circle data-nid="' + esc(node.id) + '" cx="' + node.x + '" cy="' + node.y + '" r="' + r + '" fill="' + color + '" style="cursor:pointer"><title>' + esc(node.id) + "</title></circle>";
+      svg += '<circle data-mag-halo="' + esc(node.id) + '" cx="' + node.x + '" cy="' + node.y + '" r="' + (r + 6) + '" fill="none" stroke="' + color + '" stroke-width="1.2" opacity="0.8"' + (showHalo ? "" : " hidden") + "></circle>";
+      svg += '<circle data-nid="' + esc(node.id) + '" data-x="' + node.x + '" data-y="' + node.y + '" data-world="' + (world ? "1" : "0") + '" data-tied="' + (tied ? "1" : "0") + '" data-pinned="' + (pinned ? "1" : "0") + '" cx="' + node.x + '" cy="' + node.y + '" r="' + r + '" fill="' + color + '"><title>' + esc(node.id) + "</title></circle>";
       if (!world) svg += '<text x="' + (node.x + 10) + '" y="' + (node.y - 8) + '" fill="#a5f3fc" font-size="9" font-family="ui-monospace, monospace">' + esc(node.id) + "</text>";
       svg += "</g>";
     });
@@ -1081,7 +1118,7 @@ const DATA = __DATA__;
     }
     if (world && pin) svg += '<circle cx="' + pin.x + '" cy="' + pin.y + '" r="10" fill="none" stroke="' + (KIND_COLOR[center.kind] || "#67e8f9") + '" stroke-width="1.6"></circle>';
     if (world && linkNode) svg += '<circle cx="' + linkNode.x + '" cy="' + linkNode.y + '" r="14" fill="none" stroke="#22d3ee" stroke-width="1.6"></circle>';
-    if (peek && peekId !== center.id && peekId !== linkId) svg += '<circle cx="' + peek.x + '" cy="' + peek.y + '" r="' + (world ? 12 : 16) + '" fill="none" stroke="#ecfeff" stroke-width="1.4"></circle>';
+    svg += '<circle id="peek-ring" cx="' + ((peek && peekId !== center.id && peekId !== linkId) ? peek.x : 0) + '" cy="' + ((peek && peekId !== center.id && peekId !== linkId) ? peek.y : 0) + '" r="' + (world ? 12 : 16) + '" fill="none" stroke="#ecfeff" stroke-width="1.4"' + (peek && peekId !== center.id && peekId !== linkId ? "" : " hidden") + "></circle>";
     svg += "</svg>";
 
     const tabs = FOCUS_TABS.map(function (item) {
@@ -1102,14 +1139,15 @@ const DATA = __DATA__;
     if (tab === "Connections") {
       fieldHtml = '<div class="field' + (world ? " grab" : "") + ' vv-in" id="field">' + svg +
         (world ? '<div class="zoom"><button type="button" data-act="zoom" data-k="1.25" aria-label="Zoom in">+</button><button type="button" data-act="zoom" data-k="' + (1 / 1.25) + '" aria-label="Zoom out">−</button><button type="button" data-act="fit" aria-label="Fit world">Fit</button></div>' : "") +
-        (world && (hot || peek) ? '<p style="position:absolute;bottom:16px;left:50%;transform:translateX(-50%);font-family:ui-monospace,monospace;font-size:12px;color:#cffafe;pointer-events:none">' + esc((field.byId[hot] || peek).id) + "</p>" : "") +
+        '<p id="field-hud" style="position:absolute;bottom:16px;left:50%;transform:translateX(-50%);font-family:ui-monospace,monospace;font-size:12px;color:#cffafe;pointer-events:none' + (world && (hot || peek) ? "" : ";display:none") + '">' + (world && (hot || peek) ? esc((field.byId[hot] || peek).id) : "") + "</p>" +
         "</div>";
     } else {
-      fieldHtml = '<ul class="list vv-in" style="padding:0 20px 16px">' + (list.length ? list.map(function (node) {
+      fieldHtml = '<ul class="list vv-in" id="kind-list" style="padding:0 20px 16px">' + (list.length ? list.map(function (node) {
         const meta = artifact(node.id);
         const status = node.kind === "TST" ? tstStatus(DATA.nodes[node.id]) : null;
         const on = node.id === peekId;
-        return '<li><button type="button" class="item" data-act="peek" data-id="' + esc(node.id) + '" data-dbl="focus" style="' + (on ? "border-color:#67e8f9" : "") + '"><div class="row" style="justify-content:space-between"><div><h3>' + esc(meta.title || node.label || node.id) + '</h3><div class="id">' + esc(node.id) + '</div></div><span class="kind" style="color:' + (KIND_COLOR[node.kind] || "") + '">' + esc(node.kind) + "</span></div>" +
+        const isHot = node.id === hot;
+        return '<li><button type="button" class="item" data-act="peek" data-open-tab="1" data-id="' + esc(node.id) + '"' + (on ? ' data-peek="true"' : "") + (isHot ? ' data-hot="true"' : "") + '><div class="row" style="justify-content:space-between"><div><h3>' + esc(meta.title || node.label || node.id) + '</h3><div class="id">' + esc(node.id) + '</div></div><span class="kind" style="color:' + (KIND_COLOR[node.kind] || "") + '">' + esc(node.kind) + "</span></div>" +
           (status ? '<p class="hint" style="margin-top:8px;letter-spacing:.08em;text-transform:uppercase;font-size:11px">' + esc(status) + "</p>" : "") + "</button></li>";
       }).join("") : '<li class="empty">No ' + esc(tab) + " in this neighborhood.</li>") + "</ul>";
     }
@@ -1260,6 +1298,7 @@ const DATA = __DATA__;
     S.pages = [makePage(id, { world: Boolean(startWorld), blankWorld: Boolean(startWorld) })];
     S.pageI = 0;
     S.hot = null;
+    cursorRef.current = null;
     S.cam = { x: 0, y: 0, k: 1 };
     S.snippet = null;
     S.openFile = null;
@@ -1347,6 +1386,96 @@ const DATA = __DATA__;
     const offsetY = (rect.height - vbH * scale) / 2;
     S.cam = { k: nextK, x: before.x - (clientX - rect.left - offsetX) / scale, y: before.y - (clientY - rect.top - offsetY) / scale };
     svg.setAttribute("viewBox", S.cam.x + " " + S.cam.y + " " + (WORLD.w / S.cam.k) + " " + (WORLD.h / S.cam.k));
+    const after = clientToSvg(clientX, clientY);
+    if (after) cursorRef.current = after;
+    paintMagnify();
+    paintHud();
+  }
+
+  function nodeBase(world, peeked, frozen, tied, pinned) {
+    return world ? (peeked || frozen ? 6 : tied ? 4.2 : pinned ? 4.5 : 2.6) : (peeked ? 9 : 7);
+  }
+  function paintMagnify() {
+    const svg = document.getElementById("field-svg");
+    if (!svg) return;
+    const cursor = cursorRef.current;
+    const pg = page();
+    const peekId = pg.peekId;
+    const linkId = pg.linkId;
+    svg.querySelectorAll("circle[data-nid]").forEach(function (el) {
+      const nid = el.getAttribute("data-nid");
+      const node = { x: Number(el.getAttribute("data-x")), y: Number(el.getAttribute("data-y")) };
+      const world = el.getAttribute("data-world") === "1";
+      const peeked = nid === peekId;
+      const frozen = nid === linkId;
+      const tied = el.getAttribute("data-tied") === "1";
+      const pinned = el.getAttribute("data-pinned") === "1";
+      const base = nodeBase(world, peeked, frozen, tied, pinned);
+      const grow = magScale(node, cursor);
+      const r = base * grow;
+      el.setAttribute("r", String(r));
+      const halo = el.previousElementSibling;
+      if (!halo || halo.getAttribute("data-mag-halo") !== nid) return;
+      halo.setAttribute("r", String(r + 6));
+      if (nid === S.hot || peeked || tied || grow > 1.05) halo.removeAttribute("hidden");
+      else halo.setAttribute("hidden", "");
+    });
+  }
+  function paintHud() {
+    const hud = document.getElementById("field-hud");
+    if (!hud) return;
+    const pg = page();
+    if (!pg.world) { hud.style.display = "none"; return; }
+    const id = S.hot || pg.peekId;
+    const node = id && fieldRef.current.byId ? fieldRef.current.byId[id] : null;
+    if (!node) { hud.style.display = "none"; hud.textContent = ""; return; }
+    hud.textContent = node.id;
+    hud.style.display = "";
+  }
+  function paintPeekRing() {
+    const ring = document.getElementById("peek-ring");
+    if (!ring) return;
+    const pg = page();
+    const peek = pg.peekId && fieldRef.current.byId ? fieldRef.current.byId[pg.peekId] : null;
+    if (peek && pg.peekId !== pg.focusId && pg.peekId !== pg.linkId) {
+      ring.setAttribute("cx", peek.x);
+      ring.setAttribute("cy", peek.y);
+      ring.setAttribute("r", pg.world ? "12" : "16");
+      ring.removeAttribute("hidden");
+    } else ring.setAttribute("hidden", "");
+  }
+  function paintListMarks() {
+    const peekId = page().peekId;
+    root.querySelectorAll("#kind-list .item[data-id]").forEach(function (el) {
+      const id = el.getAttribute("data-id");
+      if (id === peekId) el.setAttribute("data-peek", "true");
+      else el.removeAttribute("data-peek");
+      if (id === S.hot) el.setAttribute("data-hot", "true");
+      else el.removeAttribute("data-hot");
+    });
+  }
+  function setHotNode(nid) {
+    const changed = nid !== S.hot;
+    S.hot = nid;
+    if (changed) { paintListMarks(); refreshCopy(); }
+    paintMagnify();
+    paintHud();
+  }
+  function applyPeek(id) {
+    patchPage({ peekId: id });
+    paintPeekRing();
+    paintMagnify();
+    paintHud();
+    paintListMarks();
+    refreshCopy();
+  }
+  function applyCursor(clientX, clientY) {
+    const point = clientToSvg(clientX, clientY);
+    if (!point) return null;
+    cursorRef.current = point;
+    const near = nearestNode(point, fieldRef.current.points);
+    setHotNode(near ? near.id : null);
+    return point;
   }
 
   function bindFocusField() {
@@ -1359,23 +1488,50 @@ const DATA = __DATA__;
     const graph = focusGraph(index, pg.focusId);
     const activeKinds = graph.RING_ORDER.filter(function (kind) { return graph.rings[kind].length > 0; });
     const localPoints = [];
+    const localById = {};
     activeKinds.forEach(function (kind, ringIndex) {
       const radius = 150 + ringIndex * (activeKinds.length > 1 ? 160 / (activeKinds.length - 1) : 0);
-      placeRing(graph.rings[kind], radius, VIEW).forEach(function (node) { localPoints.push(node); });
+      placeRing(graph.rings[kind], radius, VIEW).forEach(function (node) {
+        localPoints.push(node);
+        localById[node.id] = node;
+      });
     });
     const points = pg.world ? worldMap.points : localPoints;
+    fieldRef.current = { points: points, byId: pg.world ? worldMap.byId : localById };
+    function onFieldUp(e) {
+      const drag = dragRef.current;
+      dragRef.current = null;
+      if (field.hasPointerCapture(e.pointerId)) field.releasePointerCapture(e.pointerId);
+      if (drag && drag.moved) return;
+      const point = applyCursor(e.clientX, e.clientY);
+      const near = nearestNode(point, points);
+      if (!near) {
+        const hadPeek = page().peekId || page().linkId;
+        patchPage({ peekId: null, linkId: null });
+        S.hot = null;
+        lastTapRef.current = { t: 0, id: null };
+        if (hadPeek) render();
+        else { paintPeekRing(); paintMagnify(); paintHud(); refreshCopy(); }
+        return;
+      }
+      const now = Date.now();
+      const last = lastTapRef.current;
+      if (last.id === near.id && now - last.t < 400) {
+        lastTapRef.current = { t: 0, id: null };
+        openFocusTab(near.id);
+        return;
+      }
+      lastTapRef.current = { t: now, id: near.id };
+      if (pg.world && DATA.nodes[near.id]) { openFocusTab(near.id); return; }
+      applyPeek(near.id);
+    }
     field.onpointerdown = function (e) {
       if (e.button !== 0) return;
       dragRef.current = { x: e.clientX, y: e.clientY, camX: S.cam.x, camY: S.cam.y, moved: false };
       if (pg.world) field.setPointerCapture(e.pointerId);
     };
     field.onpointermove = function (e) {
-      const point = clientToSvg(e.clientX, e.clientY);
-      if (point) {
-        const near = nearestNode(point, points);
-        const nid = near ? near.id : null;
-        if (nid !== S.hot) { S.hot = nid; }
-      }
+      applyCursor(e.clientX, e.clientY);
       const drag = dragRef.current;
       if (!drag || !pg.world) return;
       if (Math.hypot(e.clientX - drag.x, e.clientY - drag.y) > DRAG_PX) drag.moved = true;
@@ -1384,46 +1540,47 @@ const DATA = __DATA__;
       const scale = Math.min(rect.width / (WORLD.w / S.cam.k), rect.height / (WORLD.h / S.cam.k));
       S.cam = { k: S.cam.k, x: drag.camX - (e.clientX - drag.x) / scale, y: drag.camY - (e.clientY - drag.y) / scale };
       svg.setAttribute("viewBox", S.cam.x + " " + S.cam.y + " " + (WORLD.w / S.cam.k) + " " + (WORLD.h / S.cam.k));
+      applyCursor(e.clientX, e.clientY);
     };
-    field.onpointerup = function (e) {
-      const drag = dragRef.current;
-      dragRef.current = null;
-      if (field.hasPointerCapture(e.pointerId)) field.releasePointerCapture(e.pointerId);
-      if (drag && drag.moved) return;
-      const point = clientToSvg(e.clientX, e.clientY);
-      const near = nearestNode(point, points);
-      if (!near) {
-        patchPage({ peekId: null, linkId: null });
-        S.hot = null;
-        lastTapRef.current = { t: 0, id: null };
-        render();
-        return;
-      }
-      const now = Date.now();
-      const last = lastTapRef.current;
-      if (last.id === near.id && now - last.t < 400) {
-        lastTapRef.current = { t: 0, id: null };
-        if (DATA.nodes[near.id]) openFocusTab(near.id);
-        return;
-      }
-      lastTapRef.current = { t: now, id: near.id };
-      patchPage({ peekId: near.id });
-      render();
-    };
+    field.onpointerup = onFieldUp;
+    field.onpointercancel = onFieldUp;
     field.onpointerleave = function () {
       if (dragRef.current) return;
-      S.hot = null;
+      cursorRef.current = null;
+      setHotNode(null);
     };
-    field.onwheel = function (e) {
+    field.addEventListener("wheel", function (e) {
       if (!pg.world) return;
       e.preventDefault();
       zoomAt(e.clientX, e.clientY, e.deltaY < 0 ? 1.12 : 1 / 1.12);
-    };
+      applyCursor(e.clientX, e.clientY);
+    }, { passive: false });
+    const zoom = field.querySelector(".zoom");
+    if (zoom) {
+      zoom.onpointerdown = function (e) { e.stopPropagation(); };
+      zoom.onpointerup = function (e) { e.stopPropagation(); };
+      zoom.onpointermove = function (e) { e.stopPropagation(); };
+    }
+    paintMagnify();
+    paintHud();
+  }
+
+  function bindKindList() {
+    root.querySelectorAll("#kind-list .item[data-id]").forEach(function (el) {
+      const id = el.getAttribute("data-id");
+      el.onmouseenter = function () { setHotNode(id); };
+      el.onmouseleave = function () { if (S.hot === id) setHotNode(null); };
+    });
   }
 
   function openFocusTab(id) {
-    const existing = S.pages.findIndex(function (item) { return !item.blankWorld && item.focusId === id; });
+    if (!id || !DATA.nodes[id]) return;
+    const current = page();
+    if (current && !current.blankWorld && current.focusId === id) return;
     S.hot = null;
+    cursorRef.current = null;
+    lastTapRef.current = { t: 0, id: null };
+    const existing = S.pages.findIndex(function (item) { return !item.blankWorld && item.focusId === id; });
     if (existing >= 0) { S.pageI = existing; render(); return; }
     S.pages = S.pages.concat([makePage(id)]);
     S.pageI = S.pages.length - 1;
@@ -1435,6 +1592,7 @@ const DATA = __DATA__;
     if (proj) proj.onchange = function () { S.project = proj.value; S.active = null; S.focusId = null; render(); };
     bindLandingCamera();
     bindFocusField();
+    bindKindList();
     const sep = document.getElementById("sep");
     if (sep) {
       sep.onpointerdown = function (e) {
@@ -1466,6 +1624,12 @@ const DATA = __DATA__;
     }
     const note = root.querySelector("[data-role=note]");
     if (note) note.oninput = function () { S.note = note.value; };
+    root.ondblclick = function (ev) {
+      const t = ev.target.closest("[data-open-tab]");
+      if (!t) return;
+      ev.preventDefault();
+      openFocusTab(t.getAttribute("data-id"));
+    };
     root.onclick = function (ev) {
       const t = ev.target.closest("[data-act]");
       if (!t) return;
@@ -1511,6 +1675,7 @@ const DATA = __DATA__;
         S.startWorld = false;
         S.pages = [];
         S.hot = null;
+        cursorRef.current = null;
         render();
       } else if (act === "toggle-world") {
         patchPage(function (item) {
@@ -1519,9 +1684,10 @@ const DATA = __DATA__;
         });
         S.cam = { x: 0, y: 0, k: 1 };
         S.hot = null;
+        cursorRef.current = null;
         render();
       } else if (act === "tab") { patchPage({ section: t.getAttribute("data-tab") }); render(); }
-      else if (act === "page") { S.pageI = Number(t.getAttribute("data-i")); S.hot = null; render(); }
+      else if (act === "page") { S.pageI = Number(t.getAttribute("data-i")); S.hot = null; cursorRef.current = null; render(); }
       else if (act === "close-page") {
         const i = Number(t.getAttribute("data-i"));
         if (i <= 0) return;
@@ -1529,9 +1695,13 @@ const DATA = __DATA__;
         if (S.pageI === i) S.pageI = Math.max(0, i - 1);
         else if (S.pageI > i) S.pageI -= 1;
         S.hot = null;
+        cursorRef.current = null;
         render();
-      } else if (act === "peek") { patchPage({ peekId: t.getAttribute("data-id") }); render(); }
-      else if (act === "clear-peek") { patchPage({ peekId: null, linkId: null }); S.hot = null; render(); }
+      } else if (act === "peek") {
+        const id = t.getAttribute("data-id");
+        if (page().world && DATA.nodes[id]) openFocusTab(id);
+        else applyPeek(id);
+      } else if (act === "clear-peek") { patchPage({ peekId: null, linkId: null }); S.hot = null; cursorRef.current = null; render(); }
       else if (act === "goto") {
         const id = page().peekId;
         if (!id || !DATA.nodes[id]) return;
@@ -1553,6 +1723,8 @@ const DATA = __DATA__;
         S.cam = { x: 0, y: 0, k: 1 };
         const svg = document.getElementById("field-svg");
         if (svg) svg.setAttribute("viewBox", "0 0 " + WORLD.w + " " + WORLD.h);
+        paintMagnify();
+        paintHud();
       }
     };
   }
