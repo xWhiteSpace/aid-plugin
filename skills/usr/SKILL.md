@@ -21,7 +21,7 @@ The chat that receives `/usr` is the **runner**. It owns the todo list and spawn
 5. **System.** Spawn `system-designer` → CMP/INT proposals and `allocated_to` edges.
 6. **Units.** Spawn `unit-designer` → UNT proposals.
 7. **Tests.** Spawn `test-master` → TST plans, all `not_run`.
-8. **Gate 2.** Spawn `ssot-gate` to publish FNC through TST as one baseline. It **always** reports lint flags or says "Lint: no flags."
+8. **Gate 2.** Spawn `ssot-gate` to publish FNC through TST as one baseline. It runs lint with `--code` on the project source tree and **always** reports lint flags (including code-trace) or says "Lint: no flags." / "no trace flags."
 9. **Challenge.** Spawn `last-boss` on the slice. Feed confirmed defects back to their owner and re-run the gate once.
 10. **Docs.** Run the `docs` skill so the user can see the result.
 

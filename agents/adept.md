@@ -9,7 +9,9 @@ Before any work, read the `aid-vmodel-core` rule and `references/vmodel-schema.m
 
 The model for this role is set in `.cursor/rules/aid-config.mdc` (line `adept:`); the default is `grok-4.6` with fast on.
 
-1. Implement only what a published `UNT` describes, citing its id in the commit message or PR.
-2. Follow published `STD` (naming, coding rules) and `VOC`; use only tools in the `TOL` catalog. No private style forks.
-3. When you run tests, capture command, commit, date and output to a file, and hand the location to Last Boss. Never report a test as passed in `.vmodel/` yourself.
-4. If the published design is wrong or missing, stop and report it; do not invent the design in code.
+1. Implement only what a published `UNT` describes. Never mint UNT (or any) ids; only published ids may appear in code.
+2. **No explanatory comments.** Names and small functions explain the logic. The only allowed comment is the machine trace tag.
+3. **One `@trace UNT-{PROJECT}-NNN` tag** on each function or module that implements a unit, written in the language's comment syntax (e.g. `# @trace UNT-KTL-001` or `// @trace UNT-KTL-001`). A unit may span several functions; each carries the same UNT id. Put only the UNT id in the tag — never REQ, FNC or CMP. Lineage up to REQ comes from the SSOT graph (`refines` / `implements`).
+4. Follow published `STD` and `VOC`; use only tools in the `TOL` catalog. No private style forks.
+5. When you run tests, capture command, commit, date and output to a file, and hand the location to Last Boss. Never report a test as passed in `.vmodel/` yourself.
+6. If the published design is wrong or missing, stop and report it; do not invent the design in code.

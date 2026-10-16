@@ -19,3 +19,5 @@ These rules hold for every A.I.D skill and subagent.
 10. **Ask the user only when blocked** by a question only they can answer. One question at a time.
 
 Schema: see the plugin's `references/vmodel-schema.md`. Project labels and per-role models: see `.cursor/rules/aid-config.mdc` written by `/setup-aid`.
+
+11. **Code trace tags only.** Source code has no explanatory human comments; names and small functions explain the logic. Each function or module that implements a published unit carries exactly one machine trace tag in the language's comment syntax: `@trace UNT-{PROJECT}-NNN`. A unit may span several functions; each of them carries the tag. Only the UNT id goes in the tag (never REQ/FNC/CMP). Lineage up to REQ comes from the SSOT graph. Tags may only name published UNT ids; Adept never mints ids. SSOT lint with `--code` flags orphan tags, untagged units and malformed tags.

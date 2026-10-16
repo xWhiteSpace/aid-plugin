@@ -81,3 +81,14 @@ For `create`, omit `previous` and set `base_version` to `0`. For `retire`, `new_
 
 ## Empty bootstrap
 `/setup-aid` creates empty registries (`{}`), `edges.json` as `[]`, and `meta.json` with `graph_version: 0`.
+
+
+## Code traceability
+Source that implements a published `UNT` carries a machine tag and nothing else as a comment:
+
+- Form: `@trace UNT-{PROJECT}-NNN` inside the language's comment syntax.
+- Place one tag on each function or module that implements the unit. A unit may span several functions; each carries the same UNT id.
+- Only the UNT id appears in the tag. REQ / FNC / CMP lineage is read from the graph (`UNT refines CMP|FNC`, `FNC implements REQ`).
+- Tags name only published UNT ids. Adept never mints ids.
+- No explanatory human comments; names and small functions explain the logic.
+- Lint: `python3 <plugin>/scripts/vmodel_lint.py .vmodel --code <src-dir>` reports orphan tags, untagged published units and malformed tags under a **code trace** heading (or "no trace flags").

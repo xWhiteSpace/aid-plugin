@@ -1,11 +1,18 @@
 {
   "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
   "name": "aid-plugin",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "V-model / MBSE (SysML-aligned) agent team: /usr turns a plain-words intent into traced USR, REQ, FNC, CMP, UNT and TST records in a project-local SSOT under .vmodel/.",
   "author": {
     "name": "WhiteSpace"
   },
   "license": "MIT",
-  "keywords": ["v-model", "mbse", "sysml", "requirements", "traceability", "ssot"]
+  "keywords": [
+    "v-model",
+    "mbse",
+    "sysml",
+    "requirements",
+    "traceability",
+    "ssot"
+  ]
 }

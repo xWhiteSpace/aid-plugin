@@ -25,3 +25,5 @@ Run `reverse-engineer-publish-and-map` as `ssot-gate`, with `source_commit` set 
 
 ## Reply
 The range, amended ids, new ids, items left out (with the reason), lint flags, and open questions for the user.
+
+On publish, `ssot-gate` runs `vmodel_lint.py .vmodel --code <src>` so orphan / untagged / malformed `@trace UNT-…` tags are reported with the rest of the lint (or "no trace flags").
