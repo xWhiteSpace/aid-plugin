@@ -27,8 +27,8 @@ python3 <plugin>/scripts/vmodel_vview.py .vmodel --code <project-tree>
 2. **Fly-in camera.** Clicking a level dot runs `measurePose` (origin, translate3d, scale). Reduced-motion skips the dolly. Hot/hover halos on the nearest node.
 3. **Level view (right node).** That level's checks, status pills, cases, `verifies` targets, domain filter.
 4. **Spec view (left node).** Published items of that level's kinds, kind filter. Opening an item enters Focus. **Review** opens the ReviewQueue.
-5. **Focus.** One node in the centre. Walk published edges only. Tabs: Connections, USR, REQ, FNC, API, CMP, UNT, Tests. `INT` shares the API ring/hub. Unit code chips are scanned `@trace` hits (file, line, snippet from disk at publish time). Never invent a snippet.
-6. **World.** Globe icon on landing (inline SVG). Whole graph on the same V, pan and zoom, Fit / ±. Hubs: USR, REQ, FNC, API, CMP, UNT; tests on the right split by `level`. Coding holds `@trace` points. World is a control, not the first view.
+5. **Focus.** One node in the centre. Walk published edges only. Kind tabs: Connections, USR, REQ, FNC, API, CMP, UNT, Tests. `INT` shares the API ring/hub. Unit code chips are scanned `@trace` hits (file, line, snippet from disk at publish time). Never invent a snippet. Hover magnify (`MAG_PX` 56, `MAG_MAX` 3). Single tap peeks; double tap within 400ms opens a page tab (`openTab`) with that node's graph. Kind-list cards and lineage pills: click peeks, double-click opens a tab.
+6. **World.** Globe icon on landing (inline SVG). Whole graph on the same V, pan and zoom, Fit / ±. Same hover magnify as Focus. Click or double-click a published dot or kind-list card opens a page tab (switch / close / focus graph per tab). Hubs: USR, REQ, FNC, API, CMP, UNT; tests on the right split by `level`. Coding holds `@trace` points. World is a control, not the first view.
 7. **Review queue.** Published items at that spec level (not SSOT writes). Auto flags: missing USR/FNC/TST links, truncated titles, plus lint for that id. Keep / Rewrite / Reject and a note stay in local storage. Prev/Next. Neighborhood opens Focus. This queue does not mark passed.
 
 ## Never

@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.4.3 — 2026-10-16
+
+- V debug view World and Focus fields apply `magScale` live: `MAG_PX = 56`, `MAG_MAX = 3`, screen-pixel distance `world dist * cursor.px`, smoothstep ease, dots swell to 3× at the centre; halo at `r+6` when `grow > 1.05`. Cursor is tracked on `pointermove` in world coordinates with the current zoom; radii mutate in place (no innerHTML on move).
+- World dots and kind-list cards open a page tab on click or double-click (`openTab` / page tabs bar: switch, close, focus graph per tab). Focus field: single tap peeks, double tap within 400ms opens a tab. Lineage pills double-click open a tab. `DRAG_PX = 6`. Other pointer/hover/animation gaps vs the reference DebugPage/FocusSpace are listed on the PR.
+
 ## 0.4.2 — 2026-10-16
 
 - Offline V debug view reaches feature parity with the reference debug page structure (generic V-model only; no branded lockup or product names). One self-contained file, inline CSS/JS/SVG, no CDN.
