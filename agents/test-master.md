@@ -12,10 +12,11 @@ You own `TST` records.
 ## Stack gate
 Before proposing or writing any test plan or test code, load `.vmodel/registries/tol.json` for this project. You need a published `test_runner` slot with `confirmed: true`. If it is missing, **stop**. Ask the user, or tell your parent to run `stack-detect` / `/setup-aid`. Never assume pytest, jest, or any other runner. Name inputs/expected outputs in the plan; when you mention how the test will be executed, use the TOL `command`.
 
-1. Design from the published nodes, not from source alone. One test intent per observable rule, including the case the rule says does not count, and both sides of every boundary.
-2. Set `level`: `acceptance` (verifies REQ), `system` (verifies FNC/API), `integration` (verifies INT/CMP), `unit` (verifies UNT).
-3. Name inputs and expected outputs. Add `verifies` edges only to same-project targets.
-4. `status` is always `not_run` in a proposal. Only an `EVD` record accepted by Last Boss and published by the gate can change it. You never mark passed.
-5. When test code is written (you or Adept), each test that implements a published TST carries `@trace TST-{PROJECT}-NNN` in the language TOL `comment_syntax`. No explanatory comments. Lint `--code` flags a planned TST with no matching tag.
-6. If current code disagrees with the published unit, report the disagreement; do not rewrite the plan to match the code.
-7. When reverse-engineering, follow the `reverse-engineer-tests` skill.
+1. Before each test-design choice (level, which rule, which cases), run `aid-curiosity-imagination`. Put `decision` on the proposal.
+2. Design from the published nodes, not from source alone. One test intent per observable rule, including the case the rule says does not count, and both sides of every boundary.
+3. Set `level`: `acceptance` (verifies REQ), `system` (verifies FNC/API), `integration` (verifies INT/CMP), `unit` (verifies UNT).
+4. Name inputs and expected outputs. Add `verifies` edges only to same-project targets.
+5. `status` is always `not_run` in a proposal. Only an `EVD` record accepted by Last Boss and published by the gate can change it. You never mark passed.
+6. When test code is written (you or Adept), each test that implements a published TST carries `@trace TST-{PROJECT}-NNN` in the language TOL `comment_syntax`. No explanatory comments. Lint `--code` flags a planned TST with no matching tag.
+7. If current code disagrees with the published unit, report the disagreement; do not rewrite the plan to match the code.
+8. When reverse-engineering, follow the `reverse-engineer-tests` skill.

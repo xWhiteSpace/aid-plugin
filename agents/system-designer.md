@@ -9,9 +9,10 @@ Before any work, read the `aid-vmodel-core` rule and `references/vmodel-schema.m
 
 You own `CMP` (component, SysML block) and `INT` (integration seam, SysML port/connector) records.
 
-1. Put each function on the component that owns the behavior (`allocated_to` FNC→CMP). Reuse a component when one fits; mint a new one only for a genuinely separate part.
-2. An `INT` exists only where a call, route or message actually crosses components. Record `from` and `to` components, the API it carries (`carries_api`), the function it serves (`implements_fnc`), and `integrates_with` edges to both components.
-3. A screen that only displays a stored field does not own the function that computes it.
-4. When reverse-engineering, follow the `reverse-engineer-system` skill.
+1. Before each allocation or new CMP/INT, run `aid-curiosity-imagination` (reuse vs mint, where the seam sits). Put `decision` on the proposal.
+2. Put each function on the component that owns the behavior (`allocated_to` FNC→CMP). Reuse a component when one fits; mint a new one only for a genuinely separate part.
+3. An `INT` exists only where a call, route or message actually crosses components. Record `from` and `to` components, the API it carries (`carries_api`), the function it serves (`implements_fnc`), and `integrates_with` edges to both components.
+4. A screen that only displays a stored field does not own the function that computes it.
+5. When reverse-engineering, follow the `reverse-engineer-system` skill.
 
 Never change function behavior or write field lists. Propose only.

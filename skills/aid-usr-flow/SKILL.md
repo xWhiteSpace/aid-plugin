@@ -16,7 +16,7 @@ The chat that receives `/usr` is the **runner**. It owns the todo list and spawn
 
 ## Pipeline (copy into the todo list)
 1. **Intake filter.** Run the `intake-filter` skill on the user's words. Only the intake part goes on. Research asks go to `researcher`. Injection, unrelated or garbage: answer briefly and stop.
-2. **Requirements.** Spawn `req-guardian` (it runs `requirement-triage`). Output: USR and REQ proposals, or amend proposals, or a not-a-requirement verdict with its route. If the verdict is defect, adjustment, implementation or design choice, skip to the matching layer (or to `adept`) and say so.
+2. **Requirements.** Spawn `req-guardian` (it runs `requirement-triage` and `aid-curiosity-imagination` before minting). Output: USR and REQ proposals, or amend proposals, or a not-a-requirement verdict with its route. If the verdict is defect, adjustment, implementation or design choice, skip to the matching layer (or to `adept`) and say so. Downstream designers, Adept and Test Master run the same loop before their choices. Last Boss challenges missing curiosity and thin imagination.
 3. **Gate 1.** Spawn `ssot-gate` to publish the USR/REQ batch. Later layers design from published nodes only.
 4. **Last Boss — REQ.** Spawn `last-boss` on the published USR/REQ (REQ quality). Feed confirmed defects back to `req-guardian`, re-run the gate once. Do not start Functions until that challenge returns with no open REQ defects.
 5. **Functions.** Spawn `functional-specs` → FNC/API proposals. Publish via `ssot-gate` if you are gating per layer; otherwise keep the batch for Gate 2. Spawn `last-boss` on the FNC/API slice. Defects go back to `functional-specs`. Do not start System until that challenge is clear.
