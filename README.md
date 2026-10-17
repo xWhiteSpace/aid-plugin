@@ -61,6 +61,7 @@ Other commands: `/setup-aid` (labels, models, **stack-detect → TOL**), `/catch
 - **No guessed stack.** `/usr`, adept and test-master will not write code or tests until the user has confirmed TOL entries (language, test runner, and the other slots). Adept follows that language's comment syntax for `@trace UNT-…` on product code and `@trace TST-…` on tests.
 - **UI is designed before it is coded.** Adept follows `ui-design`; Last Boss reviews the running screen against that record.
 - **Last Boss after every stage** and again before Done. Nothing is Done until proven.
+- **Curiosity → Imagination → Intelligence** before a decision (`aid-curiosity-imagination`). Last Boss challenges unasked questions and a single-option design. The gate records the pick on the baseline.
 
 ## Example
 
@@ -71,7 +72,7 @@ python3 scripts/vmodel_lint.py examples/electric-kettle/.vmodel --write --code e
 python3 scripts/vmodel_docs.py examples/electric-kettle/.vmodel --code examples/electric-kettle
 ```
 
-Python 3.8+, no packages. The example stack is recorded as `TOL-KTL-001..006` (Python, pytest, no framework / package manager / linter / deploy target).
+Python 3.8+, no packages. The example stack is recorded as `TOL-KTL-001..006` (Python, pytest, no framework / package manager / linter / deploy target). A worked Curiosity → Imagination → Intelligence loop on the temperature-display choice is in `curiosity-imagination-temperature.md`.
 
 ## Layout
 
@@ -79,7 +80,7 @@ Python 3.8+, no packages. The example stack is recorded as `TOL-KTL-001..006` (P
 .cursor-plugin/plugin.json   # Cursor Plugin manifest
 plugin.json                  # Agent Plugins companion
 agents/                      # req-guardian, ssot-gate, tools-manager, adept, last-boss, …
-skills/                      # aid-usr-flow, aid-setup, stack-detect, ui-design, aid-v-view, reverse-engineer-*, …
+skills/                      # aid-usr-flow, aid-setup, aid-curiosity-imagination, stack-detect, ui-design, aid-v-view, reverse-engineer-*, …
 commands/                    # /usr /catchup /docs /setup-aid /v-view
 rules/                       # always-on V-model core
 scripts/                     # vmodel_docs.py, vmodel_lint.py, vmodel_vview.py

@@ -72,10 +72,19 @@ Kind-specific extras (all optional unless noted):
   "previous": { "...exact live node..." },
   "new_full": { "...complete new node..." },
   "edges_add": [ { "from": "...", "to": "...", "type": "derives" } ],
-  "edges_remove": []
+  "edges_remove": [],
+  "decision": {
+    "question": "one line",
+    "options": ["a", "b", "c"],
+    "chosen": "a",
+    "reason": "why this is most likely correct",
+    "rejected": [{ "id": "b", "why": "..." }],
+    "predicted": "what should be true if the pick is right",
+    "check": "observable later"
+  }
 }
 ```
-For `create`, omit `previous` and set `base_version` to `0`. For `retire`, `new_full.status` is `retired`.
+For `create`, omit `previous` and set `base_version` to `0`. For `retire`, `new_full.status` is `retired`. `decision` is required on a create/amend that is a design or mint choice (`aid-curiosity-imagination`). The gate copies it into the baseline **Decisions** section. It is notes, not a registry kind.
 
 ## Edge types
 `derives` (REQ→USR), `implements` (FNC|API→REQ), `allocated_to` (FNC→CMP), `integrates_with` (INT→CMP), `depends_on`, `refines` (UNT→FNC|CMP), `verifies` (TST→REQ|FNC|UNT|API|INT|CMP), `uses` (UNT|TST→TOL), `supersedes`, `evidences` (EVD→TST). Both ends of an edge must share the same `project`. `uses` is optional catalog linkage (a unit or test names the tool it depends on); TOL nodes are valid with no incoming edges.

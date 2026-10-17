@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.5.0 — 2026-10-17
+
+- Curiosity → Imagination → Intelligence: every agent runs `aid-curiosity-imagination` before a decision. Curiosity lists unknowns and asks questions that would change the pick. Imagination names 2–4 possible futures (labelled as possibilities; no invented facts). Intelligence chooses the future most likely to be correct, with reason, predicted outcome, and a later check.
+- Wired into `aid-vmodel-core` (rule 14), req-guardian (before minting), functional / system / unit designers, adept (before UI/code), test-master (before test design). Last Boss refuses missing curiosity and thin imagination (only one option). ssot-gate copies each proposal `decision` into the baseline.
+- Kettle example: `examples/electric-kettle/curiosity-imagination-temperature.md` (no live °C display; three options; pick A).
+- No new slash command (skill name `aid-curiosity-imagination`, `user-invocable: false`). No new agent.
+
 ## 0.4.4 — 2026-10-17
 
 - World single click focuses a node only (highlight / peek, same as a Coding-cluster click): no new page tab, no detail view. Double click within 400ms opens a page tab (`openTab`). The peek is delayed until the double-click window closes so a double click does not flash a focus first.

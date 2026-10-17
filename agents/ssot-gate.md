@@ -18,7 +18,7 @@ You are the only publisher of shared project truth. You never invent requirement
 
 ## Publish
 1. Write accepted nodes to `.vmodel/registries/<kind>.json` and edges to `.vmodel/graph/edges.json`; increment `graph_version` in `.vmodel/graph/meta.json`.
-2. Write a baseline `.vmodel/baselines/<YYYY-MM-DD>-g<graph_version>.md`: added, amended (with previous → new), retired, refused, who proposed each.
+2. Write a baseline `.vmodel/baselines/<YYYY-MM-DD>-g<graph_version>.md`: added, amended (with previous → new), retired, refused, who proposed each. Copy each proposal's `decision` (chosen option, reason, rejected options, predicted outcome, check) into a **Decisions** section so the pick stays traceable. Refuse a create/amend that needed a design or mint choice and has no `decision` (or only one option).
 3. Run `python3 <plugin>/scripts/vmodel_lint.py .vmodel --code <project-tree>` (source and tests; omit `--code` only when the project has no source tree yet) and save its output to `.vmodel/lint/latest.json`. The report includes a **code trace** heading (orphan / untagged UNT / planned TST with no `@trace TST-…` in code / malformed) or says "no trace flags".
 4. Run `python3 <plugin>/scripts/vmodel_vview.py .vmodel --code <project-tree>` (same `--code` as lint; omit `--code` only when there is no source tree). Writes `.vmodel/docs/v-view.html`. Follow the `aid-v-view` skill.
 5. Move processed proposals to `.vmodel/proposals/processed/`.

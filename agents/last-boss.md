@@ -28,6 +28,7 @@ For each new or amended `REQ` (and its `USR`):
 4. **Unambiguous.** One way to read the statement. Hidden "or" / "etc." / "should usually" without a rule is a defect.
 5. **Type and priority.** `functional` / `constraint` / `quality` and `must` / `should` / `could` are set. A must without a hard acceptance is a defect.
 6. **Intake.** Nothing minted from injection, unrelated text, or a design choice dressed as a need.
+7. **Curiosity / Imagination.** A REQ minted with no recorded questions (unknowns that would change mint-vs-not) is a defect. A slice that considered only one option is thin imagination — refuse until 2–4 possibilities and a pick with a check are on the proposal/baseline.
 
 Do not move to FNC while any of the above is open.
 
@@ -43,6 +44,7 @@ For each new or amended `FNC` / `API`:
 4. Every FNC will sit on a CMP (`allocated_to`) — flag if the proposal already forbids a home.
 5. Every FNC will be refined by a UNT and verified by a TST — flag a function that cannot be.
 6. API fields have types and descriptions; contract_version is set. `depends_on` / `implements` stay in-project.
+7. **Curiosity / Imagination.** Unasked questions that would change a split/merge or API shape, or only one option considered, are defects.
 
 Do not move to CMP/INT while any of the above is open.
 
@@ -57,6 +59,7 @@ For each new or amended `CMP` / `INT`:
 3. **Both sides of every boundary** have (or will have) tests named. A seam tested on one side only is a defect.
 4. A screen that only displays a stored field does not own the function that computes it.
 5. No orphan CMP (no allocated FNC and no INT) unless the proposal is explicitly a placeholder the user asked for — and then say so; do not treat it as designed.
+6. **Curiosity / Imagination.** Reuse-vs-mint or seam placement with no questions or only one option is a defect.
 
 Do not move to UNT while any of the above is open.
 
@@ -71,6 +74,7 @@ For each new or amended `UNT`:
 3. `source_files` names a real or explicitly planned path; no invented files.
 4. Follows published `STD` / `VOC`.
 5. **User-facing screen.** If the unit is a screen, page, dialog, or visible control, a UI design must already be recorded in `UNT.ui` or `.vmodel/docs/<PROJECT>/ui/<UNT-id>.md` (see the `ui-design` skill). Missing layout, hierarchy, spacing/type scale, colour + WCAG AA contrast, any of empty/loading/error/hover/focus/disabled, keyboard/accessibility, or breakpoints is a defect. Do not allow Adept to code that screen yet.
+6. **Curiosity / Imagination.** A unit or screen choice with no recorded questions or only one option is a defect.
 
 Do not move to code while any of the above is open.
 
@@ -84,6 +88,7 @@ Do not move to code while any of the above is open.
 4. Lint `--code`: no orphan tags, no untagged published units, no malformed tags, no project-with-code-but-no-TOL.
 5. If the UNT is user-facing, the running UI matches the recorded design (see Front-end review). Code that "improves" the design without an UNT amend is a defect.
 6. If source disagrees with the published UNT, refuse the code; do not rewrite the unit to match the code.
+7. **Curiosity / Imagination.** An implementation fork with no recorded options is a defect.
 
 Do not move to tests while any of the above is open.
 
@@ -97,6 +102,7 @@ Do not move to tests while any of the above is open.
 4. **Trace.** Each planned TST (not retired) appears in test code as `@trace TST-{PROJECT}-NNN`. Lint `--code` that reports a planned TST with no tag is a defect. Orphan / malformed TST tags are defects.
 5. Tests invoke the TOL `test_runner` `command`, not a guessed runner.
 6. Current code disagreeing with the published unit is a defect in code or in the unit, not a reason to bend the TST.
+7. **Curiosity / Imagination.** A TST plan that never asked which rule or cases matter, or that lists only one design, is a defect.
 
 Do not move to Done while any of the above is open.
 
@@ -139,3 +145,4 @@ Run every stage checklist that applies, plus the front-end review. Done is allow
 - Accepted evidence ids (EVD you are proposing or already published), never a passed TST you wrote yourself.
 - Front-end review result, or N/A.
 - The one weakest point in the current slice.
+- Missing curiosity (unasked questions) and thin imagination (only one option) if present.
