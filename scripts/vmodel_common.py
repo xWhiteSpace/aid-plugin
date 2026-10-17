@@ -12,6 +12,7 @@ TOL_SLOTS = {"language", "framework", "package_manager", "test_runner",
              "linter", "deploy_target", "library", "api"}
 UNIQUE_TOL_SLOTS = {"language", "framework", "package_manager", "test_runner",
                     "linter", "deploy_target"}
+TST_LEVELS = {"unit", "integration", "system", "acceptance"}
 ID_RE = re.compile(r"^(USR|REQ|FNC|API|CMP|INT|UNT|TST|TOL|RSH|STD|VOC|EVD)-([A-Z0-9]{2,5})-(\d{3,})$")
 
 
