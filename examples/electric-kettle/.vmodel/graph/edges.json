@@ -303,5 +303,30 @@
     "from": "TST-KTL-012",
     "to": "TOL-KTL-004",
     "type": "uses"
+  },
+  {
+    "from": "UNT-KTL-001",
+    "to": "src/start_guard.py",
+    "type": "coded_in"
+  },
+  {
+    "from": "UNT-KTL-002",
+    "to": "src/boil_detector.py",
+    "type": "coded_in"
+  },
+  {
+    "from": "UNT-KTL-004",
+    "to": "src/keep_warm_loop.py",
+    "type": "coded_in"
+  },
+  {
+    "from": "UNT-KTL-003",
+    "to": "src/dry_guard.py",
+    "type": "coded_in"
+  },
+  {
+    "from": "UNT-KTL-005",
+    "to": "src/lock_button.py",
+    "type": "coded_in"
   }
 ]

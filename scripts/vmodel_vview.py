@@ -12,6 +12,56 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from vmodel_common import load  # noqa: E402
 from vmodel_lint import collect_traces, lint, scan_code  # noqa: E402
 
+
+def merge_unt_traces(traces):
+    seen = set()
+    out = []
+    for t in traces:
+        key = (t.get("file"), t.get("id"))
+        if key in seen:
+            continue
+        seen.add(key)
+        out.append(t)
+    return out
+
+
+def sync_coded_in_edges(root, code_dir):
+    nodes, edges, meta = load(root)
+    traces = merge_unt_traces(
+        [t for t in collect_traces(code_dir) if t.get("kind") == "UNT"]
+    ) if code_dir else []
+    keep = []
+    seen = set()
+    for e in edges:
+        if e.get("type") == "coded_in":
+            continue
+        key = (e.get("from"), e.get("to"), e.get("type"))
+        if key in seen:
+            continue
+        seen.add(key)
+        keep.append({"from": e.get("from"), "to": e.get("to"), "type": e.get("type")})
+    for t in traces:
+        if t.get("id") not in nodes:
+            continue
+        key = (t["id"], t["file"], "coded_in")
+        if key in seen:
+            continue
+        seen.add(key)
+        keep.append({"from": t["id"], "to": t["file"], "type": "coded_in"})
+    old = {(e.get("from"), e.get("to"), e.get("type")) for e in edges}
+    new = {(e["from"], e["to"], e["type"]) for e in keep}
+    if old != new:
+        epath = os.path.join(root, "graph", "edges.json")
+        with open(epath, "w", encoding="utf-8") as f:
+            json.dump(keep, f, indent=2)
+            f.write("\n")
+        meta["graph_version"] = int(meta.get("graph_version") or 0) + 1
+        mpath = os.path.join(root, "graph", "meta.json")
+        with open(mpath, "w", encoding="utf-8") as f:
+            json.dump(meta, f, indent=2)
+            f.write("\n")
+    return sum(1 for e in keep if e["type"] == "coded_in")
+
 NODE_KEEP = (
     "id", "kind", "project", "title", "statement", "status", "level", "cases",
     "source_files", "acceptance", "who", "why", "from_cmp", "to_cmp",
@@ -41,7 +91,7 @@ def payload(root, code_dir=None):
     if code_dir is not None:
         flags.extend(scan_code(code_dir, nodes))
     all_traces = collect_traces(code_dir) if code_dir else []
-    traces = [t for t in all_traces if t.get("kind") == "UNT"]
+    traces = merge_unt_traces([t for t in all_traces if t.get("kind") == "UNT"])
     test_traces = [t for t in all_traces if t.get("kind") == "TST"]
     projects = meta.get("projects") or sorted({
         n.get("project") for n in nodes.values() if n.get("project")
@@ -69,6 +119,8 @@ def write_vview(root, code_dir=None, out=None):
         raise SystemExit("missing template: %s" % TEMPLATE)
     with open(TEMPLATE, encoding="utf-8") as f:
         page = f.read()
+    if code_dir:
+        sync_coded_in_edges(root, code_dir)
     data = payload(root, code_dir)
     blob = json.dumps(data, ensure_ascii=False, separators=(",", ":"))
     blob = blob.replace("<", "\\u003c").replace(">", "\\u003e")

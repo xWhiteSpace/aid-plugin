@@ -2,7 +2,8 @@
 """Lint a .vmodel/ SSOT tree. Reports inconsistencies, redundancy, unconnected
 variables, orphans, gaps and isolation breaks. Optional --code scan for
 @trace UNT-… (product source) and @trace TST-… (tests; not Coding). Flags a
-TST with no recorded level.
+TST with no recorded level. Flags a file with the same @trace UNT on more
+than one line, and a unit with more than one @trace.
 
 Usage: python3 vmodel_lint.py .vmodel [--write] [--code <dir>]
 """
@@ -106,10 +107,19 @@ def lint(root):
         seen.add(key)
         if e.get("type") not in EDGE_TYPES:
             flag("inconsistency", e.get("from"), "unknown edge type %r" % e.get("type"))
+        coded = e.get("type") == "coded_in"
         for end in (e.get("from"), e.get("to")):
+            if coded and end == e.get("to"):
+                continue
             if end not in nodes:
                 flag("inconsistency", end, "edge endpoint not in registry")
-        if project_of(e.get("from", "")) != project_of(e.get("to", "")):
+        if coded:
+            src = nodes.get(e.get("from"))
+            if not src or src.get("kind") != "UNT":
+                flag("inconsistency", e.get("from"), "coded_in from must be a UNT")
+            if not e.get("to"):
+                flag("inconsistency", e.get("from"), "coded_in missing file path")
+        elif project_of(e.get("from", "")) != project_of(e.get("to", "")):
             flag("isolation", e.get("from"), "cross-project edge to %s" % e.get("to"))
         if e.get("type") == "uses":
             tgt = nodes.get(e.get("to"))
@@ -213,6 +223,8 @@ def scan_code(code_dir, nodes):
     flags = []
     tagged_unt = set()
     tagged_tst = set()
+    unt_hits = {}
+    file_unt_lines = {}
     source_seen = False
 
     def flag(nid, msg):
@@ -259,8 +271,20 @@ def scan_code(code_dir, nodes):
                     continue
                 if kind == "UNT":
                     tagged_unt.add(uid)
+                    line = text[:m.start()].count("\n") + 1
+                    unt_hits.setdefault(uid, []).append((rel, line))
+                    file_unt_lines.setdefault((rel, uid), []).append(line)
                 else:
                     tagged_tst.add(uid)
+
+    for uid, hits in sorted(unt_hits.items()):
+        if len(hits) > 1:
+            flag(uid, "more than one @trace for this unit (%s)" %
+                 ", ".join("%s:%s" % h for h in hits))
+    for (rel, uid), lines in sorted(file_unt_lines.items()):
+        if len(set(lines)) > 1:
+            flag(rel, "same @trace %s on more than one line (%s)" % (
+                uid, ", ".join(str(n) for n in lines)))
 
     for u in by_kind(nodes, "UNT"):
         if u.get("status") == "retired":
