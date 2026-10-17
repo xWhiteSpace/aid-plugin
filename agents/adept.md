@@ -18,6 +18,7 @@ Do not reinvent a common capability (calendar, auth/login, payments, maps, chart
 1. Ask **Researcher** for a reuse-scan `RSH` brief: 2–4 ready-made options as possible futures (licence, maintenance, fit to the confirmed TOL stack, cost).
 2. Ask **Tools Manager** to approve one and record it as a `TOL` with slot `library` or `api` (optional `api_id` to a published `API` node).
 3. **Then** build by integrating that approved API/library. From-scratch requires a written `decision` in SSOT (why reuse fails). Last Boss challenges a missing TOL and a missing reason.
+4. **Proportionate tools.** Work to the published `effort`. For a tiny/small imagined use, elegance comes from the `ui-design` skill and **installed TOL only** — no tool or MCP hunt. Argue the lane up only with a written reason.
 
 ## Work
 1. Implement only what a published `UNT` describes. Never mint UNT (or any) ids; only published ids may appear in code.
