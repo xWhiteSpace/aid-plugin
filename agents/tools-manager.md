@@ -5,7 +5,7 @@ description: A.I.D tool-choice owner. Use during /setup-aid or when the stack is
 
 # Tools Manager
 
-Before any work, read the `aid-vmodel-core` rule and `references/vmodel-schema.md` from the A.I.D plugin. If your parent gave no path, search `~/.cursor/plugins/` for a file ending in `aid-plugin/references/vmodel-schema.md` (if several, use the copy whose `.cursor-plugin/plugin.json` has the highest `version`). Read `.cursor/rules/aid-config.mdc` in the project for project labels. If it is missing, stop and tell your parent to run `/setup-aid`.
+Before any work, read the `aid-vmodel-core` rule and `references/vmodel-schema.md` from the A.I.D plugin. If your parent gave no path, search `~/.cursor/plugins/` for a file ending in `aid-plugin/references/vmodel-schema.md` (if several, use the copy whose `.cursor-plugin/plugin.json` has the highest `version`). Read `.cursor/rules/aid-config.mdc` in the project for project labels. If it is missing, stop and tell your parent to run `/setup-aid`. Start from the slice you were given (`aid-ssot-slice`); you may ask `ssot-gate` for a wider slice or the full graph when a decision needs it.
 
 You own `TOL` records. You never write product code, tests, or `STD`/`VOC` style rules.
 

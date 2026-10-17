@@ -1,0 +1,735 @@
+{
+  "root": "REQ-KTL-001",
+  "hops": 2,
+  "project": "KTL",
+  "graph_version": 2,
+  "ids": [
+    "API-KTL-001",
+    "CMP-KTL-001",
+    "CMP-KTL-003",
+    "CMP-KTL-004",
+    "CMP-KTL-005",
+    "FNC-KTL-001",
+    "FNC-KTL-005",
+    "INT-KTL-002",
+    "INT-KTL-003",
+    "INT-KTL-004",
+    "REQ-KTL-001",
+    "REQ-KTL-005",
+    "TOL-KTL-001",
+    "TOL-KTL-002",
+    "TOL-KTL-003",
+    "TOL-KTL-004",
+    "TOL-KTL-005",
+    "TOL-KTL-006",
+    "TST-KTL-001",
+    "TST-KTL-005",
+    "TST-KTL-006",
+    "TST-KTL-007",
+    "TST-KTL-012",
+    "UNT-KTL-001",
+    "USR-KTL-001"
+  ],
+  "hop": {
+    "API-KTL-001": 1,
+    "CMP-KTL-003": 2,
+    "FNC-KTL-001": 1,
+    "FNC-KTL-005": 2,
+    "REQ-KTL-001": 0,
+    "REQ-KTL-005": 2,
+    "TST-KTL-001": 1,
+    "TST-KTL-006": 2,
+    "UNT-KTL-001": 2,
+    "USR-KTL-001": 1
+  },
+  "nodes": {
+    "API-KTL-001": {
+      "id": "API-KTL-001",
+      "kind": "API",
+      "project": "KTL",
+      "title": "Panel command channel",
+      "statement": "Messages from user panel to controller.",
+      "version": 1,
+      "status": "published",
+      "created_at": "2026-10-16T00:00:00+09:00",
+      "updated_at": "2026-10-16T00:00:00+09:00",
+      "proposed_by": "functional-specs",
+      "channel": "panel->controller",
+      "contract_version": "1.0",
+      "request": {
+        "body": {
+          "command": {
+            "type": "string",
+            "description": "start | keep_warm_on | keep_warm_off | lock_toggle"
+          },
+          "lock_hold_ms": {
+            "type": "integer",
+            "description": "How long lock button held"
+          }
+        }
+      },
+      "response": {
+        "success": {
+          "body": {
+            "state": {
+              "type": "string",
+              "description": "idle | heating | keep_warm | fault"
+            },
+            "locked": {
+              "type": "boolean",
+              "description": "Child lock state"
+            }
+          }
+        }
+      },
+      "errors": [
+        {
+          "code": "LOCKED"
+        },
+        {
+          "code": "OFF_BASE"
+        }
+      ]
+    },
+    "CMP-KTL-001": {
+      "id": "CMP-KTL-001",
+      "kind": "CMP",
+      "project": "KTL",
+      "title": "Heating element",
+      "statement": "Converts power to heat",
+      "version": 1,
+      "status": "published",
+      "created_at": "2026-10-16T00:00:00+09:00",
+      "updated_at": "2026-10-16T00:00:00+09:00",
+      "proposed_by": "system-designer",
+      "responsibilities": [
+        "Converts power to heat"
+      ]
+    },
+    "CMP-KTL-003": {
+      "id": "CMP-KTL-003",
+      "kind": "CMP",
+      "project": "KTL",
+      "title": "Controller",
+      "statement": "Decides heater state",
+      "version": 1,
+      "status": "published",
+      "created_at": "2026-10-16T00:00:00+09:00",
+      "updated_at": "2026-10-16T00:00:00+09:00",
+      "proposed_by": "system-designer",
+      "responsibilities": [
+        "Decides heater state"
+      ]
+    },
+    "CMP-KTL-004": {
+      "id": "CMP-KTL-004",
+      "kind": "CMP",
+      "project": "KTL",
+      "title": "Power base",
+      "statement": "Supplies mains and detects kettle on base",
+      "version": 1,
+      "status": "published",
+      "created_at": "2026-10-16T00:00:00+09:00",
+      "updated_at": "2026-10-16T00:00:00+09:00",
+      "proposed_by": "system-designer",
+      "responsibilities": [
+        "Supplies mains and detects kettle on base"
+      ]
+    },
+    "CMP-KTL-005": {
+      "id": "CMP-KTL-005",
+      "kind": "CMP",
+      "project": "KTL",
+      "title": "User panel",
+      "statement": "Buttons, LEDs, lock",
+      "version": 1,
+      "status": "published",
+      "created_at": "2026-10-16T00:00:00+09:00",
+      "updated_at": "2026-10-16T00:00:00+09:00",
+      "proposed_by": "system-designer",
+      "responsibilities": [
+        "Buttons, LEDs, lock"
+      ]
+    },
+    "FNC-KTL-001": {
+      "id": "FNC-KTL-001",
+      "kind": "FNC",
+      "project": "KTL",
+      "title": "Start boil",
+      "statement": "Start a boil cycle on user request.",
+      "version": 1,
+      "status": "published",
+      "created_at": "2026-10-16T00:00:00+09:00",
+      "updated_at": "2026-10-16T00:00:00+09:00",
+      "proposed_by": "functional-specs",
+      "inputs": [
+        "start_pressed",
+        "on_base"
+      ],
+      "outputs": [
+        "heater_on"
+      ],
+      "rule": "Start only if on_base and not locked and water_present"
+    },
+    "FNC-KTL-005": {
+      "id": "FNC-KTL-005",
+      "kind": "FNC",
+      "project": "KTL",
+      "title": "Child lock toggle",
+      "statement": "Lock or unlock the start button.",
+      "version": 1,
+      "status": "published",
+      "created_at": "2026-10-16T00:00:00+09:00",
+      "updated_at": "2026-10-16T00:00:00+09:00",
+      "proposed_by": "functional-specs",
+      "inputs": [
+        "lock_hold_ms"
+      ],
+      "outputs": [
+        "locked"
+      ],
+      "rule": "Toggle locked when lock_hold_ms >= 3000"
+    },
+    "INT-KTL-002": {
+      "id": "INT-KTL-002",
+      "kind": "INT",
+      "project": "KTL",
+      "title": "Heater drive",
+      "statement": "Heater drive: Controller sends to Heating element",
+      "version": 1,
+      "status": "published",
+      "created_at": "2026-10-16T00:00:00+09:00",
+      "updated_at": "2026-10-16T00:00:00+09:00",
+      "proposed_by": "system-designer",
+      "from_cmp": "CMP-KTL-003",
+      "to_cmp": "CMP-KTL-001",
+      "implements_fnc": "FNC-KTL-001"
+    },
+    "INT-KTL-003": {
+      "id": "INT-KTL-003",
+      "kind": "INT",
+      "project": "KTL",
+      "title": "Panel commands",
+      "statement": "Panel commands: User panel sends to Controller",
+      "version": 1,
+      "status": "published",
+      "created_at": "2026-10-16T00:00:00+09:00",
+      "updated_at": "2026-10-16T00:00:00+09:00",
+      "proposed_by": "system-designer",
+      "from_cmp": "CMP-KTL-005",
+      "to_cmp": "CMP-KTL-003",
+      "implements_fnc": "FNC-KTL-005",
+      "carries_api": "API-KTL-001"
+    },
+    "INT-KTL-004": {
+      "id": "INT-KTL-004",
+      "kind": "INT",
+      "project": "KTL",
+      "title": "On-base and mains",
+      "statement": "On-base and mains: Power base sends to Controller",
+      "version": 1,
+      "status": "published",
+      "created_at": "2026-10-16T00:00:00+09:00",
+      "updated_at": "2026-10-16T00:00:00+09:00",
+      "proposed_by": "system-designer",
+      "from_cmp": "CMP-KTL-004",
+      "to_cmp": "CMP-KTL-003",
+      "implements_fnc": "FNC-KTL-001"
+    },
+    "REQ-KTL-001": {
+      "id": "REQ-KTL-001",
+      "kind": "REQ",
+      "project": "KTL",
+      "title": "Boil water",
+      "statement": "Pressing Start heats water until it boils.",
+      "version": 1,
+      "status": "published",
+      "created_at": "2026-10-16T00:00:00+09:00",
+      "updated_at": "2026-10-16T00:00:00+09:00",
+      "proposed_by": "req-guardian",
+      "priority": "must",
+      "type": "functional",
+      "acceptance": "From 20 °C, 1.0 L reaches 100 °C within 240 s at 230 V."
+    },
+    "REQ-KTL-005": {
+      "id": "REQ-KTL-005",
+      "kind": "REQ",
+      "project": "KTL",
+      "title": "Child lock",
+      "statement": "A child lock prevents starting.",
+      "version": 1,
+      "status": "published",
+      "created_at": "2026-10-16T00:00:00+09:00",
+      "updated_at": "2026-10-16T00:00:00+09:00",
+      "proposed_by": "req-guardian",
+      "priority": "must",
+      "type": "functional",
+      "acceptance": "While child lock is on, Start presses are ignored; unlocking needs a 3 s hold."
+    },
+    "TOL-KTL-001": {
+      "id": "TOL-KTL-001",
+      "kind": "TOL",
+      "project": "KTL",
+      "title": "language: Python",
+      "statement": "Implementation language is Python 3 for src/*.py units.",
+      "version": 1,
+      "status": "published",
+      "created_at": "2026-10-16T00:00:00+09:00",
+      "updated_at": "2026-10-16T00:00:00+09:00",
+      "proposed_by": "tools-manager",
+      "slot": "language",
+      "tool": "Python",
+      "tool_version": "3",
+      "purpose": "Implementation language for the kettle controller units",
+      "evidence": [
+        "src/start_guard.py",
+        "src/boil_detector.py",
+        "src/dry_guard.py",
+        "src/keep_warm_loop.py",
+        "src/lock_button.py"
+      ],
+      "confirmed": true,
+      "comment_syntax": "#"
+    },
+    "TOL-KTL-002": {
+      "id": "TOL-KTL-002",
+      "kind": "TOL",
+      "project": "KTL",
+      "title": "framework: none",
+      "statement": "No application framework; units are plain Python modules.",
+      "version": 1,
+      "status": "published",
+      "created_at": "2026-10-16T00:00:00+09:00",
+      "updated_at": "2026-10-16T00:00:00+09:00",
+      "proposed_by": "tools-manager",
+      "slot": "framework",
+      "tool": "none",
+      "tool_version": "unspecified",
+      "purpose": "No framework files were present; units stay stdlib-only",
+      "evidence": [],
+      "confirmed": true
+    },
+    "TOL-KTL-003": {
+      "id": "TOL-KTL-003",
+      "kind": "TOL",
+      "project": "KTL",
+      "title": "package_manager: none",
+      "statement": "No package manager; no pyproject.toml, requirements.txt or lockfile.",
+      "version": 1,
+      "status": "published",
+      "created_at": "2026-10-16T00:00:00+09:00",
+      "updated_at": "2026-10-16T00:00:00+09:00",
+      "proposed_by": "tools-manager",
+      "slot": "package_manager",
+      "tool": "none",
+      "tool_version": "unspecified",
+      "purpose": "Example ships stdlib modules only",
+      "evidence": [],
+      "confirmed": true
+    },
+    "TOL-KTL-004": {
+      "id": "TOL-KTL-004",
+      "kind": "TOL",
+      "project": "KTL",
+      "title": "test_runner: pytest",
+      "statement": "Unit tests run with pytest.",
+      "version": 1,
+      "status": "published",
+      "created_at": "2026-10-16T00:00:00+09:00",
+      "updated_at": "2026-10-16T00:00:00+09:00",
+      "proposed_by": "tools-manager",
+      "slot": "test_runner",
+      "tool": "pytest",
+      "tool_version": "unspecified",
+      "purpose": "Test runner for Python unit tests of src/*.py",
+      "evidence": [],
+      "confirmed": true,
+      "command": "pytest"
+    },
+    "TOL-KTL-005": {
+      "id": "TOL-KTL-005",
+      "kind": "TOL",
+      "project": "KTL",
+      "title": "linter: none",
+      "statement": "No project linter is configured.",
+      "version": 1,
+      "status": "published",
+      "created_at": "2026-10-16T00:00:00+09:00",
+      "updated_at": "2026-10-16T00:00:00+09:00",
+      "proposed_by": "tools-manager",
+      "slot": "linter",
+      "tool": "none",
+      "tool_version": "unspecified",
+      "purpose": "No ruff/flake8/pylint config in the example tree",
+      "evidence": [],
+      "confirmed": true
+    },
+    "TOL-KTL-006": {
+      "id": "TOL-KTL-006",
+      "kind": "TOL",
+      "project": "KTL",
+      "title": "deploy_target: none",
+      "statement": "No deploy target; the example is local controller logic.",
+      "version": 1,
+      "status": "published",
+      "created_at": "2026-10-16T00:00:00+09:00",
+      "updated_at": "2026-10-16T00:00:00+09:00",
+      "proposed_by": "tools-manager",
+      "slot": "deploy_target",
+      "tool": "none",
+      "tool_version": "unspecified",
+      "purpose": "No vercel.json or other host config; not a hosted app",
+      "evidence": [],
+      "confirmed": true
+    },
+    "TST-KTL-001": {
+      "id": "TST-KTL-001",
+      "kind": "TST",
+      "project": "KTL",
+      "title": "Acceptance: Boil water",
+      "statement": "Acceptance: Boil water",
+      "version": 1,
+      "status": "not_run",
+      "created_at": "2026-10-16T00:00:00+09:00",
+      "updated_at": "2026-10-16T00:00:00+09:00",
+      "proposed_by": "test-master",
+      "level": "acceptance",
+      "cases": [
+        {
+          "input": "bench setup",
+          "expected": "boil 1.0 L from 20 °C in ≤240 s"
+        }
+      ]
+    },
+    "TST-KTL-005": {
+      "id": "TST-KTL-005",
+      "kind": "TST",
+      "project": "KTL",
+      "title": "Acceptance: Child lock",
+      "statement": "Acceptance: Child lock",
+      "version": 1,
+      "status": "not_run",
+      "created_at": "2026-10-16T00:00:00+09:00",
+      "updated_at": "2026-10-16T00:00:00+09:00",
+      "proposed_by": "test-master",
+      "level": "acceptance",
+      "cases": [
+        {
+          "input": "bench setup",
+          "expected": "locked: Start ignored"
+        }
+      ]
+    },
+    "TST-KTL-006": {
+      "id": "TST-KTL-006",
+      "kind": "TST",
+      "project": "KTL",
+      "title": "Start refused off base",
+      "statement": "Start refused off base",
+      "version": 1,
+      "status": "not_run",
+      "created_at": "2026-10-16T00:00:00+09:00",
+      "updated_at": "2026-10-16T00:00:00+09:00",
+      "proposed_by": "test-master",
+      "level": "system",
+      "cases": [
+        {
+          "input": "start, on_base=false",
+          "expected": "heater stays off"
+        }
+      ]
+    },
+    "TST-KTL-007": {
+      "id": "TST-KTL-007",
+      "kind": "TST",
+      "project": "KTL",
+      "title": "Panel command round-trip",
+      "statement": "Panel command round-trip",
+      "version": 1,
+      "status": "not_run",
+      "created_at": "2026-10-16T00:00:00+09:00",
+      "updated_at": "2026-10-16T00:00:00+09:00",
+      "proposed_by": "test-master",
+      "level": "integration",
+      "cases": [
+        {
+          "input": "command=lock_toggle",
+          "expected": "response locked=true"
+        }
+      ]
+    },
+    "TST-KTL-012": {
+      "id": "TST-KTL-012",
+      "kind": "TST",
+      "project": "KTL",
+      "title": "start_guard truth table",
+      "statement": "start_guard truth table",
+      "version": 1,
+      "status": "not_run",
+      "created_at": "2026-10-16T00:00:00+09:00",
+      "updated_at": "2026-10-16T00:00:00+09:00",
+      "proposed_by": "test-master",
+      "level": "unit",
+      "cases": [
+        {
+          "input": "locked=true",
+          "expected": "heater off"
+        }
+      ]
+    },
+    "UNT-KTL-001": {
+      "id": "UNT-KTL-001",
+      "kind": "UNT",
+      "project": "KTL",
+      "title": "start_guard",
+      "statement": "heater_on = start_pressed and on_base and not locked and water_present",
+      "version": 2,
+      "status": "published",
+      "created_at": "2026-10-16T00:00:00+09:00",
+      "updated_at": "2026-10-16T00:00:00+09:00",
+      "proposed_by": "unit-designer",
+      "fields": [
+        {
+          "name": "start_pressed",
+          "type": "boolean"
+        },
+        {
+          "name": "on_base",
+          "type": "boolean"
+        },
+        {
+          "name": "locked",
+          "type": "boolean"
+        },
+        {
+          "name": "water_present",
+          "type": "boolean"
+        },
+        {
+          "name": "command",
+          "type": "string"
+        }
+      ],
+      "rules": [
+        "heater_on = start_pressed and on_base and not locked and water_present"
+      ],
+      "source_files": [
+        "src/start_guard.py"
+      ]
+    },
+    "USR-KTL-001": {
+      "id": "USR-KTL-001",
+      "kind": "USR",
+      "project": "KTL",
+      "title": "Boil water quickly",
+      "statement": "As a kettle user I want to boil water at the press of a button so I can make tea fast.",
+      "version": 1,
+      "status": "published",
+      "created_at": "2026-10-16T00:00:00+09:00",
+      "updated_at": "2026-10-16T00:00:00+09:00",
+      "proposed_by": "req-guardian",
+      "who": "Kettle user",
+      "why": "Hot water on demand",
+      "constraints": [
+        "1.7 L max"
+      ],
+      "source": "example intake"
+    }
+  },
+  "edges": [
+    {
+      "from": "REQ-KTL-001",
+      "to": "USR-KTL-001",
+      "type": "derives"
+    },
+    {
+      "from": "FNC-KTL-001",
+      "to": "REQ-KTL-001",
+      "type": "implements"
+    },
+    {
+      "from": "FNC-KTL-001",
+      "to": "CMP-KTL-003",
+      "type": "allocated_to"
+    },
+    {
+      "from": "FNC-KTL-005",
+      "to": "REQ-KTL-005",
+      "type": "implements"
+    },
+    {
+      "from": "FNC-KTL-005",
+      "to": "CMP-KTL-005",
+      "type": "allocated_to"
+    },
+    {
+      "from": "API-KTL-001",
+      "to": "FNC-KTL-001",
+      "type": "depends_on"
+    },
+    {
+      "from": "API-KTL-001",
+      "to": "FNC-KTL-005",
+      "type": "depends_on"
+    },
+    {
+      "from": "API-KTL-001",
+      "to": "REQ-KTL-001",
+      "type": "implements"
+    },
+    {
+      "from": "API-KTL-001",
+      "to": "REQ-KTL-005",
+      "type": "implements"
+    },
+    {
+      "from": "INT-KTL-002",
+      "to": "CMP-KTL-003",
+      "type": "integrates_with"
+    },
+    {
+      "from": "INT-KTL-002",
+      "to": "CMP-KTL-001",
+      "type": "integrates_with"
+    },
+    {
+      "from": "INT-KTL-003",
+      "to": "CMP-KTL-005",
+      "type": "integrates_with"
+    },
+    {
+      "from": "INT-KTL-003",
+      "to": "CMP-KTL-003",
+      "type": "integrates_with"
+    },
+    {
+      "from": "INT-KTL-004",
+      "to": "CMP-KTL-004",
+      "type": "integrates_with"
+    },
+    {
+      "from": "INT-KTL-004",
+      "to": "CMP-KTL-003",
+      "type": "integrates_with"
+    },
+    {
+      "from": "UNT-KTL-001",
+      "to": "FNC-KTL-001",
+      "type": "refines"
+    },
+    {
+      "from": "UNT-KTL-001",
+      "to": "CMP-KTL-003",
+      "type": "refines"
+    },
+    {
+      "from": "TST-KTL-001",
+      "to": "REQ-KTL-001",
+      "type": "verifies"
+    },
+    {
+      "from": "TST-KTL-005",
+      "to": "REQ-KTL-005",
+      "type": "verifies"
+    },
+    {
+      "from": "TST-KTL-006",
+      "to": "FNC-KTL-001",
+      "type": "verifies"
+    },
+    {
+      "from": "TST-KTL-007",
+      "to": "INT-KTL-003",
+      "type": "verifies"
+    },
+    {
+      "from": "TST-KTL-012",
+      "to": "UNT-KTL-001",
+      "type": "verifies"
+    },
+    {
+      "from": "UNT-KTL-001",
+      "to": "TOL-KTL-001",
+      "type": "uses"
+    },
+    {
+      "from": "TST-KTL-012",
+      "to": "TOL-KTL-004",
+      "type": "uses"
+    }
+  ],
+  "tol": [
+    "TOL-KTL-001",
+    "TOL-KTL-002",
+    "TOL-KTL-003",
+    "TOL-KTL-004",
+    "TOL-KTL-005",
+    "TOL-KTL-006"
+  ],
+  "lint": [],
+  "traces": [
+    {
+      "id": "UNT-KTL-001",
+      "kind": "UNT",
+      "file": "src/start_guard.py",
+      "line": 1,
+      "snippet": "# @trace UNT-KTL-001\ndef heater_should_run(start_pressed, on_base, locked, water_present):\n    return start_pressed and on_base and (not locked) and water_present",
+      "start": 1,
+      "end": 3
+    },
+    {
+      "id": "TST-KTL-001",
+      "kind": "TST",
+      "file": "tests/test_kettle.py",
+      "line": 8,
+      "snippet": "from start_guard import heater_should_run\n\n\n# @trace TST-KTL-001\ndef test_acceptance_boil_water():\n    assert heater_should_run(True, True, False, True) is True\n\n\n# @trace TST-KTL-002",
+      "start": 5,
+      "end": 13
+    },
+    {
+      "id": "TST-KTL-005",
+      "kind": "TST",
+      "file": "tests/test_kettle.py",
+      "line": 37,
+      "snippet": "    assert stay is False\n\n\n# @trace TST-KTL-005\ndef test_acceptance_child_lock():\n    assert heater_should_run(True, True, True, True) is False\n\n\n# @trace TST-KTL-006",
+      "start": 34,
+      "end": 42
+    },
+    {
+      "id": "TST-KTL-006",
+      "kind": "TST",
+      "file": "tests/test_kettle.py",
+      "line": 42,
+      "snippet": "    assert heater_should_run(True, True, True, True) is False\n\n\n# @trace TST-KTL-006\ndef test_start_refused_off_base():\n    assert heater_should_run(True, False, False, True) is False\n\n\n# @trace TST-KTL-007",
+      "start": 39,
+      "end": 47
+    },
+    {
+      "id": "TST-KTL-007",
+      "kind": "TST",
+      "file": "tests/test_kettle.py",
+      "line": 47,
+      "snippet": "    assert heater_should_run(True, False, False, True) is False\n\n\n# @trace TST-KTL-007\ndef test_panel_command_round_trip():\n    assert on_lock_hold(3000, False) is True\n\n\n# @trace TST-KTL-008",
+      "start": 44,
+      "end": 52
+    },
+    {
+      "id": "TST-KTL-012",
+      "kind": "TST",
+      "file": "tests/test_kettle.py",
+      "line": 91,
+      "snippet": "    assert on_lock_hold(3000, False) is True\n\n\n# @trace TST-KTL-012\ndef test_start_guard_truth_table():\n    assert heater_should_run(True, True, True, True) is False",
+      "start": 88,
+      "end": 93
+    }
+  ],
+  "stats": {
+    "slice_nodes": 25,
+    "slice_edges": 24,
+    "full_nodes": 47,
+    "full_edges": 61,
+    "registries_bytes": 25859,
+    "slice_bytes": 20409
+  },
+  "may_widen": "Ask ssot-gate for a wider slice (--hops N) or the full graph (registries + graph/edges.json). Publish lint and /v-view stay whole-project."
+}

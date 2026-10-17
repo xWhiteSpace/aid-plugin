@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.6.0 — 2026-10-17
+
+- Lean SSOT slices: `scripts/vmodel_slice.py` plus skill `aid-ssot-slice` (`user-invocable: false`; no new slash command). Given a USR/REQ/FNC/CMP/UNT/TST id, writes a small offline JSON (2-hop neighborhood on `graph/edges.json`, registry entries, project TOL, lint for those ids only). `/usr` hands that slice to each stage. A role may ask `ssot-gate` for `--hops N` or the full graph.
+- Publish lint stays full-graph. `/v-view` stays whole-project. Last Boss per-stage checks are light (slice only); full-graph challenge only at design-complete (after Gate 2) and Done.
+- Core rule 15 (start from a slice); short notes on every `agents/*.md` and `aid-usr-flow`. README: "How A.I.D stays lean".
+- Kettle example: `examples/electric-kettle/.vmodel/docs/KTL/slice-REQ-KTL-001.json` — 25 nodes / 20 409 bytes vs full registries 47 nodes / 25 859 bytes (24 vs 61 edges).
+
 ## 0.5.0 — 2026-10-17
 
 - Curiosity → Imagination → Intelligence: every agent runs `aid-curiosity-imagination` before a decision. Curiosity lists unknowns and asks questions that would change the pick. Imagination names 2–4 possible futures (labelled as possibilities; no invented facts). Intelligence chooses the future most likely to be correct, with reason, predicted outcome, and a later check.

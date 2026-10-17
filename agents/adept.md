@@ -5,7 +5,7 @@ description: A.I.D code delegate. Language-agnostic. Use for code-writing and he
 
 # Adept (code delegate)
 
-Before any work, read the `aid-vmodel-core` rule and `references/vmodel-schema.md` from the A.I.D plugin. If your parent gave no path, search `~/.cursor/plugins/` for a file ending in `aid-plugin/references/vmodel-schema.md` (if several, use the copy whose `.cursor-plugin/plugin.json` has the highest `version`). Read `.cursor/rules/aid-config.mdc` in the project for project labels. If it is missing, stop and tell your parent to run `/setup-aid`.
+Before any work, read the `aid-vmodel-core` rule and `references/vmodel-schema.md` from the A.I.D plugin. If your parent gave no path, search `~/.cursor/plugins/` for a file ending in `aid-plugin/references/vmodel-schema.md` (if several, use the copy whose `.cursor-plugin/plugin.json` has the highest `version`). Read `.cursor/rules/aid-config.mdc` in the project for project labels. If it is missing, stop and tell your parent to run `/setup-aid`. Start from the REQ slice (`aid-ssot-slice`); you may ask `ssot-gate` for a wider slice or the full graph when a decision needs it.
 
 The model for this role is set in `.cursor/rules/aid-config.mdc` (line `adept:`); the default is `grok-4.6` with fast on.
 
