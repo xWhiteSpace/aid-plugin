@@ -97,7 +97,7 @@ Kind-specific extras (all optional unless noted):
 For `create`, omit `previous` and set `base_version` to `0`. For `retire`, `new_full.status` is `retired`. `decision` is required on a create/amend that is a design or mint choice (`aid-curiosity-imagination`). The gate copies it into the baseline **Decisions** section. It is notes, not a registry kind.
 
 ## Edge types
-`derives` (REQ→USR), `implements` (FNC|API→REQ), `allocated_to` (FNC→CMP), `integrates_with` (INT→CMP), `depends_on`, `refines` (UNT→FNC|CMP), `verifies` (TST→REQ|FNC|UNT|API|INT|CMP), `uses` (UNT|TST→TOL), `supersedes`, `evidences` (EVD→TST). Both ends of an edge must share the same `project`. `uses` is optional catalog linkage (a unit or test names the tool it depends on); TOL nodes are valid with no incoming edges.
+`derives` (REQ→USR), `implements` (FNC|API→REQ), `allocated_to` (FNC→CMP), `integrates_with` (INT→CMP), `depends_on`, `refines` (UNT→FNC|CMP), `verifies` (TST→REQ|FNC|UNT|API|INT|CMP), `uses` (UNT|TST→TOL), `supersedes`, `evidences` (EVD→TST), `coded_in` (UNT→source file path). Both ends of an edge must share the same `project`, except `coded_in` whose `to` is a relative file path (not a registry node). `uses` is optional catalog linkage (a unit or test names the tool it depends on); TOL nodes are valid with no incoming edges. `coded_in` is written by ssot-gate / `vmodel_vview.py` from `@trace UNT-…` hits (one per file+UNT; identical edges are dropped).
 
 ## Empty bootstrap
 `/setup-aid` creates empty registries (`{}`), `edges.json` as `[]`, and `meta.json` with `graph_version: 0`.

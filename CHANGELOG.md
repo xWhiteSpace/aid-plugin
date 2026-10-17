@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.9.0 — 2026-10-17
+
+- One `@trace UNT-…` per unit (one file, one line). Lint flags a unit with more than one tag, or the same tag on more than one line in a file. v-view merges hits per `(file, UNT)`.
+- Publish writes `coded_in` edges (UNT→source file) into `graph/edges.json` (deduplicated). Schema notes the type; `to` is a file path, not a registry node.
+- See connections is a 1-hop walk: first click shows direct neighbours only; each click on a highlighted neighbour expands that node's 1-hop. `uses`→TOL hidden by default (TOL shown toggle).
+
 ## 0.8.0 — 2026-10-17
 
 - V-view Coding shows only production `@trace UNT-…`. `@trace TST-…` hits attach to their TST on the right rail (`test_traces`), never under Coding.

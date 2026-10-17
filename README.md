@@ -62,6 +62,7 @@ Other commands: `/setup-aid` (labels, models, **stack-detect → TOL**), `/catch
 - **Lean slice first.** Agents start from `vmodel_slice.py` for their REQ; they may ask `ssot-gate` for a wider slice or the full graph. Publish lint and `/v-view` stay whole-project.
 - **Reuse first.** Common capabilities go through a Researcher reuse-scan and a Tools Manager `TOL` (`library`/`api`) before Adept builds; from-scratch needs a recorded reason. Last Boss flags a reinvented wheel.
 - **Coding vs tests in `/v-view`:** Coding is `@trace UNT-…` only; `@trace TST-…` sits on the TST (right rail). A new UNT is earned only if it can change, be reused, or be tested alone. Every TST has a V level; empty levels are stated, not collapsed into unit tests.
+- **One `@trace` per unit** and a published `coded_in` edge (UNT→file). **See connections** walks 1-hop at a time (`uses`/TOL hidden unless shown).
 
 ## Example
 

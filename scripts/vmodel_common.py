@@ -7,7 +7,7 @@ KINDS = ["USR", "REQ", "FNC", "API", "CMP", "INT", "UNT", "TST",
          "TOL", "RSH", "STD", "VOC", "EVD"]
 EDGE_TYPES = {"derives", "linked_from", "implements", "allocated_to",
               "integrates_with", "depends_on", "refines", "verifies",
-              "uses", "supersedes", "evidences"}
+              "uses", "supersedes", "evidences", "coded_in"}
 TOL_SLOTS = {"language", "framework", "package_manager", "test_runner",
              "linter", "deploy_target", "library", "api"}
 UNIQUE_TOL_SLOTS = {"language", "framework", "package_manager", "test_runner",
