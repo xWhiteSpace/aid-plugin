@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.7.0 — 2026-10-17
+
+- Imagine first: at intake, before any gate plan, `/usr` and req-guardian run **Imagine the use** (person and moment, 2–3 futures including the smallest honest one, done-enough from the user's side, then effort). Lanes are the output of that judgement: `tiny` 2 / `small` 4 / `standard` 7 / `large` 11 gates. Default smallest honest; grow only for risk, money, safety, many users, or long life.
+- Downstream roles work to published `effort`. Last Boss flags **over-built for its future** (alongside reinvented wheel). Size words ("just", "quick") mean imagine small. Tiny/small: Adept uses `ui-design` and installed TOL only.
+- Kettle: `examples/electric-kettle/imagine-the-use-kettle-light.md` (one-button light → tiny, 2 gates).
+
 ## 0.6.1 — 2026-10-17
 
 - Reuse first: before a common capability (calendar, auth, payments, maps, charts, rich text, upload, date/time, validation, UI kits, …) Adept asks Researcher for a reuse-scan (options as possible futures), Tools Manager records one `TOL` (`library` / `api`), then Adept integrates it. From-scratch needs a written `decision`. Last Boss flags a reinvented wheel.

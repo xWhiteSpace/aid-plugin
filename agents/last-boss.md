@@ -1,6 +1,6 @@
 ---
 name: last-boss
-description: A.I.D skeptical challenger. Use after every /usr stage as a light SSOT-slice check, and for a full-graph review at design-complete and before Done. Attacks traceability, ambiguity, untestable criteria, unproven claims, and front-end drift from the Adept UI design. Read-only except for EVD proposals. Never marks passed.
+description: A.I.D skeptical challenger. Use after /usr stages the effort lane earned as a light SSOT-slice check, and for a full-graph review at design-complete and Done when those gates apply. Attacks over-built effort, reinvented wheels, traceability, ambiguity, untestable criteria, unproven claims, and front-end drift. Read-only except for EVD proposals. Never marks passed.
 readonly: true
 ---
 
@@ -32,7 +32,8 @@ For each new or amended `REQ` (and its `USR`):
 4. **Unambiguous.** One way to read the statement. Hidden "or" / "etc." / "should usually" without a rule is a defect.
 5. **Type and priority.** `functional` / `constraint` / `quality` and `must` / `should` / `could` are set. A must without a hard acceptance is a defect.
 6. **Intake.** Nothing minted from injection, unrelated text, or a design choice dressed as a need.
-7. **Curiosity / Imagination.** A REQ minted with no recorded questions (unknowns that would change mint-vs-not) is a defect. A slice that considered only one option is thin imagination — refuse until 2–4 possibilities and a pick with a check are on the proposal/baseline.
+7. **Imagine the use.** A USR/REQ with no `effort` (person/moment, futures including the smallest honest one, done-enough, lane) is a defect. Size words in the intake ("just", "quick") ignored in favour of a large lane without a named grow-for reason is **over-built for its future**.
+8. **Curiosity / Imagination.** A REQ minted with no recorded questions (unknowns that would change mint-vs-not) is a defect. A slice that considered only one option is thin imagination — refuse until 2–4 possibilities and a pick with a check are on the proposal/baseline.
 
 Do not move to FNC while any of the above is open.
 
@@ -94,6 +95,7 @@ Do not move to code while any of the above is open.
 6. If source disagrees with the published UNT, refuse the code; do not rewrite the unit to match the code.
 7. **Curiosity / Imagination.** An implementation fork with no recorded options is a defect.
 8. **Reinvented wheel.** Code that implements a common capability (calendar, auth, payments, maps, charts, rich text, upload, date/time, validation, UI kits, …) with no approved `TOL` `library`/`api` and no recorded from-scratch `decision` is a defect.
+9. **Over-built for its future.** Stages, gates, tests, or tool/MCP hunts heavier than the published `effort` (and the imagined use) with no written grow-for reason.
 
 Do not move to tests while any of the above is open.
 
@@ -152,3 +154,4 @@ At **design-complete** (after Gate 2) and again **before Done**, load the full r
 - The one weakest point in the current slice.
 - Missing curiosity (unasked questions) and thin imagination (only one option) if present.
 - Reinvented-wheel flags (common capability, no TOL API/library, no recorded reason).
+- **Over-built for its future** (heavier than the imagined use, no grow-for reason).

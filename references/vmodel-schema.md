@@ -48,8 +48,8 @@ Every registry entry is keyed by its id and carries at least:
 | `proposed_by` | string | Subagent name |
 
 Kind-specific extras (all optional unless noted):
-- **USR:** `who`, `why`, `constraints[]`, `source`
-- **REQ:** `priority` (`must`/`should`/`could`), `acceptance` (required, measurable), `type` (`functional`/`constraint`/`quality`)
+- **USR:** `who`, `why`, `constraints[]`, `source`, `effort` `{lane, gates, use, done_enough, futures[], stages[], reason, grow_for}` (`tiny` 2 / `small` 4 / `standard` 7 / `large` 11; required on create — Imagine the use)
+- **REQ:** `priority` (`must`/`should`/`could`), `acceptance` (required, measurable), `type` (`functional`/`constraint`/`quality`), `effort` (copy from the parent USR unless this REQ earns a different lane with a written reason)
 - **FNC:** `inputs[]`, `outputs[]`, `rule`
 - **API:** `route` or `channel`, `contract_version`, `request` `{headers,query,body}`, `response.success.body`, `errors[]`
 - **CMP:** `responsibilities[]`
@@ -80,7 +80,17 @@ Kind-specific extras (all optional unless noted):
     "reason": "why this is most likely correct",
     "rejected": [{ "id": "b", "why": "..." }],
     "predicted": "what should be true if the pick is right",
-    "check": "observable later"
+    "check": "observable later",
+    "effort": {
+      "use": "who, where, how long, how often",
+      "done_enough": "from the user's side",
+      "futures": ["smallest honest", "..."],
+      "lane": "tiny",
+      "gates": 2,
+      "stages": ["USR", "REQ"],
+      "reason": "why this lane matches the use",
+      "grow_for": null
+    }
   }
 }
 ```

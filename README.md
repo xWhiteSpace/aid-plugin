@@ -39,16 +39,13 @@ Verified from [cursor.com/docs/plugins](https://cursor.com/docs/plugins) and [Pl
 ## Main command: `/usr`
 
 1. Intake filter (project ask vs research vs junk).
-2. **Stack gate:** confirmed `TOL` entries must exist (or `/usr` stops and runs stack-detect / asks).
-3. req-guardian → USR + REQ → ssot-gate → **Last Boss (REQ, slice)**.
-4. functional-specs starts from the REQ slice → FNC / API → **Last Boss (FNC, slice)**.
-5. system-designer → CMP / INT → **Last Boss (CMP/INT, slice)**.
-6. unit-designer → UNT (screens include Adept `ui-design`) → **Last Boss (UNT, slice)**.
-7. test-master → TST plans (`not_run`) using the TOL test runner → **Last Boss (tests, slice)**.
-8. Adept (only if this run is implementing): `ui-design` before any screen, then code → **Last Boss (code, slice)**.
-9. ssot-gate publishes again and **always** reports **full-graph** lint (or says there are none), including planned TST ids with no `@trace TST-…` in code.
-10. **Last Boss (design-complete)** then **Last Boss (Done)** review the **full graph** (and the running UI against the recorded design). She never marks passed.
-11. `/docs` builds the pictures and the V debug view (fly-in camera, Globe World, Focus graph, ReviewQueue). `/v-view` stays whole-project.
+2. **Imagine the use** (person, moment, smallest honest future, done-enough) then choose effort (`tiny` 2 / `small` 4 / `standard` 7 / `large` 11 gates). Run only the stages that lane earned.
+3. **Stack gate:** confirmed `TOL` entries must exist (or `/usr` stops and runs stack-detect / asks).
+4. req-guardian → USR + REQ (with `effort`) → ssot-gate → **Last Boss (REQ, slice)** when the lane earns it.
+5. Later V layers and Last Boss checks run only when the imagined use earned them (see Imagine first).
+6. ssot-gate publishes and **always** reports **full-graph** lint (or says there are none), including planned TST ids with no `@trace TST-…` in code.
+7. When the lane includes them: **Last Boss (design-complete)** and **Last Boss (Done)** review the **full graph**. She never marks passed.
+8. `/docs` builds the pictures and the V debug view. `/v-view` stays whole-project.
 
 Other commands: `/setup-aid` (labels, models, **stack-detect → TOL**), `/catchup` (sync from your git diff), `/docs`, `/v-view`. Each of those is a command; matching skills use internal `aid-*` names (`aid-usr-flow`, `aid-setup`, `aid-catchup`, `aid-docs`, `aid-v-view`) so the `/` menu lists every step once.
 
@@ -60,8 +57,8 @@ Other commands: `/setup-aid` (labels, models, **stack-detect → TOL**), `/catch
 - Ids: `USR|REQ|FNC|API|CMP|INT|UNT|TST|TOL|…-{PROJECT}-NNN`.
 - **No guessed stack.** `/usr`, adept and test-master will not write code or tests until the user has confirmed TOL entries (language, test runner, and the other slots). Adept follows that language's comment syntax for `@trace UNT-…` on product code and `@trace TST-…` on tests.
 - **UI is designed before it is coded.** Adept follows `ui-design`; Last Boss reviews the running screen against that record.
-- **Last Boss:** light slice check after each stage; full-graph challenge at design-complete and Done. Nothing is Done until proven.
-- **Curiosity → Imagination → Intelligence** before a decision (`aid-curiosity-imagination`). Last Boss challenges unasked questions and a single-option design. The gate records the pick on the baseline.
+- **Last Boss:** light slice check for stages the lane earned; full-graph at design-complete and Done when those gates apply. Flags over-built for its future. Nothing is Done until proven.
+- **Imagine first**, then Curiosity → Imagination → Intelligence (`aid-curiosity-imagination`). Effort must match the imagined use. Last Boss flags **over-built for its future**.
 - **Lean slice first.** Agents start from `vmodel_slice.py` for their REQ; they may ask `ssot-gate` for a wider slice or the full graph. Publish lint and `/v-view` stay whole-project.
 - **Reuse first.** Common capabilities go through a Researcher reuse-scan and a Tools Manager `TOL` (`library`/`api`) before Adept builds; from-scratch needs a recorded reason. Last Boss flags a reinvented wheel.
 
@@ -74,7 +71,11 @@ python3 scripts/vmodel_lint.py examples/electric-kettle/.vmodel --write --code e
 python3 scripts/vmodel_docs.py examples/electric-kettle/.vmodel --code examples/electric-kettle
 ```
 
-Python 3.8+, no packages. The example stack is recorded as `TOL-KTL-001..006` (Python, pytest, no framework / package manager / linter / deploy target). A worked Curiosity → Imagination → Intelligence loop on the temperature-display choice is in `curiosity-imagination-temperature.md`. Keep-warm duration reuse-scan (stdlib, not a calendar) is in `curiosity-imagination-reuse-datetime.md`. A lean slice of `REQ-KTL-001` is in `.vmodel/docs/KTL/slice-REQ-KTL-001.json`.
+Python 3.8+, no packages. The example stack is recorded as `TOL-KTL-001..006` (Python, pytest, no framework / package manager / linter / deploy target). A worked Curiosity → Imagination → Intelligence loop on the temperature-display choice is in `curiosity-imagination-temperature.md`. Keep-warm duration reuse-scan (stdlib, not a calendar) is in `curiosity-imagination-reuse-datetime.md`. Imagine-the-use for a one-button kettle light (`tiny`, 2 gates) is in `imagine-the-use-kettle-light.md`. A lean slice of `REQ-KTL-001` is in `.vmodel/docs/KTL/slice-REQ-KTL-001.json`.
+
+## Imagine first
+
+The V is not a mandatory 11-gate march. At intake, picture the person and the moment, two or three futures of use (including the smallest honest one), and what "done and good enough" looks like from the user's side. **Then** choose effort. Lanes (`tiny` 2 / `small` 4 / `standard` 7 / `large` 11 gates) are the words for that judgement, not a keyword lookup. Default small; grow only for risk, money, safety, many users, or long life. A one-button light is tiny. Last Boss challenges a run heavier than that future.
 
 ## How A.I.D stays lean
 
