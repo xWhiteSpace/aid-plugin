@@ -9,7 +9,9 @@ EDGE_TYPES = {"derives", "linked_from", "implements", "allocated_to",
               "integrates_with", "depends_on", "refines", "verifies",
               "uses", "supersedes", "evidences"}
 TOL_SLOTS = {"language", "framework", "package_manager", "test_runner",
-             "linter", "deploy_target"}
+             "linter", "deploy_target", "library", "api"}
+UNIQUE_TOL_SLOTS = {"language", "framework", "package_manager", "test_runner",
+                    "linter", "deploy_target"}
 ID_RE = re.compile(r"^(USR|REQ|FNC|API|CMP|INT|UNT|TST|TOL|RSH|STD|VOC|EVD)-([A-Z0-9]{2,5})-(\d{3,})$")
 
 
