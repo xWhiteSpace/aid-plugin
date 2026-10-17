@@ -63,6 +63,7 @@ Other commands: `/setup-aid` (labels, models, **stack-detect → TOL**), `/catch
 - **Last Boss:** light slice check after each stage; full-graph challenge at design-complete and Done. Nothing is Done until proven.
 - **Curiosity → Imagination → Intelligence** before a decision (`aid-curiosity-imagination`). Last Boss challenges unasked questions and a single-option design. The gate records the pick on the baseline.
 - **Lean slice first.** Agents start from `vmodel_slice.py` for their REQ; they may ask `ssot-gate` for a wider slice or the full graph. Publish lint and `/v-view` stay whole-project.
+- **Reuse first.** Common capabilities go through a Researcher reuse-scan and a Tools Manager `TOL` (`library`/`api`) before Adept builds; from-scratch needs a recorded reason. Last Boss flags a reinvented wheel.
 
 ## Example
 
@@ -73,7 +74,7 @@ python3 scripts/vmodel_lint.py examples/electric-kettle/.vmodel --write --code e
 python3 scripts/vmodel_docs.py examples/electric-kettle/.vmodel --code examples/electric-kettle
 ```
 
-Python 3.8+, no packages. The example stack is recorded as `TOL-KTL-001..006` (Python, pytest, no framework / package manager / linter / deploy target). A worked Curiosity → Imagination → Intelligence loop on the temperature-display choice is in `curiosity-imagination-temperature.md`. A lean slice of `REQ-KTL-001` is in `.vmodel/docs/KTL/slice-REQ-KTL-001.json`.
+Python 3.8+, no packages. The example stack is recorded as `TOL-KTL-001..006` (Python, pytest, no framework / package manager / linter / deploy target). A worked Curiosity → Imagination → Intelligence loop on the temperature-display choice is in `curiosity-imagination-temperature.md`. Keep-warm duration reuse-scan (stdlib, not a calendar) is in `curiosity-imagination-reuse-datetime.md`. A lean slice of `REQ-KTL-001` is in `.vmodel/docs/KTL/slice-REQ-KTL-001.json`.
 
 ## How A.I.D stays lean
 

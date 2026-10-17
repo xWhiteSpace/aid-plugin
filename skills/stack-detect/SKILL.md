@@ -64,4 +64,4 @@ Then, if still needed: package manager and linter (or none). One question at a t
 
 ## 5. Hand-off
 
-Return the confirmed table (slot, tool, version, command or comment syntax, evidence files) to the caller. `/setup-aid` then has `tools-manager` propose `TOL-{PROJECT}-NNN` and `ssot-gate` publish.
+Return the confirmed table (slot, tool, version, command or comment syntax, evidence files) to the caller. `/setup-aid` then has `tools-manager` propose `TOL-{PROJECT}-NNN` and `ssot-gate` publish. If the user named common capabilities (auth, calendar, payments, …), list them so Tools Manager can propose `library`/`api` TOL entries after a reuse-scan — do not fill those slots yourself.

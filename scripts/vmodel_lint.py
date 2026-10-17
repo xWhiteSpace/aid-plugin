@@ -11,8 +11,8 @@ import re
 import sys
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from vmodel_common import (EDGE_TYPES, ID_RE, TOL_SLOTS, by_kind,  # noqa: E402
-                           in_edges, load, out_edges, project_of)
+from vmodel_common import (EDGE_TYPES, ID_RE, TOL_SLOTS, UNIQUE_TOL_SLOTS,  # noqa: E402
+                           by_kind, in_edges, load, out_edges, project_of)
 
 SKIP_DIRS = {".git", "node_modules", ".vmodel", "__pycache__", ".venv", "venv"}
 SOURCE_EXT = {
@@ -170,7 +170,7 @@ def lint(root):
         key = (t.get("project"), t.get("slot"))
         slots_seen.setdefault(key, []).append(t["id"])
     for key, ids in slots_seen.items():
-        if key[1] in TOL_SLOTS and len(ids) > 1:
+        if key[1] in UNIQUE_TOL_SLOTS and len(ids) > 1:
             flag("redundancy", ids[0], "same TOL slot %s as %s" % (key[1], ", ".join(ids[1:])))
 
     # Project with code (UNT) but no TOL

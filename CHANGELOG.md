@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.6.1 — 2026-10-17
+
+- Reuse first: before a common capability (calendar, auth, payments, maps, charts, rich text, upload, date/time, validation, UI kits, …) Adept asks Researcher for a reuse-scan (options as possible futures), Tools Manager records one `TOL` (`library` / `api`), then Adept integrates it. From-scratch needs a written `decision`. Last Boss flags a reinvented wheel.
+- `library` and `api` TOL slots (many allowed); exclusive stack slots stay one-live-per-project. `/setup-aid` may propose common APIs up front after a reuse-scan.
+- Kettle: `examples/electric-kettle/curiosity-imagination-reuse-datetime.md` (stdlib duration, not a calendar).
+
 ## 0.6.0 — 2026-10-17
 
 - Lean SSOT slices: `scripts/vmodel_slice.py` plus skill `aid-ssot-slice` (`user-invocable: false`; no new slash command). Given a USR/REQ/FNC/CMP/UNT/TST id, writes a small offline JSON (2-hop neighborhood on `graph/edges.json`, registry entries, project TOL, lint for those ids only). `/usr` hands that slice to each stage. A role may ask `ssot-gate` for `--hops N` or the full graph.

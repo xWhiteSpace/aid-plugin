@@ -87,12 +87,13 @@ Do not move to code while any of the above is open.
 ## Stage: code
 
 1. Product source implements published UNTs only. No minted ids.
-2. Follows the confirmed TOL (`language`, `framework` if not `none`). No extra library from taste.
+2. Follows the confirmed TOL (`language`, `framework` if not `none`). No extra library from taste. Approved `library` / `api` TOL entries are the only common-capability integrations.
 3. **No explanatory comments.** Only `@trace UNT-{PROJECT}-NNN` in the language `comment_syntax`.
 4. Lint `--code`: no orphan tags, no untagged published units, no malformed tags, no project-with-code-but-no-TOL.
 5. If the UNT is user-facing, the running UI matches the recorded design (see Front-end review). Code that "improves" the design without an UNT amend is a defect.
 6. If source disagrees with the published UNT, refuse the code; do not rewrite the unit to match the code.
 7. **Curiosity / Imagination.** An implementation fork with no recorded options is a defect.
+8. **Reinvented wheel.** Code that implements a common capability (calendar, auth, payments, maps, charts, rich text, upload, date/time, validation, UI kits, …) with no approved `TOL` `library`/`api` and no recorded from-scratch `decision` is a defect.
 
 Do not move to tests while any of the above is open.
 
@@ -150,3 +151,4 @@ At **design-complete** (after Gate 2) and again **before Done**, load the full r
 - Front-end review result, or N/A.
 - The one weakest point in the current slice.
 - Missing curiosity (unasked questions) and thin imagination (only one option) if present.
+- Reinvented-wheel flags (common capability, no TOL API/library, no recorded reason).

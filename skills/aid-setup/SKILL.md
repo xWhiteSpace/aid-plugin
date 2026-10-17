@@ -29,7 +29,7 @@ Enumerate the model slugs you can pass to a `Task` subagent in this session. Nev
 Use the exact detected slug for "grok-4.6 with fast on" (it may be spelled like `grok-4.6-fast`). If it is not available, mark the role as needing a choice and ask. Show the table and confirm before writing.
 
 ## 4. Stack detect (required)
-Run the `stack-detect` skill. Show the detection table and wait until the user confirms or changes every slot: language, framework, package manager, test runner, linter, deploy target (or `none` / `unspecified` where they say so). If the repo is empty or unclear, ask those questions directly. **Never assume.**
+Run the `stack-detect` skill. Show the detection table and wait until the user confirms or changes every slot: language, framework, package manager, test runner, linter, deploy target (or `none` / `unspecified` where they say so). If the repo is empty or unclear, ask those questions directly. **Never assume.** After the stack is confirmed, Tools Manager may propose common APIs/libraries up front (`library`/`api` TOL) from a Researcher reuse-scan or the user's list — never by guessing.
 
 ## 5. Publish TOL
 Spawn `tools-manager` with the confirmed table. It proposes `TOL-{PROJECT}-NNN` nodes (`confirmed: true`) into `.vmodel/proposals/`. Then spawn `ssot-gate` to publish them. If `.vmodel/` does not exist yet, create the empty layout from `references/vmodel-schema.md` first (this is the only time the runner writes there directly). Do not write `registries/tol.json` yourself.
