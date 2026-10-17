@@ -334,12 +334,17 @@ const DATA = __DATA__;
     return nodesOf().filter(function (n) { return kinds.indexOf(n.kind) >= 0; }).sort(function (a, b) { return a.id.localeCompare(b.id, "en"); });
   }
   function testsOf(level) {
-    return nodesOf().filter(function (n) { return n.kind === "TST" && (n.level || "unit") === level; }).sort(function (a, b) { return a.id.localeCompare(b.id, "en"); });
+    return nodesOf().filter(function (n) { return n.kind === "TST" && n.level === level; }).sort(function (a, b) { return a.id.localeCompare(b.id, "en"); });
   }
   function tracesOf() {
     const ids = {};
     nodesOf().forEach(function (n) { ids[n.id] = true; });
-    return (DATA.traces || []).filter(function (t) { return ids[t.id]; });
+    return (DATA.traces || []).filter(function (t) { return t.kind === "UNT" && ids[t.id]; });
+  }
+  function testTracesOf() {
+    const ids = {};
+    nodesOf().forEach(function (n) { ids[n.id] = true; });
+    return (DATA.test_traces || []).filter(function (t) { return t.kind === "TST" && ids[t.id]; });
   }
   function tstStatus(n) {
     const s = (n && n.status) || "not_run";
@@ -526,6 +531,15 @@ const DATA = __DATA__;
       const radius = 16 + 7 * Math.sqrt(i);
       const spin = i * GOLDEN;
       const placed = { id: "code:" + t.file + ":" + t.line, kind: "UNT", x: WORLD_CODING.x + Math.cos(spin) * radius, y: WORLD_CODING.y + Math.sin(spin) * radius, trace: t, label: t.file };
+      points.push(placed);
+      byId[placed.id] = placed;
+    });
+    testTracesOf().forEach(function (t, i) {
+      const home = byId[t.id];
+      if (!home) return;
+      const radius = 10 + 4 * Math.sqrt(i % 6);
+      const spin = i * GOLDEN;
+      const placed = { id: "tstcode:" + t.file + ":" + t.line, kind: "TST", x: home.x + Math.cos(spin) * radius, y: home.y + Math.sin(spin) * radius, trace: t, label: t.file, level: home.level };
       points.push(placed);
       byId[placed.id] = placed;
     });
@@ -743,6 +757,11 @@ const DATA = __DATA__;
         files.push({ path: t.file, symbol: t.id, snippet: t.snippet, start: t.start, end: t.end });
       });
     }
+    if (n.kind === "TST") {
+      testTracesOf().filter(function (t) { return t.id === id; }).forEach(function (t) {
+        files.push({ path: t.file, symbol: t.id, snippet: t.snippet, start: t.start, end: t.end });
+      });
+    }
     return {
       grain: grain,
       functions: pill(n.kind === "CMP" ? ins(id, "allocated_to") : (n.kind === "API" || n.kind === "INT" ? outs(id, "depends_on").concat(ins(id, "depends_on")) : (n.kind === "USR" ? ins(id, "derives").reduce(function (acc, req) { return acc.concat(ins(req, "implements")); }, []) : ins(id, "implements")))),
@@ -932,7 +951,7 @@ const DATA = __DATA__;
     const center = graph.center;
     const hot = S.hot;
     const previewId = hot || peekId || (world ? null : focusId);
-    const previewNode = previewId ? (index.nodes[previewId] || (previewId.indexOf("code:") === 0 ? { id: previewId, kind: "UNT", label: previewId } : { id: previewId, kind: kindOfId(previewId), label: previewId })) : null;
+    const previewNode = previewId ? (index.nodes[previewId] || (previewId.indexOf("code:") === 0 ? { id: previewId, kind: "UNT", label: previewId } : (previewId.indexOf("tstcode:") === 0 ? { id: previewId, kind: "TST", label: previewId } : { id: previewId, kind: kindOfId(previewId), label: previewId }))) : null;
     const previewMeta = previewId && DATA.nodes[previewId] ? artifact(previewId) : {};
     const canGoto = Boolean(peekId) && (world || peekId !== focusId) && DATA.nodes[peekId];
     const peekGraph = (world && linkId) ? focusGraph(index, linkId) : null;
@@ -1298,6 +1317,12 @@ const DATA = __DATA__;
 
   function openFocus(id, startWorld) {
     if (id && id.indexOf("code:") === 0) return;
+    if (id && id.indexOf("tstcode:") === 0) {
+      const hit = (DATA.test_traces || []).filter(function (t) {
+        return "tstcode:" + t.file + ":" + t.line === id;
+      })[0];
+      id = hit ? hit.id : null;
+    }
     if (id && !DATA.nodes[id]) return;
     S.focusId = id;
     S.startWorld = Boolean(startWorld);

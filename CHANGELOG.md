@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.8.0 — 2026-10-17
+
+- V-view Coding shows only production `@trace UNT-…`. `@trace TST-…` hits attach to their TST on the right rail (`test_traces`), never under Coding.
+- UNT split: a new unit is earned only when the piece can change, be reused, or be tested on its own. Statements are in / behaviour / out, one or two sentences, no "is not X" prose. Last Boss flags over-split units and unreadable statements.
+- Test levels must mirror the V (`unit`/`integration`/`system`/`acceptance`). Honestly empty levels are recorded as `empty_test_levels` with a reason. Lint flags a TST with no `level`. Last Boss challenges all-unit plans on multi-component systems.
+
 ## 0.7.0 — 2026-10-17
 
 - Imagine first: at intake, before any gate plan, `/usr` and req-guardian run **Imagine the use** (person and moment, 2–3 futures including the smallest honest one, done-enough from the user's side, then effort). Lanes are the output of that judgement: `tiny` 2 / `small` 4 / `standard` 7 / `large` 11 gates. Default smallest honest; grow only for risk, money, safety, many users, or long life.

@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 """Lint a .vmodel/ SSOT tree. Reports inconsistencies, redundancy, unconnected
 variables, orphans, gaps and isolation breaks. Optional --code scan for
-@trace UNT-… and @trace TST-… tags.
+@trace UNT-… (product source) and @trace TST-… (tests; not Coding). Flags a
+TST with no recorded level.
 
 Usage: python3 vmodel_lint.py .vmodel [--write] [--code <dir>]
 """
@@ -11,8 +12,9 @@ import re
 import sys
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from vmodel_common import (EDGE_TYPES, ID_RE, TOL_SLOTS, UNIQUE_TOL_SLOTS,  # noqa: E402
-                           by_kind, in_edges, load, out_edges, project_of)
+from vmodel_common import (EDGE_TYPES, ID_RE, TOL_SLOTS, TST_LEVELS,  # noqa: E402
+                           UNIQUE_TOL_SLOTS, by_kind, in_edges, load, out_edges,
+                           project_of)
 
 SKIP_DIRS = {".git", "node_modules", ".vmodel", "__pycache__", ".venv", "venv"}
 SOURCE_EXT = {
@@ -146,8 +148,12 @@ def lint(root):
                 flag("gap", nid, "no UNT refines this FNC")
         if k == "UNT" and not out_edges(edges, nid, "refines"):
             flag("orphan", nid, "UNT refines nothing")
-        if k == "TST" and not out_edges(edges, nid, "verifies"):
-            flag("orphan", nid, "TST verifies nothing")
+        if k == "TST":
+            lvl = n.get("level")
+            if not lvl or lvl not in TST_LEVELS:
+                flag("inconsistency", nid, "TST has no recorded level (unit|integration|system|acceptance)")
+            if not out_edges(edges, nid, "verifies"):
+                flag("orphan", nid, "TST verifies nothing")
         if k == "CMP" and not in_edges(edges, nid, "allocated_to") and not in_edges(edges, nid, "integrates_with"):
             flag("orphan", nid, "CMP has no allocated FNC and no INT")
         if k == "INT":

@@ -80,6 +80,8 @@ For each new or amended `UNT`:
 4. Follows published `STD` / `VOC`.
 5. **User-facing screen.** If the unit is a screen, page, dialog, or visible control, a UI design must already be recorded in `UNT.ui` or `.vmodel/docs/<PROJECT>/ui/<UNT-id>.md` (see the `ui-design` skill). Missing layout, hierarchy, spacing/type scale, colour + WCAG AA contrast, any of empty/loading/error/hover/focus/disabled, keyboard/accessibility, or breakpoints is a defect. Do not allow Adept to code that screen yet.
 6. **Curiosity / Imagination.** A unit or screen choice with no recorded questions or only one option is a defect.
+7. **Over-split.** A new UNT that cannot change, be reused, or be tested on its own — it belonged in the parent. Flag **over-split units**.
+8. **Unreadable statement.** The UNT `statement` is not cold-readable in / behaviour / out (one or two plain sentences), or it is defensive "is not X" prose.
 
 Do not move to code while any of the above is open.
 
@@ -110,6 +112,7 @@ Do not move to tests while any of the above is open.
 5. Tests invoke the TOL `test_runner` `command`, not a guessed runner.
 6. Current code disagreeing with the published unit is a defect in code or in the unit, not a reason to bend the TST.
 7. **Curiosity / Imagination.** A TST plan that never asked which rule or cases matter, or that lists only one design, is a defect.
+8. **Levels.** Every TST has a recorded `level`. A plan that is all `unit` while the slice has more than one CMP (or an INT) is a defect unless `empty_test_levels` names each unused level with a reason.
 
 Do not move to Done while any of the above is open.
 
@@ -155,3 +158,5 @@ At **design-complete** (after Gate 2) and again **before Done**, load the full r
 - Missing curiosity (unasked questions) and thin imagination (only one option) if present.
 - Reinvented-wheel flags (common capability, no TOL API/library, no recorded reason).
 - **Over-built for its future** (heavier than the imagined use, no grow-for reason).
+- Over-split units and unreadable UNT statements.
+- All-unit test plans on a multi-component system with no `empty_test_levels` reason.

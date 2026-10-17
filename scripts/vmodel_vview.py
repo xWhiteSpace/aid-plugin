@@ -40,7 +40,9 @@ def payload(root, code_dir=None):
     flags = list(lint_res.get("flags") or [])
     if code_dir is not None:
         flags.extend(scan_code(code_dir, nodes))
-    traces = collect_traces(code_dir) if code_dir else []
+    all_traces = collect_traces(code_dir) if code_dir else []
+    traces = [t for t in all_traces if t.get("kind") == "UNT"]
+    test_traces = [t for t in all_traces if t.get("kind") == "TST"]
     projects = meta.get("projects") or sorted({
         n.get("project") for n in nodes.values() if n.get("project")
     })
@@ -56,6 +58,7 @@ def payload(root, code_dir=None):
         "edges": [{"from": e.get("from"), "to": e.get("to"), "type": e.get("type")}
                   for e in edges],
         "traces": traces,
+        "test_traces": test_traces,
         "lint": [{"category": f.get("category"), "id": f.get("id"),
                   "message": f.get("message")} for f in flags],
     }
@@ -79,6 +82,7 @@ def write_vview(root, code_dir=None, out=None):
         "nodes": len(data["nodes"]),
         "edges": len(data["edges"]),
         "traces": len(data["traces"]),
+        "test_traces": len(data.get("test_traces") or []),
         "lint": len(data["lint"]),
         "projects": data["projects"],
     }
