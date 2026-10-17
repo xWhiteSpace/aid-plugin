@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.4.4 — 2026-10-17
+
+- World single click focuses a node only (highlight / peek, same as a Coding-cluster click): no new page tab, no detail view. Double click within 400ms opens a page tab (`openTab`). The peek is delayed until the double-click window closes so a double click does not flash a focus first.
+- Connection lines and dimming of unconnected World nodes appear only after **See connection** (`linkId`), not on focus.
+- Removed the dead origin circle (peek ring parked at 0,0) from World, Focus, and any view that showed it.
+
 ## 0.4.3 — 2026-10-16
 
 - V debug view World and Focus fields apply `magScale` live: `MAG_PX = 56`, `MAG_MAX = 3`, screen-pixel distance `world dist * cursor.px`, smoothstep ease, dots swell to 3× at the centre; halo at `r+6` when `grow > 1.05`. Cursor is tracked on `pointermove` in world coordinates with the current zoom; radii mutate in place (no innerHTML on move).

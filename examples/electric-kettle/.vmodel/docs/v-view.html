@@ -18,6 +18,7 @@
   --idle: #64748b;
 }
 * { box-sizing: border-box; }
+[hidden] { display: none !important; }
 html, body { margin: 0; height: 100%; background: var(--bg); color: var(--ink); font-family: ui-sans-serif, system-ui, sans-serif; }
 button, select, textarea { font: inherit; color: inherit; }
 button { cursor: pointer; }
@@ -308,6 +309,7 @@ const DATA = {"meta":{"graph_version":2,"source_commit":null,"updated_at":"2026-
   const dragRef = { current: null };
   const resizeRef = { current: null };
   const lastTapRef = { current: { t: 0, id: null } };
+  const tapTimerRef = { current: null };
   const cursorRef = { current: null };
   const fieldRef = { current: { points: [], byId: {} } };
   let dolly = null;
@@ -1118,7 +1120,11 @@ const DATA = {"meta":{"graph_version":2,"source_commit":null,"updated_at":"2026-
     }
     if (world && pin) svg += '<circle cx="' + pin.x + '" cy="' + pin.y + '" r="10" fill="none" stroke="' + (KIND_COLOR[center.kind] || "#67e8f9") + '" stroke-width="1.6"></circle>';
     if (world && linkNode) svg += '<circle cx="' + linkNode.x + '" cy="' + linkNode.y + '" r="14" fill="none" stroke="#22d3ee" stroke-width="1.6"></circle>';
-    svg += '<circle id="peek-ring" cx="' + ((peek && peekId !== center.id && peekId !== linkId) ? peek.x : 0) + '" cy="' + ((peek && peekId !== center.id && peekId !== linkId) ? peek.y : 0) + '" r="' + (world ? 12 : 16) + '" fill="none" stroke="#ecfeff" stroke-width="1.4"' + (peek && peekId !== center.id && peekId !== linkId ? "" : " hidden") + "></circle>";
+    if (peek && peekId !== center.id && peekId !== linkId) {
+      svg += '<circle id="peek-ring" cx="' + peek.x + '" cy="' + peek.y + '" r="' + (world ? 12 : 16) + '" fill="none" stroke="#ecfeff" stroke-width="1.4"></circle>';
+    } else {
+      svg += '<circle id="peek-ring" fill="none" stroke="#ecfeff" stroke-width="1.4" hidden></circle>';
+    }
     svg += "</svg>";
 
     const tabs = FOCUS_TABS.map(function (item) {
@@ -1461,13 +1467,27 @@ const DATA = {"meta":{"graph_version":2,"source_commit":null,"updated_at":"2026-
     paintMagnify();
     paintHud();
   }
+  function cancelTapTimer() {
+    if (tapTimerRef.current) {
+      clearTimeout(tapTimerRef.current);
+      tapTimerRef.current = null;
+    }
+  }
   function applyPeek(id) {
+    cancelTapTimer();
     patchPage({ peekId: id });
     paintPeekRing();
     paintMagnify();
     paintHud();
     paintListMarks();
     refreshCopy();
+  }
+  function schedulePeek(id) {
+    cancelTapTimer();
+    tapTimerRef.current = setTimeout(function () {
+      tapTimerRef.current = null;
+      applyPeek(id);
+    }, 400);
   }
   function applyCursor(clientX, clientY) {
     const point = clientToSvg(clientX, clientY);
@@ -1506,6 +1526,7 @@ const DATA = {"meta":{"graph_version":2,"source_commit":null,"updated_at":"2026-
       const point = applyCursor(e.clientX, e.clientY);
       const near = nearestNode(point, points);
       if (!near) {
+        cancelTapTimer();
         const hadPeek = page().peekId || page().linkId;
         patchPage({ peekId: null, linkId: null });
         S.hot = null;
@@ -1517,13 +1538,14 @@ const DATA = {"meta":{"graph_version":2,"source_commit":null,"updated_at":"2026-
       const now = Date.now();
       const last = lastTapRef.current;
       if (last.id === near.id && now - last.t < 400) {
+        cancelTapTimer();
         lastTapRef.current = { t: 0, id: null };
         openFocusTab(near.id);
         return;
       }
       lastTapRef.current = { t: now, id: near.id };
-      if (pg.world && DATA.nodes[near.id]) { openFocusTab(near.id); return; }
-      applyPeek(near.id);
+      if (pg.world) schedulePeek(near.id);
+      else applyPeek(near.id);
     }
     field.onpointerdown = function (e) {
       if (e.button !== 0) return;
@@ -1577,6 +1599,7 @@ const DATA = {"meta":{"graph_version":2,"source_commit":null,"updated_at":"2026-
     if (!id || !DATA.nodes[id]) return;
     const current = page();
     if (current && !current.blankWorld && current.focusId === id) return;
+    cancelTapTimer();
     S.hot = null;
     cursorRef.current = null;
     lastTapRef.current = { t: 0, id: null };
@@ -1676,6 +1699,7 @@ const DATA = {"meta":{"graph_version":2,"source_commit":null,"updated_at":"2026-
         S.pages = [];
         S.hot = null;
         cursorRef.current = null;
+        cancelTapTimer();
         render();
       } else if (act === "toggle-world") {
         patchPage(function (item) {
@@ -1687,7 +1711,7 @@ const DATA = {"meta":{"graph_version":2,"source_commit":null,"updated_at":"2026-
         cursorRef.current = null;
         render();
       } else if (act === "tab") { patchPage({ section: t.getAttribute("data-tab") }); render(); }
-      else if (act === "page") { S.pageI = Number(t.getAttribute("data-i")); S.hot = null; cursorRef.current = null; render(); }
+      else if (act === "page") { cancelTapTimer(); S.pageI = Number(t.getAttribute("data-i")); S.hot = null; cursorRef.current = null; render(); }
       else if (act === "close-page") {
         const i = Number(t.getAttribute("data-i"));
         if (i <= 0) return;
@@ -1699,9 +1723,18 @@ const DATA = {"meta":{"graph_version":2,"source_commit":null,"updated_at":"2026-
         render();
       } else if (act === "peek") {
         const id = t.getAttribute("data-id");
-        if (page().world && DATA.nodes[id]) openFocusTab(id);
+        const now = Date.now();
+        const last = lastTapRef.current;
+        if (last.id === id && now - last.t < 400) {
+          cancelTapTimer();
+          lastTapRef.current = { t: 0, id: null };
+          openFocusTab(id);
+          return;
+        }
+        lastTapRef.current = { t: now, id: id };
+        if (page().world) schedulePeek(id);
         else applyPeek(id);
-      } else if (act === "clear-peek") { patchPage({ peekId: null, linkId: null }); S.hot = null; cursorRef.current = null; render(); }
+      } else if (act === "clear-peek") { cancelTapTimer(); patchPage({ peekId: null, linkId: null }); S.hot = null; cursorRef.current = null; render(); }
       else if (act === "goto") {
         const id = page().peekId;
         if (!id || !DATA.nodes[id]) return;
