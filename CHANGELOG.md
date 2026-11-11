@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.10.1 — 2026-11-11
+
+- Board trail: every move and every V phase posts a fixed block (Phase done, Who, Changed, Next, Proof, Back). No proof, no move. `.vmodel/board-log.jsonl` plus `/board trail REQ-ID`. A.I.D uses the same block signed A.I.D.
+- Kettle example: sample trail for REQ-KTL-001 (Backlog→Done, all nine V phases) in `.vmodel/board-log.jsonl` and `docs/board-trail-REQ-KTL-001.md` (example data).
+
 ## 0.10.0 — 2026-11-11
 
 - Board Keeper (`agents/board-keeper.md`): GitHub Project (v2) board as a view of SSOT plus GitHub. Skill `aid-board` (`user-invocable: false`) and `/board`. Columns Backlog → Ready → In progress → In review → Done; never skip; never Done without a merged PR. One issue per REQ (`REQ-<PROJECT>-NNN`). Only Board Keeper and A.I.D write to the board.

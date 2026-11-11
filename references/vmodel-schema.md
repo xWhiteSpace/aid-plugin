@@ -28,6 +28,7 @@ Project-local Single Source of Truth. Every A.I.D publish lives here so a fresh 
 ├── lint/
 │   └── latest.json
 ├── board.json             # GitHub Project ids (Board Keeper; not SSOT)
+├── board-log.jsonl        # one trail comment per line (not SSOT)
 └── docs/                  # rebuilt by /docs; safe to regenerate
     ├── index.html
     └── v-view.html        # interactive V debug view (ssot-gate / /v-view)
@@ -116,7 +117,7 @@ Source that implements a published `UNT`, and tests that implement a published `
 - Lint: `python3 <plugin>/scripts/vmodel_lint.py .vmodel --code <project-tree>` reports orphan tags, untagged published units, a planned TST with no test in code carrying that id, malformed tags, and a project that has source or UNT records but no published TOL, under a **code trace** heading (or "no trace flags"). Pass `--code` a tree that includes both product source and tests.
 
 ## Board (not SSOT)
-`.vmodel/board.json` is owned by Board Keeper: GitHub Project number, Status field ids, and REQ→issue map. It is a view of SSOT plus GitHub, not published truth. ssot-gate does not write it.
+`.vmodel/board.json` is owned by Board Keeper: GitHub Project number, Status field ids, and REQ→issue map. `.vmodel/board-log.jsonl` is the local comment trail (time, issue, req, from, to, phase, who, changed, proof, comment_url). Both are a view of SSOT plus GitHub, not published truth. ssot-gate does not write them.
 
 ## Stack (TOL)
 A project that has product code (published `UNT`, or source files in a `--code` scan) must have at least one published `TOL`. `/setup-aid` runs `stack-detect`, the user confirms, `tools-manager` proposes, `ssot-gate` publishes. Adept, Test Master and `/usr` refuse to write code or tests until `confirmed: true` language and test_runner slots exist. Never assume a stack when the repo is empty or unclear.
