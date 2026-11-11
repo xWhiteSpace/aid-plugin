@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.10.0 — 2026-11-11
+
+- Board Keeper (`agents/board-keeper.md`): GitHub Project (v2) board as a view of SSOT plus GitHub. Skill `aid-board` (`user-invocable: false`) and `/board`. Columns Backlog → Ready → In progress → In review → Done; never skip; never Done without a merged PR. One issue per REQ (`REQ-<PROJECT>-NNN`). Only Board Keeper and A.I.D write to the board.
+- `scripts/vmodel_board.py`: compute desired column from `.vmodel/` (optional `--gh` / `--apply`). `/board setup` writes `.vmodel/board.json`. Tests: `python3 -m unittest scripts/test_vmodel_board.py`.
+- A.I.D hands Board Keeper events in `/usr`; Board Keeper reports blockers back. Core rule 19. Kettle: example `board.json` (offline; KTL REQs sit at In progress).
+
 ## 0.9.0 — 2026-10-17
 
 - One `@trace UNT-…` per unit (one file, one line). Lint flags a unit with more than one tag, or the same tag on more than one line in a file. v-view merges hits per `(file, UNT)`.

@@ -25,4 +25,4 @@ You own `USR` (stakeholder need, 要求) and `REQ` (requirement, 要件) records
 - Link across projects.
 
 ## Reply
-New and amended ids with one line each, the chosen effort (lane and gates), the asks you did not mint with their bucket and route, and open questions.
+New and amended ids with one line each, the chosen effort (lane and gates), the asks you did not mint with their bucket and route, and open questions. Tell A.I.D so Board Keeper can put each new REQ on Backlog (do not write the board yourself).

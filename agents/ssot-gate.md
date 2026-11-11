@@ -28,6 +28,7 @@ You are the only publisher of shared project truth. You never invent requirement
 - Impacted neighbors of every changed node, so owners know what else must update.
 - **Lint flags:** inconsistencies, redundancy, unconnected variables, orphans, gaps, and code-trace flags (orphan tags, untagged units, planned TST with no test in code carrying that id, malformed tags). If there are none, say "Lint: no flags." / "no trace flags."
 - Path to `.vmodel/docs/v-view.html` (rebuilt every publish; whole-project).
+- Ask the runner to hand `board-keeper` a `published` event for each accepted REQ. Do not write `.vmodel/board.json` yourself.
 
 ## Slice (on request)
 When a role asks for a neighborhood, run `python3 <plugin>/scripts/vmodel_slice.py .vmodel <ID> [--code <project-tree>] [--hops 2]`. Default is 2 hops. Wider: raise `--hops`. Full graph: point at `registries/` + `graph/edges.json`. Publish lint and `/v-view` stay whole-project.

@@ -27,6 +27,7 @@ Project-local Single Source of Truth. Every A.I.D publish lives here so a fresh 
 ├── baselines/             # one markdown file per publish: YYYY-MM-DD-gN.md
 ├── lint/
 │   └── latest.json
+├── board.json             # GitHub Project ids (Board Keeper; not SSOT)
 └── docs/                  # rebuilt by /docs; safe to regenerate
     ├── index.html
     └── v-view.html        # interactive V debug view (ssot-gate / /v-view)
@@ -113,6 +114,9 @@ Source that implements a published `UNT`, and tests that implement a published `
 - Tags name only published UNT or TST ids. Adept never mints ids.
 - No explanatory human comments; names and small functions explain the logic.
 - Lint: `python3 <plugin>/scripts/vmodel_lint.py .vmodel --code <project-tree>` reports orphan tags, untagged published units, a planned TST with no test in code carrying that id, malformed tags, and a project that has source or UNT records but no published TOL, under a **code trace** heading (or "no trace flags"). Pass `--code` a tree that includes both product source and tests.
+
+## Board (not SSOT)
+`.vmodel/board.json` is owned by Board Keeper: GitHub Project number, Status field ids, and REQ→issue map. It is a view of SSOT plus GitHub, not published truth. ssot-gate does not write it.
 
 ## Stack (TOL)
 A project that has product code (published `UNT`, or source files in a `--code` scan) must have at least one published `TOL`. `/setup-aid` runs `stack-detect`, the user confirms, `tools-manager` proposes, `ssot-gate` publishes. Adept, Test Master and `/usr` refuse to write code or tests until `confirmed: true` language and test_runner slots exist. Never assume a stack when the repo is empty or unclear.
