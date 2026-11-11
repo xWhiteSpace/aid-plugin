@@ -74,7 +74,7 @@ python3 scripts/vmodel_lint.py examples/electric-kettle/.vmodel --write --code e
 python3 scripts/vmodel_docs.py examples/electric-kettle/.vmodel --code examples/electric-kettle
 ```
 
-Python 3.8+, no packages. The example stack is recorded as `TOL-KTL-001..006` (Python, pytest, no framework / package manager / linter / deploy target). A worked Curiosity → Imagination → Intelligence loop on the temperature-display choice is in `curiosity-imagination-temperature.md`. Keep-warm duration reuse-scan (stdlib, not a calendar) is in `curiosity-imagination-reuse-datetime.md`. Imagine-the-use for a one-button kettle light (`tiny`, 2 gates) is in `imagine-the-use-kettle-light.md`. A lean slice of `REQ-KTL-001` is in `.vmodel/docs/KTL/slice-REQ-KTL-001.json`. Offline board snapshot: `.vmodel/board.json` (KTL REQs at In progress until a GitHub project is attached).
+Python 3.8+, no packages. The example stack is recorded as `TOL-KTL-001..006` (Python, pytest, no framework / package manager / linter / deploy target). A worked Curiosity → Imagination → Intelligence loop on the temperature-display choice is in `curiosity-imagination-temperature.md`. Keep-warm duration reuse-scan (stdlib, not a calendar) is in `curiosity-imagination-reuse-datetime.md`. Imagine-the-use for a one-button kettle light (`tiny`, 2 gates) is in `imagine-the-use-kettle-light.md`. A lean slice of `REQ-KTL-001` is in `.vmodel/docs/KTL/slice-REQ-KTL-001.json`. Offline board snapshot: `.vmodel/board.json` (KTL REQs at In progress until a GitHub project is attached). Example trail (labeled example data): `.vmodel/board-log.jsonl` and `docs/board-trail-REQ-KTL-001.md`.
 
 ## Imagine first
 
@@ -82,12 +82,13 @@ The V is not a mandatory 11-gate march. At intake, picture the person and the mo
 
 ## Board (`/board`)
 
-The GitHub Project is a **view** of SSOT plus issues and PRs, not a second source of truth. `/board setup` creates or finds the project (Status: Backlog, Ready, In progress, In review, Done) with `gh` and stores ids in `.vmodel/board.json`. One issue per REQ. A.I.D hands Board Keeper events as the V moves; Board Keeper posts a short comment on every move and never jumps to Done without a merged PR.
+The GitHub Project is a **view** of SSOT plus issues and PRs, not a second source of truth. `/board setup` creates or finds the project (Status: Backlog, Ready, In progress, In review, Done) with `gh` and stores ids in `.vmodel/board.json`. One issue per REQ. A.I.D hands Board Keeper events as the V moves; Board Keeper posts a **trail block** (phase, who, changed, next, proof, back) on every move and every V phase so the issue alone can backtrack the work. No proof, no move. Never Done without a merged PR. `/board trail REQ-ID` reprints `.vmodel/board-log.jsonl`.
 
 ```bash
 python3 scripts/vmodel_board.py .vmodel setup
 python3 scripts/vmodel_board.py .vmodel status
-python3 scripts/vmodel_board.py .vmodel apply --gh
+python3 scripts/vmodel_board.py .vmodel event coding REQ-KTL-001 --phase Code --proof <commit-or-PR> --who "adept ; Last Boss slice"
+python3 scripts/vmodel_board.py .vmodel trail REQ-KTL-001
 ```
 
 ## How A.I.D stays lean

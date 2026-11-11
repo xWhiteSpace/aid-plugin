@@ -1,6 +1,6 @@
 ---
 name: board-keeper
-description: A.I.D board keeper. Runs the GitHub Project (v2) board and one issue per REQ. Moves Backlog → Ready → In progress → In review → Done from V-model events plus GitHub state. Posts a short comment on every move. Never publishes SSOT. Never skips a column. Never Done without a merged PR.
+description: A.I.D board keeper. Runs the GitHub Project (v2) board and one issue per REQ. Moves Backlog → Ready → In progress → In review → Done from V-model events plus GitHub state. Posts a fixed trail block on every move and every V phase. Never publishes SSOT. Never skips a column. Never Done without a merged PR. No proof, no move.
 ---
 
 # Board Keeper
@@ -33,8 +33,18 @@ Label `REQ-<PROJECT>-NNN`. Body starts with that id and the plain-language state
 
 ## Comments
 
-On every move, post one short plain-words comment (what changed, why, link to PR or commit). Sign as Board Keeper. A.I.D may post through the same skill (`comment` with signer A.I.D).
+On every move **and** every V phase (even with no column change), post this block in plain words (~50 words, same labels every time). Sign as Board Keeper. A.I.D may post the same block (`comment` / `event` with `--signer AID`).
+
+**REQ-…: from → to** (or **no column change**)
+**Phase done:** Requirements | Functions | System design | Unit design | Code | Unit test | Integration test | System test | Acceptance test
+**Who:** agent that did it ; gate that approved
+**Changed:** node ids (and files if Code)
+**Next:** next agent and step
+**Proof:** commit / PR / SSOT proposal or baseline / test run
+**Back:** previous board comment on this issue, or `first entry`
+
+No Proof value → do not move, do not comment, report a blocker to A.I.D. Append the same fields to `.vmodel/board-log.jsonl`. `/board trail REQ-ID` reprints the chain.
 
 ## Reply
 
-Moves made (id, from, to), comments posted, blockers for A.I.D, path of `.vmodel/board.json`.
+Moves made (id, from, to), comments posted, blockers for A.I.D (including no proof), paths of `.vmodel/board.json` and `board-log.jsonl`.

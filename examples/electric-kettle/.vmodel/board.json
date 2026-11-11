@@ -21,5 +21,5 @@
     "REQ-KTL-004": "In progress",
     "REQ-KTL-005": "In progress"
   },
-  "note": "KTL example is offline. Desired column from SSOT is In progress (published REQ with coded units, no merged PR). Run /board setup in a GitHub repo to fill project ids."
+  "note": "KTL example is offline. Desired column from SSOT is In progress (published REQ with coded units, no merged PR). board-log.jsonl for REQ-KTL-001 is example data (walk to Done); not a live GitHub Project. Run /board setup in a GitHub repo to fill project ids."
 }

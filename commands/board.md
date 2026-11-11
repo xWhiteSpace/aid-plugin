@@ -8,6 +8,8 @@ Run the `aid-board` skill from the A.I.D plugin.
 
 `/board` or `/board status` — print the desired column per REQ from `.vmodel/` (add `--gh` when issues exist).
 
-`/board apply` — move each card one column toward that status. Never skip. Never Done without a merged PR. Post one short comment per move.
+`/board apply` — move each card one column toward that status. Never skip. Never Done without a merged PR. **No proof, no move.** Post the trail block (phase, who, changed, next, proof, back) on every move and every V phase.
 
-Spawn `board-keeper` for moves. The `/usr` runner may post comments through the skill signed as A.I.D.
+`/board trail REQ-ID` — print that issue's comment chain oldest to newest (from `.vmodel/board-log.jsonl`).
+
+Spawn `board-keeper` for moves. The `/usr` runner may post the same block signed as A.I.D.
