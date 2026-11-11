@@ -1,0 +1,25 @@
+{
+  "title": "A.I.D board",
+  "owner": null,
+  "repo": null,
+  "nwo": null,
+  "project_number": null,
+  "project_id": null,
+  "status_field_id": null,
+  "status_options": {
+    "Backlog": null,
+    "Ready": null,
+    "In progress": null,
+    "In review": null,
+    "Done": null
+  },
+  "issues": {},
+  "status": {
+    "REQ-KTL-001": "In progress",
+    "REQ-KTL-002": "In progress",
+    "REQ-KTL-003": "In progress",
+    "REQ-KTL-004": "In progress",
+    "REQ-KTL-005": "In progress"
+  },
+  "note": "KTL example is offline. Desired column from SSOT is In progress (published REQ with coded units, no merged PR). Run /board setup in a GitHub repo to fill project ids."
+}

@@ -18,3 +18,4 @@ tools-manager: inherit-parent
 ssot-gate: inherit-parent
 last-boss: inherit-parent
 researcher: inherit-parent
+board-keeper: inherit-parent

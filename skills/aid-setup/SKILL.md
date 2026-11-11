@@ -25,6 +25,7 @@ Enumerate the model slugs you can pass to a `Task` subagent in this session. Nev
 | ssot-gate | `inherit-parent` |
 | last-boss | `inherit-parent` |
 | researcher | `inherit-parent` |
+| board-keeper | `inherit-parent` |
 
 Use the exact detected slug for "grok-4.6 with fast on" (it may be spelled like `grok-4.6-fast`). If it is not available, mark the role as needing a choice and ask. Show the table and confirm before writing.
 
@@ -59,6 +60,7 @@ tools-manager: inherit-parent
 ssot-gate: inherit-parent
 last-boss: inherit-parent
 researcher: inherit-parent
+board-keeper: inherit-parent
 ```
 
 The `stack` / `tol` lines are the confirmed catalog Adept and Test Master must follow. If a slot is `none`, write `none`.

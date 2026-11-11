@@ -47,7 +47,7 @@ Verified from [cursor.com/docs/plugins](https://cursor.com/docs/plugins) and [Pl
 7. When the lane includes them: **Last Boss (design-complete)** and **Last Boss (Done)** review the **full graph**. She never marks passed.
 8. `/docs` builds the pictures and the V debug view. `/v-view` stays whole-project.
 
-Other commands: `/setup-aid` (labels, models, **stack-detect → TOL**), `/catchup` (sync from your git diff), `/docs`, `/v-view`. Each of those is a command; matching skills use internal `aid-*` names (`aid-usr-flow`, `aid-setup`, `aid-catchup`, `aid-docs`, `aid-v-view`) so the `/` menu lists every step once.
+Other commands: `/setup-aid` (labels, models, **stack-detect → TOL**), `/catchup` (sync from your git diff), `/docs`, `/v-view`, `/board` (GitHub Project for each REQ). Each of those is a command; matching skills use internal `aid-*` names (`aid-usr-flow`, `aid-setup`, `aid-catchup`, `aid-docs`, `aid-v-view`, `aid-board`) so the `/` menu lists every step once.
 
 ## Hard rules
 
@@ -63,6 +63,7 @@ Other commands: `/setup-aid` (labels, models, **stack-detect → TOL**), `/catch
 - **Reuse first.** Common capabilities go through a Researcher reuse-scan and a Tools Manager `TOL` (`library`/`api`) before Adept builds; from-scratch needs a recorded reason. Last Boss flags a reinvented wheel.
 - **Coding vs tests in `/v-view`:** Coding is `@trace UNT-…` only; `@trace TST-…` sits on the TST (right rail). A new UNT is earned only if it can change, be reused, or be tested alone. Every TST has a V level; empty levels are stated, not collapsed into unit tests.
 - **One `@trace` per unit** and a published `coded_in` edge (UNT→file). **See connections** walks 1-hop at a time (`uses`/TOL hidden unless shown).
+- **Board Keeper** (gate-adjacent) runs the GitHub Project board. SSOT stays the source of truth. Only Board Keeper and A.I.D write to the board.
 
 ## Example
 
@@ -73,11 +74,21 @@ python3 scripts/vmodel_lint.py examples/electric-kettle/.vmodel --write --code e
 python3 scripts/vmodel_docs.py examples/electric-kettle/.vmodel --code examples/electric-kettle
 ```
 
-Python 3.8+, no packages. The example stack is recorded as `TOL-KTL-001..006` (Python, pytest, no framework / package manager / linter / deploy target). A worked Curiosity → Imagination → Intelligence loop on the temperature-display choice is in `curiosity-imagination-temperature.md`. Keep-warm duration reuse-scan (stdlib, not a calendar) is in `curiosity-imagination-reuse-datetime.md`. Imagine-the-use for a one-button kettle light (`tiny`, 2 gates) is in `imagine-the-use-kettle-light.md`. A lean slice of `REQ-KTL-001` is in `.vmodel/docs/KTL/slice-REQ-KTL-001.json`.
+Python 3.8+, no packages. The example stack is recorded as `TOL-KTL-001..006` (Python, pytest, no framework / package manager / linter / deploy target). A worked Curiosity → Imagination → Intelligence loop on the temperature-display choice is in `curiosity-imagination-temperature.md`. Keep-warm duration reuse-scan (stdlib, not a calendar) is in `curiosity-imagination-reuse-datetime.md`. Imagine-the-use for a one-button kettle light (`tiny`, 2 gates) is in `imagine-the-use-kettle-light.md`. A lean slice of `REQ-KTL-001` is in `.vmodel/docs/KTL/slice-REQ-KTL-001.json`. Offline board snapshot: `.vmodel/board.json` (KTL REQs at In progress until a GitHub project is attached).
 
 ## Imagine first
 
 The V is not a mandatory 11-gate march. At intake, picture the person and the moment, two or three futures of use (including the smallest honest one), and what "done and good enough" looks like from the user's side. **Then** choose effort. Lanes (`tiny` 2 / `small` 4 / `standard` 7 / `large` 11 gates) are the words for that judgement, not a keyword lookup. Default small; grow only for risk, money, safety, many users, or long life. A one-button light is tiny. Last Boss challenges a run heavier than that future.
+
+## Board (`/board`)
+
+The GitHub Project is a **view** of SSOT plus issues and PRs, not a second source of truth. `/board setup` creates or finds the project (Status: Backlog, Ready, In progress, In review, Done) with `gh` and stores ids in `.vmodel/board.json`. One issue per REQ. A.I.D hands Board Keeper events as the V moves; Board Keeper posts a short comment on every move and never jumps to Done without a merged PR.
+
+```bash
+python3 scripts/vmodel_board.py .vmodel setup
+python3 scripts/vmodel_board.py .vmodel status
+python3 scripts/vmodel_board.py .vmodel apply --gh
+```
 
 ## How A.I.D stays lean
 
@@ -93,11 +104,11 @@ Agents do not ingest the whole SSOT on every stage. That is what kept a single R
 ```text
 .cursor-plugin/plugin.json   # Cursor Plugin manifest
 plugin.json                  # Agent Plugins companion
-agents/                      # req-guardian, ssot-gate, tools-manager, adept, last-boss, …
-skills/                      # aid-usr-flow, aid-setup, aid-ssot-slice, aid-curiosity-imagination, stack-detect, ui-design, aid-v-view, reverse-engineer-*, …
-commands/                    # /usr /catchup /docs /setup-aid /v-view
+agents/                      # req-guardian, ssot-gate, tools-manager, adept, last-boss, board-keeper, …
+skills/                      # aid-usr-flow, aid-setup, aid-ssot-slice, aid-board, aid-curiosity-imagination, stack-detect, ui-design, aid-v-view, reverse-engineer-*, …
+commands/                    # /usr /catchup /docs /setup-aid /v-view /board
 rules/                       # always-on V-model core
-scripts/                     # vmodel_docs.py, vmodel_lint.py, vmodel_vview.py, vmodel_slice.py
+scripts/                     # vmodel_docs.py, vmodel_lint.py, vmodel_vview.py, vmodel_slice.py, vmodel_board.py
 references/vmodel-schema.md  # .vmodel/ schema
 examples/electric-kettle/    # KTL sample SSOT + docs
 ```
