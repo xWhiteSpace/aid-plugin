@@ -14,27 +14,30 @@
     "Done": null
   },
   "issues": {
-    "REQ-KTL-001": "example"
+    "USR-KTL-001": "example"
   },
   "sub_issues": {
-    "REQ-KTL-001": {
-      "Requirements": {"number": "example-s1", "state": "closed", "reason": "completed", "index": 1, "title": "REQ-KTL-001 · Requirements", "owner": "req-guardian"},
-      "Functions": {"number": "example-s2", "state": "closed", "reason": "completed", "index": 2, "title": "REQ-KTL-001 · Functions", "owner": "functional-specs"},
-      "System design": {"number": "example-s3", "state": "closed", "reason": "completed", "index": 3, "title": "REQ-KTL-001 · System design", "owner": "system-designer"},
-      "Unit design": {"number": "example-s4", "state": "closed", "reason": "completed", "index": 4, "title": "REQ-KTL-001 · Unit design", "owner": "unit-designer"},
-      "Code": {"number": "example-s5", "state": "open", "reason": null, "branch": true, "index": 5, "title": "REQ-KTL-001 · Code", "owner": "adept"},
-      "Unit test": {"number": "example-s6", "state": "open", "reason": null, "index": 6, "title": "REQ-KTL-001 · Unit test", "owner": "test-master"},
-      "Integration test": {"number": "example-s7", "state": "open", "reason": null, "index": 7, "title": "REQ-KTL-001 · Integration test", "owner": "test-master"},
-      "System test": {"number": "example-s8", "state": "open", "reason": null, "index": 8, "title": "REQ-KTL-001 · System test", "owner": "test-master"},
-      "Acceptance test": {"number": "example-s9", "state": "open", "reason": null, "index": 9, "title": "REQ-KTL-001 · Acceptance test", "owner": "test-master"}
+    "USR-KTL-001": {
+      "Requirements": {"number": "example-s1", "state": "closed", "reason": "completed", "index": 1, "title": "USR-KTL-001 · Requirements", "owner": "req-guardian", "scope": [{"id": "REQ-KTL-001", "status": "published"}]},
+      "Functions": {"number": "example-s2", "state": "closed", "reason": "completed", "index": 2, "title": "USR-KTL-001 · Functions", "owner": "functional-specs", "scope": [{"id": "FNC-KTL-001", "status": "published"}]},
+      "System design": {"number": "example-s3", "state": "closed", "reason": "completed", "index": 3, "title": "USR-KTL-001 · System design", "owner": "system-designer"},
+      "Unit design": {"number": "example-s4", "state": "closed", "reason": "completed", "index": 4, "title": "USR-KTL-001 · Unit design", "owner": "unit-designer", "scope": [{"id": "UNT-KTL-001", "status": "published"}]},
+      "Code": {"number": "example-s5", "state": "open", "reason": null, "branch": true, "index": 5, "title": "USR-KTL-001 · Code", "owner": "adept", "scope": [{"id": "UNT-KTL-001", "status": "published"}]},
+      "Unit test": {"number": "example-s6", "state": "open", "reason": null, "index": 6, "title": "USR-KTL-001 · Unit test", "owner": "test-master"},
+      "Integration test": {"number": "example-s7", "state": "open", "reason": null, "index": 7, "title": "USR-KTL-001 · Integration test", "owner": "test-master"},
+      "System test": {"number": "example-s8", "state": "open", "reason": null, "index": 8, "title": "USR-KTL-001 · System test", "owner": "test-master"},
+      "Acceptance test": {"number": "example-s9", "state": "open", "reason": null, "index": 9, "title": "USR-KTL-001 · Acceptance test", "owner": "test-master", "scope": [{"id": "TST-KTL-001", "status": "not_run"}]}
     }
   },
   "status": {
-    "REQ-KTL-001": "In progress",
-    "REQ-KTL-002": "In progress",
-    "REQ-KTL-003": "In progress",
-    "REQ-KTL-004": "In progress",
-    "REQ-KTL-005": "In progress"
+    "USR-KTL-001": "In progress"
   },
-  "note": "KTL example is offline. Parent column from sub-issues is In progress (stages 1-4 closed, Code open with branch, no merged PR). board-log.jsonl is example data including a full walk to Done. Not a live GitHub Project."
+  "req_parent": {
+    "REQ-KTL-001": "USR-KTL-001"
+  },
+  "amended_from": {},
+  "req_progress": {
+    "REQ-KTL-001": {"stage": "Code", "proof": "example: v0.12.0 PR"}
+  },
+  "note": "KTL example is offline. One parent per USR. Parent column from sub-issues is In progress (stages 1-4 closed, Code open with branch, no merged PR). board-log.jsonl is example data including a full walk to Done. Not a live GitHub Project."
 }

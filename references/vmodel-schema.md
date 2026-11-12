@@ -117,7 +117,7 @@ Source that implements a published `UNT`, and tests that implement a published `
 - Lint: `python3 <plugin>/scripts/vmodel_lint.py .vmodel --code <project-tree>` reports orphan tags, untagged published units, a planned TST with no test in code carrying that id, malformed tags, and a project that has source or UNT records but no published TOL, under a **code trace** heading (or "no trace flags"). Pass `--code` a tree that includes both product source and tests.
 
 ## Board (not SSOT)
-`.vmodel/board.json` is owned by Board Keeper: GitHub Project ids, parent issue, nine stage sub-issues, dashboard comment ids. `.vmodel/board-log.jsonl` is the local trail (adds `stage`, `sub_issue`, `kind` system|note). Both are a view of SSOT plus GitHub, not published truth. ssot-gate does not write them.
+`.vmodel/board.json` is owned by Board Keeper: GitHub Project ids, one parent issue per USR, nine stage sub-issues, dashboard comment ids, `req_parent` / `amended_from`. `.vmodel/board-log.jsonl` is the local trail (adds `usr`, `reqs`, `stage`, `sub_issue`, `kind` system|note). Both are a view of SSOT plus GitHub, not published truth. ssot-gate does not write them. REQ ids are labels and dashboard rows, not issues.
 
 ## Stack (TOL)
 A project that has product code (published `UNT`, or source files in a `--code` scan) must have at least one published `TOL`. `/setup-aid` runs `stack-detect`, the user confirms, `tools-manager` proposes, `ssot-gate` publishes. Adept, Test Master and `/usr` refuse to write code or tests until `confirmed: true` language and test_runner slots exist. Never assume a stack when the repo is empty or unclear.

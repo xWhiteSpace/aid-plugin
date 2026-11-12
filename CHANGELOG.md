@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.12.0 — 2026-11-12
+
+- Board unit is one parent issue per customer request (`USR-XXX-NNN · <request in the user's words>`), not per REQ. Exactly nine stage sub-issues cover every node from that request. REQ ids are labels and dashboard rows.
+- Parent dashboard adds a REQ table (id, sentence, stage reached, acceptance TST, proof, earlier parent if amended). Sub-issue dashboards list node ids in scope. `/board trail` accepts a USR or REQ id. `board-log.jsonl` records `usr` and `reqs`.
+- Done needs all 9 stages closed, every REQ's acceptance test passing, and merged PR(s). A request that amends existing REQs gets a new parent; the dashboard links amended REQs to the earlier parent.
+- Kettle sample is USR-KTL-001. Tests: `python3 -m unittest scripts/test_vmodel_board.py`.
+
 ## 0.11.0 — 2026-11-12
 
 - One parent issue per REQ plus nine GitHub sub-issues (`REQ-… · <stage>`), lane skips closed as not planned. Parent column from sub-issue state (Done still needs a merged PR).

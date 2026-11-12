@@ -1,16 +1,16 @@
 #!/usr/bin/env python3
 """Board view of SSOT + GitHub. Not an SSOT publisher.
 
-One parent issue per REQ; nine stage sub-issues. Columns from sub-issue
-state. Trail comments: dashboard (edited), system (machine), notes (agents).
+One parent issue per USR (/usr request); nine stage sub-issues covering
+every node from that request. REQ ids are labels/rows, not issues.
 
 Usage:
   python3 vmodel_board.py .vmodel status
   python3 vmodel_board.py .vmodel setup [--owner LOGIN] [--title TITLE]
   python3 vmodel_board.py .vmodel apply [--gh] --proof TEXT [--phase P] ...
-  python3 vmodel_board.py .vmodel event KIND REQ-ID --proof TEXT [--phase P] ...
+  python3 vmodel_board.py .vmodel event KIND USR-or-REQ --proof TEXT [--phase P] ...
   python3 vmodel_board.py .vmodel note ISSUE TEXT --signer AGENT [--req ID]
-  python3 vmodel_board.py .vmodel trail REQ-ID [--system|--notes]
+  python3 vmodel_board.py .vmodel trail USR-or-REQ [--system|--notes]
 """
 import datetime
 import json
@@ -166,9 +166,9 @@ def column_from_subs(subs, gh=None):
         return "Backlog"
     if not all(closed(p) for p in PHASES[:4]):
         return "Backlog"
-    if all(closed(p) for p in PHASES) and gh.get("pr_merged"):
+    if all(closed(p) for p in PHASES) and gh.get("pr_merged") and gh.get("acceptance_ok"):
         return "Done"
-    if gh.get("pr_open"):
+    if gh.get("pr_open") or gh.get("pr_merged"):
         return "In review"
     code = rec("Code")
     if code.get("state") == "open" and (gh.get("branch") or code.get("branch")):
@@ -201,18 +201,118 @@ def req_facts(nodes, edges, nid):
         for usr in out_edges(edges, nid, "derives"):
             effort = (nodes.get(usr) or {}).get("effort") or effort
     empty = n.get("empty_test_levels") or []
+    acc = [t for t in tsts if (nodes.get(t) or {}).get("level") == "acceptance"]
+    acc_pass = bool(acc) and all(in_edges(edges, t, "evidences") for t in acc)
     return {
         "published": published,
         "design_ready": published,
         "coding_started": coded or bool(unts and any(
             (nodes.get(u) or {}).get("source_files") for u in unts)),
         "tests_pass": tests_pass,
+        "acceptance_ok": acc_pass,
+        "acceptance": acc[0] if acc else None,
         "statement": n.get("statement") or n.get("title") or nid,
         "title": n.get("title") or nid,
         "project": n.get("project"),
         "effort": effort or {},
         "empty_test_levels": empty,
+        "amended": n.get("status") == "amended",
     }
+
+
+def reqs_of_usr(nodes, edges, usr_id):
+    return [n for n in by_kind(nodes, "REQ") if usr_id in out_edges(edges, n["id"], "derives")]
+
+
+def usr_facts(nodes, edges, usr_id):
+    n = nodes.get(usr_id) or {}
+    reqs = reqs_of_usr(nodes, edges, usr_id)
+    facts = [req_facts(nodes, edges, r["id"]) for r in reqs]
+    return {
+        "published": (n.get("status") in ("published", "amended")
+                      or (bool(facts) and all(f["published"] for f in facts))),
+        "design_ready": bool(facts) and all(f.get("design_ready") for f in facts),
+        "coding_started": any(f["coding_started"] for f in facts),
+        "tests_pass": bool(facts) and all(f["tests_pass"] for f in facts),
+        "acceptance_ok": bool(facts) and all(f.get("acceptance_ok") for f in facts),
+        "statement": n.get("statement") or n.get("title") or usr_id,
+        "title": n.get("title") or usr_id,
+        "request": n.get("source") or n.get("statement") or "",
+        "effort": n.get("effort") or {},
+        "empty_test_levels": n.get("empty_test_levels") or [],
+        "reqs": [r["id"] for r in reqs],
+        "req_facts": {r["id"]: f for r, f in zip(reqs, facts)},
+        "scope": stage_scope(nodes, edges, usr_id),
+        "project": n.get("project"),
+    }
+
+
+def _scope_ids(nodes, nids):
+    seen, out = [], []
+    for i in nids:
+        if i in seen:
+            continue
+        seen.append(i)
+        st = (nodes.get(i) or {}).get("status") or "-"
+        out.append({"id": i, "status": st})
+    return out
+
+
+def stage_scope(nodes, edges, usr_id):
+    reqs = [r["id"] for r in reqs_of_usr(nodes, edges, usr_id)]
+    fncs, apis, cmps, unts, files, tsts = [], [], [], [], [], []
+    for rid in reqs:
+        for f in in_edges(edges, rid, "implements"):
+            kind = (nodes.get(f) or {}).get("kind")
+            (apis if kind == "API" else fncs).append(f)
+            unts.extend(in_edges(edges, f, "refines"))
+            cmps.extend(out_edges(edges, f, "allocated_to"))
+        tsts.extend(in_edges(edges, rid, "verifies"))
+    for u in unts:
+        files.extend(out_edges(edges, u, "coded_in"))
+        cmps.extend([t for t in out_edges(edges, u, "refines")
+                     if (nodes.get(t) or {}).get("kind") in ("CMP", "INT")])
+    ints = []
+    for c in cmps:
+        ints.extend(in_edges(edges, c, "integrates_with"))
+    by_level = {lv: [] for lv in TEST_STAGE}
+    for t in tsts:
+        lv = (nodes.get(t) or {}).get("level")
+        if lv in by_level:
+            by_level[lv].append(t)
+    return {
+        "Requirements": _scope_ids(nodes, reqs),
+        "Functions": _scope_ids(nodes, fncs + apis),
+        "System design": _scope_ids(nodes, cmps + ints),
+        "Unit design": _scope_ids(nodes, unts),
+        "Code": _scope_ids(nodes, files) or _scope_ids(nodes, unts),
+        "Unit test": _scope_ids(nodes, by_level["unit"]),
+        "Integration test": _scope_ids(nodes, by_level["integration"]),
+        "System test": _scope_ids(nodes, by_level["system"]),
+        "Acceptance test": _scope_ids(nodes, by_level["acceptance"]),
+    }
+
+
+def resolve_usr(nid, nodes, edges, board=None):
+    board = board or {}
+    if (nid or "").startswith("USR-"):
+        return nid
+    mapped = (board.get("req_parent") or {}).get(nid)
+    if mapped:
+        return mapped
+    if (nid or "").startswith("REQ-"):
+        usrs = out_edges(edges, nid, "derives")
+        if usrs:
+            return usrs[0]
+    return nid
+
+
+def log_matches(row, usr_id):
+    if row.get("usr") == usr_id:
+        return True
+    if row.get("req") == usr_id:
+        return True
+    return usr_id in (row.get("reqs") or [])
 
 
 def desired_column(ssot, gh=None, event=None, subs=None):
@@ -225,10 +325,12 @@ def desired_column(ssot, gh=None, event=None, subs=None):
             gh2.setdefault("pr_open", True)
         if event == "pr_merged":
             gh2.setdefault("pr_merged", gh.get("pr_merged"))
+        if ssot.get("acceptance_ok") or ssot.get("tests_pass"):
+            gh2.setdefault("acceptance_ok", True)
         return column_from_subs(subs, gh2)
     if event == "phase":
         return None
-    if gh.get("pr_merged") and (ssot.get("tests_pass") or gh.get("last_boss_ok")):
+    if gh.get("pr_merged") and (ssot.get("acceptance_ok") or ssot.get("tests_pass") or gh.get("last_boss_ok")):
         return "Done"
     if gh.get("pr_open") or event == "pr_open":
         return "In review"
@@ -256,22 +358,25 @@ def plan_rows(nodes, edges, gh_map=None, event=None, event_req=None, board=None)
     gh_map = gh_map or {}
     board = board or {}
     rows = []
-    for n in by_kind(nodes, "REQ"):
+    for n in by_kind(nodes, "USR"):
         if n.get("status") == "retired":
             continue
         nid = n["id"]
-        ssot = req_facts(nodes, edges, nid)
-        ev = event if event_req in (None, nid) else None
+        ssot = usr_facts(nodes, edges, nid)
+        ev = event if event_req in (None, nid) or event_req in ssot["reqs"] else None
         subs = ((board.get("sub_issues") or {}).get(nid))
         desired = desired_column(ssot, gh_map.get(nid), ev, subs=subs)
         rows.append({
             "id": nid,
             "title": ssot["title"],
             "statement": ssot["statement"],
+            "request": ssot.get("request") or ssot["statement"],
             "desired": desired,
             "published": ssot["published"],
             "coding_started": ssot["coding_started"],
             "tests_pass": ssot["tests_pass"],
+            "acceptance_ok": ssot.get("acceptance_ok"),
+            "reqs": ssot["reqs"],
             "label": nid,
         })
     return rows
@@ -326,29 +431,57 @@ def format_note(text, signer):
     return "%s\n%s" % (MARKER_NOTE, sign_comment(text, signer))
 
 
-def format_parent_dashboard(req_id, statement, column, stages, pr, updated):
+def stage_status(rec):
+    rec = rec or {}
+    if rec.get("state") == "closed" and rec.get("reason") == "not_planned":
+        return "not planned"
+    if rec.get("state") == "closed":
+        return "closed"
+    return rec.get("state") or "open"
+
+
+def format_scope(scope):
+    if not scope:
+        return "-"
+    if isinstance(scope, str):
+        return scope
+    parts = []
+    for n in scope:
+        if isinstance(n, dict):
+            parts.append("%s (%s)" % (n.get("id"), n.get("status") or "-"))
+        else:
+            parts.append(str(n))
+    return ", ".join(parts) or "-"
+
+
+def format_parent_dashboard(usr_id, statement, column, stages, pr, updated, reqs=None):
     lines = [
         MARKER_DASHBOARD,
-        "**%s** — %s" % (req_id, statement or ""),
+        "**%s** — %s" % (usr_id, statement or ""),
         "**Column:** %s" % (column or "Backlog"),
         "**PR:** %s" % (pr or "none"),
         "",
-        "| # | Stage | Status | Owner | Proof | Issue |",
+        "| REQ | Sentence | Stage | Acceptance TST | Proof | Earlier |",
         "|---|---|---|---|---|---|",
     ]
+    for r in reqs or []:
+        earlier = r.get("amended_from") or "-"
+        lines.append("| %s | %s | %s | %s | %s | %s |" % (
+            r.get("id"), r.get("statement") or "-", r.get("stage") or "-",
+            r.get("acceptance") or "-", r.get("proof") or "-", earlier))
+    if not reqs:
+        lines.append("| - | - | - | - | - | - |")
+    lines.extend([
+        "",
+        "| # | Stage | Status | Owner | Proof | Issue |",
+        "|---|---|---|---|---|---|",
+    ])
     for i, phase in enumerate(PHASES, 1):
         rec = (stages or {}).get(phase) or {}
-        status = rec.get("reason") if rec.get("state") == "closed" and rec.get("reason") == "not_planned" else rec.get("state") or "open"
-        if rec.get("state") == "closed" and rec.get("reason") == "not_planned":
-            status = "not planned"
-        elif rec.get("state") == "closed":
-            status = "closed"
-        else:
-            status = "open"
         issue = rec.get("number")
         link = "#%s" % issue if issue not in (None, "example") else (issue or "-")
         lines.append("| %s | %s | %s | %s | %s | %s |" % (
-            i, phase, status, rec.get("owner") or STAGE_OWNERS.get(phase),
+            i, phase, stage_status(rec), rec.get("owner") or STAGE_OWNERS.get(phase),
             rec.get("proof") or "-", link))
     lines.append("")
     lines.append("Updated: %s" % (updated or now_iso()))
@@ -362,7 +495,7 @@ def format_sub_dashboard(stage, parent, owner, status, scope, proof, gate, updat
         "**Parent:** %s" % parent,
         "**Owner:** %s" % (owner or STAGE_OWNERS.get(stage) or "-"),
         "**Status:** %s" % (status or "open"),
-        "**Scope:** %s" % (scope or "-"),
+        "**Scope:** %s" % format_scope(scope),
         "**Proof:** %s" % (proof or "-"),
         "**Gate:** %s" % (gate or "-"),
         "Updated: %s" % (updated or now_iso()),
@@ -371,7 +504,7 @@ def format_sub_dashboard(stage, parent, owner, status, scope, proof, gate, updat
 
 def last_system_back(root, req_id, sub_only=False):
     for row in reversed(read_log(root)):
-        if row.get("req") != req_id:
+        if not log_matches(row, req_id):
             continue
         kind = row.get("kind") or KIND_SYSTEM
         if kind != KIND_SYSTEM:
@@ -519,6 +652,9 @@ def cmd_setup(root, owner=None, title=None, runner=None):
         "status": prev.get("status") or {},
         "pending": prev.get("pending") or {},
         "dashboards": prev.get("dashboards") or {},
+        "req_parent": prev.get("req_parent") or {},
+        "amended_from": prev.get("amended_from") or {},
+        "req_progress": prev.get("req_progress") or {},
     }
     path = save_board(root, board)
     return {"board": path, "project_number": number, "url": proj.get("url")}
@@ -602,16 +738,26 @@ def ensure_issue(root, row, board, runner=None, title=None):
         return issues[row["id"]], False
     label = row["label"]
     try:
-        run_gh(["label", "create", label, "--description", "A.I.D requirement",
+        run_gh(["label", "create", label, "--description", "A.I.D request",
                 "--color", "0E8A16"], runner=runner)
     except (OSError, subprocess.CalledProcessError):
         pass
-    issue_title = title or "%s %s" % (row["id"], row["title"])
-    body = "%s\n\n%s" % (row["id"], row["statement"])
-    created = gh_json([
+    for req in row.get("reqs") or []:
+        try:
+            run_gh(["label", "create", req, "--description", "A.I.D requirement row",
+                    "--color", "1D76DB"], runner=runner)
+        except (OSError, subprocess.CalledProcessError):
+            pass
+    short = row.get("title") or (row.get("statement") or row["id"])[:72]
+    issue_title = title or "%s · %s" % (row["id"], short)
+    body = row.get("request") or row.get("statement") or row["id"]
+    args = [
         "issue", "create", "--title", issue_title,
         "--body", body, "--label", label, "--json", "number,url,id",
-    ], runner=runner)
+    ]
+    for req in row.get("reqs") or []:
+        args.extend(["--label", req])
+    created = gh_json(args, runner=runner)
     num = created.get("number")
     issues[row["id"]] = num
     url = created.get("url")
@@ -635,6 +781,10 @@ def ensure_sub_issues(root, req_id, board, ssot, runner=None, gh=False):
     reasons = {p: skip_reason(p, ssot.get("effort"), ssot.get("empty_test_levels"))
                for p in skipped}
     subs = init_sub_issues(board, req_id, skipped, reasons)
+    scope_map = ssot.get("scope") or {}
+    for phase, rec in subs.items():
+        if not rec.get("scope"):
+            rec["scope"] = scope_map.get(phase)
     parent = (board.get("issues") or {}).get(req_id)
     nwo = board.get("nwo")
     if not (gh and parent and nwo):
@@ -648,7 +798,8 @@ def ensure_sub_issues(root, req_id, board, ssot, runner=None, gh=False):
             created = gh_json([
                 "issue", "create",
                 "--title", rec["title"],
-                "--body", "%s\n\nStage: %s" % (req_id, phase),
+                "--body", "%s\n\nStage: %s\nScope: %s" % (
+                    req_id, phase, format_scope(rec.get("scope"))),
                 "--json", "number,url,id",
             ], runner=runner)
             rec["number"] = created.get("number")
@@ -717,7 +868,7 @@ def record_comment(root, req_id, current, nxt, payload, issue=None, signer="boar
             back = last_system_back(root, req_id, sub_only=False)
             prev = None
             for row in reversed(read_log(root)):
-                if row.get("req") == req_id and (row.get("kind") or KIND_SYSTEM) == KIND_SYSTEM and row.get("stage") == stage:
+                if log_matches(row, req_id) and (row.get("kind") or KIND_SYSTEM) == KIND_SYSTEM and row.get("stage") == stage:
                     prev = row.get("comment_url") or row.get("time")
                     break
             back = prev or "first entry"
@@ -734,6 +885,8 @@ def record_comment(root, req_id, current, nxt, payload, issue=None, signer="boar
     row = {
         "time": now_iso(),
         "issue": issue,
+        "usr": payload.get("usr") or (req_id if (req_id or "").startswith("USR-") else None),
+        "reqs": payload.get("reqs"),
         "req": req_id,
         "from": current,
         "to": nxt,
@@ -754,11 +907,32 @@ def record_comment(root, req_id, current, nxt, payload, issue=None, signer="boar
     return body, row
 
 
-def refresh_dashboards(root, req_id, board, statement, column, gh=False, runner=None):
+def req_table_rows(board, usr_id, ssot=None):
+    ssot = ssot or {}
+    facts = ssot.get("req_facts") or {}
+    progress = board.get("req_progress") or {}
+    amended = board.get("amended_from") or {}
+    rows = []
+    for rid in ssot.get("reqs") or list(facts):
+        f = facts.get(rid) or {}
+        prog = progress.get(rid) or {}
+        rows.append({
+            "id": rid,
+            "statement": f.get("statement") or rid,
+            "stage": prog.get("stage") or "-",
+            "acceptance": f.get("acceptance") or "-",
+            "proof": prog.get("proof") or f.get("proof") or "-",
+            "amended_from": amended.get(rid),
+        })
+    return rows
+
+
+def refresh_dashboards(root, req_id, board, statement, column, gh=False, runner=None, ssot=None):
     subs = (board.get("sub_issues") or {}).get(req_id) or {}
     pr = ((board.get("pending") or {}).get(req_id) or {}).get("proof")
     parent_body = format_parent_dashboard(
-        req_id, statement, column, subs, pr, now_iso())
+        req_id, statement, column, subs, pr, now_iso(),
+        reqs=req_table_rows(board, req_id, ssot))
     store = board.setdefault("dashboards", {}).setdefault(req_id, {})
     store["parent_body"] = parent_body
     nwo = board.get("nwo")
@@ -771,11 +945,13 @@ def refresh_dashboards(root, req_id, board, statement, column, gh=False, runner=
             url = post_comment(parent, parent_body, runner=runner, nwo=nwo)
             store["parent_comment_id"] = url
     stage_ids = store.setdefault("stages", {})
+    scope_map = (ssot or {}).get("scope") or {}
     for phase, rec in subs.items():
         status = "not planned" if rec.get("reason") == "not_planned" else rec.get("state")
+        scope = scope_map.get(phase) or rec.get("scope")
         body = format_sub_dashboard(
             phase, "%s %s" % (parent or "", req_id), rec.get("owner"),
-            status, rec.get("scope"), rec.get("proof"), rec.get("gate"), now_iso())
+            status, scope, rec.get("proof"), rec.get("gate"), now_iso())
         rec["dashboard"] = body
         if gh and rec.get("number"):
             sid = stage_ids.get(phase)
@@ -808,6 +984,8 @@ def cmd_apply(root, gh=False, runner=None, payload=None, signer="board-keeper"):
         if nxt == cur:
             continue
         fields = merge_payload(pending.get(row["id"]), payload)
+        fields.setdefault("usr", row["id"])
+        fields.setdefault("reqs", row.get("reqs"))
         if not proof_ok(fields.get("proof")):
             blocked.append({"id": row["id"], "from": cur, "to": nxt, "blocked": "no proof"})
             continue
@@ -817,7 +995,7 @@ def cmd_apply(root, gh=False, runner=None, payload=None, signer="board-keeper"):
             issue, created = ensure_issue(root, row, board, runner=runner)
             if created:
                 nxt = "Backlog"
-        ssot = req_facts(nodes, edges, row["id"])
+        ssot = usr_facts(nodes, edges, row["id"])
         ensure_sub_issues(root, row["id"], board, ssot, runner=runner, gh=gh)
         back = last_system_back(root, row["id"], sub_only=True)
         fields = merge_payload(fields, {"phase": fields.get("phase")})
@@ -834,7 +1012,7 @@ def cmd_apply(root, gh=False, runner=None, payload=None, signer="board-keeper"):
                 pass
         current[row["id"]] = nxt
         pending.pop(row["id"], None)
-        refresh_dashboards(root, row["id"], board, row["statement"], nxt, gh=gh, runner=runner)
+        refresh_dashboards(root, row["id"], board, row["statement"], nxt, gh=gh, runner=runner, ssot=ssot)
         moves.append({
             "id": row["id"], "from": cur, "to": nxt, "issue": issue,
             "comment": body, "back": back,
@@ -845,29 +1023,60 @@ def cmd_apply(root, gh=False, runner=None, payload=None, signer="board-keeper"):
     return {"moves": moves, "blocked": blocked}
 
 
-def cmd_event(root, kind, req_id, gh=False, runner=None, payload=None, signer="board-keeper"):
+def link_reqs(board, usr_id, req_ids):
+    parents = board.setdefault("req_parent", {})
+    amended = board.setdefault("amended_from", {})
+    for rid in req_ids or []:
+        prev = parents.get(rid)
+        if prev and prev != usr_id:
+            amended[rid] = prev
+        parents[rid] = usr_id
+    return parents
+
+
+def cmd_event(root, kind, nid, gh=False, runner=None, payload=None, signer="board-keeper"):
     if kind not in EVENTS:
         raise SystemExit("error: event must be one of %s" % ", ".join(sorted(EVENTS)))
     nodes, edges, _ = load(root)
-    if req_id not in nodes:
-        raise SystemExit("error: %s is not in the registries" % req_id)
+    if nid not in nodes:
+        raise SystemExit("error: %s is not in the registries" % nid)
+    board = load_board(root)
+    usr_id = resolve_usr(nid, nodes, edges, board)
+    req_id = usr_id
     payload = dict(payload or {})
     payload.setdefault("phase", DEFAULT_PHASE.get(kind))
     if not proof_ok(payload.get("proof")):
-        return {"id": req_id, "event": kind, "blocked": "no proof"}
-    ssot = req_facts(nodes, edges, req_id)
+        return {"id": usr_id, "event": kind, "blocked": "no proof"}
+    ssot = usr_facts(nodes, edges, usr_id)
+    payload["usr"] = usr_id
+    payload["reqs"] = ssot.get("reqs") or []
+    link_reqs(board, usr_id, ssot.get("reqs"))
+    if nid.startswith("REQ-"):
+        prog = board.setdefault("req_progress", {}).setdefault(nid, {})
+        prog["stage"] = payload.get("phase")
+        prog["proof"] = payload.get("proof")
+    else:
+        for rid in ssot.get("reqs") or []:
+            prog = board.setdefault("req_progress", {}).setdefault(rid, {})
+            prog["stage"] = payload.get("phase")
+            prog["proof"] = payload.get("proof")
     gh_map = read_gh_state(root, runner=runner) if gh else {}
-    gh_one = dict(gh_map.get(req_id) or {})
+    gh_one = dict(gh_map.get(usr_id) or {})
     if ssot.get("coding_started") or kind == "coding":
         gh_one.setdefault("branch", True)
+    if ssot.get("acceptance_ok"):
+        gh_one.setdefault("acceptance_ok", True)
     if kind == "pr_merged" and not gh_one.get("pr_merged"):
-        return {"id": req_id, "blocked": "Done needs a merged pull request"}
-    board = load_board(root)
-    issue = (board.get("issues") or {}).get(req_id)
+        return {"id": usr_id, "blocked": "Done needs a merged pull request"}
+    if kind == "pr_merged" and gh_one.get("pr_merged") and not gh_one.get("acceptance_ok"):
+        return {"id": usr_id, "blocked": "Done needs every REQ acceptance test to pass"}
+    issue = (board.get("issues") or {}).get(usr_id)
     if gh and issue is None:
         row = {
-            "id": req_id, "title": ssot["title"], "statement": ssot["statement"],
-            "label": req_id,
+            "id": usr_id, "title": ssot["title"], "statement": ssot["statement"],
+            "request": ssot.get("request") or ssot["statement"],
+            "reqs": ssot.get("reqs") or [],
+            "label": usr_id,
         }
         issue, _created = ensure_issue(root, row, board, runner=runner)
     subs = ensure_sub_issues(root, req_id, board, ssot, runner=runner, gh=gh)
@@ -877,7 +1086,7 @@ def cmd_event(root, kind, req_id, gh=False, runner=None, payload=None, signer="b
         close_stage(board, req_id, phase, why="completed", runner=runner, gh=gh)
         rec = subs.get(phase) or rec
         rec["proof"] = payload.get("proof")
-        rec["scope"] = payload.get("changed")
+        rec["scope"] = (ssot.get("scope") or {}).get(phase) or payload.get("changed")
         rec["gate"] = payload.get("who")
     if kind == "coding":
         code = subs.setdefault("Code", rec)
@@ -916,10 +1125,10 @@ def cmd_event(root, kind, req_id, gh=False, runner=None, payload=None, signer="b
     }
     refresh_dashboards(root, req_id, board, ssot["statement"],
                        (board.get("status") or {}).get(req_id) or nxt,
-                       gh=gh, runner=runner)
+                       gh=gh, runner=runner, ssot=ssot)
     save_board(root, board)
     return {
-        "id": req_id,
+        "id": usr_id,
         "event": kind,
         "current": cur,
         "desired": desired,
@@ -952,13 +1161,20 @@ def cmd_note(root, issue, text, signer, req_id=None, stage=None, gh=True, runner
     stage = stage or found_stage
     if not req_id:
         return {"blocked": "unknown issue", "issue": issue}
-    payload = {"text": text, "phase": stage, "who": SIGNERS.get(signer, signer)}
+    nodes, edges, _ = load(root)
+    usr_id = resolve_usr(req_id, nodes, edges, board)
+    ssot = usr_facts(nodes, edges, usr_id) if usr_id in nodes else {}
+    payload = {
+        "text": text, "phase": stage, "who": SIGNERS.get(signer, signer),
+        "usr": usr_id, "reqs": ssot.get("reqs"),
+    }
     body, log_row = record_comment(
-        root, req_id, None, None, payload, issue=issue, signer=signer,
+        root, usr_id or req_id, None, None, payload, issue=issue, signer=signer,
         runner=runner, nwo=board.get("nwo"), gh=gh, kind=KIND_NOTE,
         stage=stage, sub_issue=issue if stage else None)
     save_board(root, board)
-    return {"issue": issue, "body": body, "log": log_row, "req": req_id, "stage": stage}
+    return {"issue": issue, "body": body, "log": log_row, "usr": usr_id,
+            "req": req_id, "stage": stage}
 
 
 def trail_order(rows):
@@ -969,8 +1185,13 @@ def trail_order(rows):
     return out
 
 
-def cmd_trail(root, req_id, kind=None):
-    rows = [r for r in read_log(root) if r.get("req") == req_id]
+def cmd_trail(root, nid, kind=None):
+    nodes, edges, _ = load(root)
+    board = load_board(root)
+    usr_id = resolve_usr(nid, nodes, edges, board)
+    rows = [r for r in read_log(root)
+            if log_matches(r, usr_id) or r.get("req") == nid
+            or nid in (r.get("reqs") or [])]
     if kind == KIND_SYSTEM:
         rows = [r for r in rows if (r.get("kind") or KIND_SYSTEM) == KIND_SYSTEM]
     elif kind == KIND_NOTE:
@@ -1008,7 +1229,7 @@ def cmd_trail(root, req_id, kind=None):
                     break
         stored = r.get("comment_url")
         text = format_block(
-            r.get("req"), r.get("from"), r.get("to"), r.get("phase") or r.get("stage"),
+            r.get("usr") or r.get("req"), r.get("from"), r.get("to"), r.get("phase") or r.get("stage"),
             r.get("who"), r.get("changed"), r.get("next"), r.get("proof"),
             r.get("back") or back_val)
         signer = _signer_key(r.get("signer"))
@@ -1016,7 +1237,7 @@ def cmd_trail(root, req_id, kind=None):
         if kind_r == KIND_SYSTEM:
             last_sys = stored or r.get("time") or last_sys
             system_prev[key] = last_sys
-    return {"req": req_id, "entries": rows, "rendered": rendered}
+    return {"usr": usr_id, "req": nid, "entries": rows, "rendered": rendered}
 
 
 def last_system_back_from(rows, current):
@@ -1157,16 +1378,20 @@ def main():
         if not pos:
             print("error: comment needs ISSUE", file=sys.stderr)
             return 2
-        req_id = payload.get("req")
+        req_id = payload.get("req") or payload.get("usr")
         if not req_id or not proof_ok(payload.get("proof")):
-            print("error: comment needs --req and --proof (same trail block)", file=sys.stderr)
+            print("error: comment needs --req (USR or REQ) and --proof", file=sys.stderr)
             return 2
         board = load_board(root)
-        cur = payload.get("from") or (board.get("status") or {}).get(req_id)
+        nodes, edges, _ = load(root)
+        usr_id = resolve_usr(req_id, nodes, edges, board)
+        payload.setdefault("usr", usr_id)
+        payload.setdefault("reqs", usr_facts(nodes, edges, usr_id).get("reqs") if usr_id in nodes else None)
+        cur = payload.get("from") or (board.get("status") or {}).get(usr_id)
         nxt = payload.get("to") or cur
         stage = payload.get("phase")
         body, log_row = record_comment(
-            root, req_id, cur, nxt, payload, issue=pos[0], signer=signer,
+            root, usr_id, cur, nxt, payload, issue=pos[0], signer=signer,
             runner=None, nwo=board.get("nwo"), gh=True, kind=KIND_SYSTEM,
             stage=stage, sub_issue=pos[0] if stage else None)
         print(json.dumps({"issue": pos[0], "body": body, "log": log_row}, indent=2))
@@ -1174,7 +1399,7 @@ def main():
     if cmd == "event":
         pos = positional(rest)
         if len(pos) < 2:
-            print("error: event needs KIND and REQ id", file=sys.stderr)
+            print("error: event needs KIND and USR or REQ id", file=sys.stderr)
             return 2
         print(json.dumps(cmd_event(root, pos[0], pos[1], gh=gh, payload=payload,
                                    signer=signer), indent=2))
@@ -1182,7 +1407,7 @@ def main():
     if cmd == "trail":
         pos = positional(rest)
         if not pos:
-            print("error: trail needs REQ id", file=sys.stderr)
+            print("error: trail needs USR or REQ id", file=sys.stderr)
             return 2
         filt = KIND_SYSTEM if flag(rest, "--system") else (KIND_NOTE if flag(rest, "--notes") else None)
         out = cmd_trail(root, pos[0], kind=filt)
