@@ -11,8 +11,9 @@ from vmodel_board import (  # noqa: E402
     COLUMNS, KIND_NOTE, KIND_SYSTEM, MARKER_DASHBOARD, MARKER_NOTE,
     MARKER_SYSTEM, PHASES, cmd_event, cmd_note, cmd_trail, column_from_subs,
     desired_column, format_block, format_note, format_parent_dashboard,
-    format_sub_dashboard, format_system, next_column, plan_rows, proof_ok,
-    read_log, req_facts, sign_comment, skipped_stages,
+    format_sub_dashboard, format_system, link_reqs, log_matches, next_column,
+    plan_rows, proof_ok, read_log, req_facts, resolve_usr, sign_comment,
+    skipped_stages, usr_facts,
 )
 from vmodel_common import load  # noqa: E402
 
@@ -77,11 +78,14 @@ class Subs(unittest.TestCase):
             subs[p] = {"state": "open"}
         self.assertEqual(column_from_subs(subs), "In progress")
 
-    def test_done_needs_all_closed_and_merge(self):
+    def test_done_needs_all_closed_merge_and_acceptance(self):
         subs = {p: {"state": "closed", "reason": "completed"} for p in PHASES}
         self.assertEqual(column_from_subs(subs), "In progress")
         self.assertEqual(column_from_subs(subs, {"pr_open": True}), "In review")
-        self.assertEqual(column_from_subs(subs, {"pr_merged": True}), "Done")
+        self.assertEqual(column_from_subs(subs, {"pr_merged": True}), "In review")
+        self.assertEqual(column_from_subs(subs, {
+            "pr_merged": True, "acceptance_ok": True,
+        }), "Done")
 
     def test_tiny_lane_skips(self):
         skip = skipped_stages({"lane": "tiny", "stages": ["USR", "REQ"]})
@@ -102,16 +106,25 @@ class Kettle(unittest.TestCase):
         self.assertTrue(facts["published"])
         self.assertTrue(facts["coding_started"])
         self.assertFalse(facts["tests_pass"])
+        self.assertFalse(facts["acceptance_ok"])
         self.assertEqual(desired_column(facts), "In progress")
+        self.assertEqual(resolve_usr("REQ-KTL-001", nodes, edges), "USR-KTL-001")
+        usr = usr_facts(nodes, edges, "USR-KTL-001")
+        self.assertEqual(usr["reqs"], ["REQ-KTL-001"])
+        self.assertEqual(usr["scope"]["Requirements"][0]["id"], "REQ-KTL-001")
         rows = {r["id"]: r for r in plan_rows(nodes, edges)}
-        self.assertEqual(rows["REQ-KTL-001"]["desired"], "In progress")
-        self.assertEqual(next_column(None, rows["REQ-KTL-001"]["desired"]), "Backlog")
+        self.assertEqual(rows["USR-KTL-001"]["desired"], "In progress")
+        self.assertEqual(rows["USR-KTL-001"]["reqs"], ["REQ-KTL-001"])
+        self.assertNotIn("REQ-KTL-001", rows)
+        self.assertEqual(next_column(None, rows["USR-KTL-001"]["desired"]), "Backlog")
 
     def test_sample_trail_covers_v(self):
-        rows = [r for r in read_log(KETTLE) if r.get("req") == "REQ-KTL-001"]
+        rows = [r for r in read_log(KETTLE) if log_matches(r, "USR-KTL-001")]
         stages = [r["stage"] for r in rows
                   if r.get("stage") and (r.get("kind") or KIND_SYSTEM) == KIND_SYSTEM]
         self.assertEqual(stages, PHASES)
+        self.assertTrue(all(r.get("usr") == "USR-KTL-001" for r in rows))
+        self.assertTrue(all("REQ-KTL-001" in (r.get("reqs") or []) for r in rows))
         self.assertTrue(all(r.get("sub_issue") for r in rows if r.get("stage") and r.get("kind") != KIND_NOTE))
         parent = [r["to"] for r in rows
                   if not r.get("stage") and (r.get("kind") or KIND_SYSTEM) == KIND_SYSTEM
@@ -119,6 +132,13 @@ class Kettle(unittest.TestCase):
         self.assertEqual(parent, COLUMNS)
         notes = [r for r in rows if r.get("kind") == KIND_NOTE]
         self.assertTrue(notes)
+
+    def test_amend_links_earlier_parent(self):
+        board = {}
+        link_reqs(board, "USR-KTL-001", ["REQ-KTL-001"])
+        link_reqs(board, "USR-KTL-099", ["REQ-KTL-001"])
+        self.assertEqual(board["req_parent"]["REQ-KTL-001"], "USR-KTL-099")
+        self.assertEqual(board["amended_from"]["REQ-KTL-001"], "USR-KTL-001")
 
 
 class Comment(unittest.TestCase):
@@ -129,10 +149,10 @@ class Comment(unittest.TestCase):
 
     def test_block_labels(self):
         body = format_block(
-            "REQ-KTL-001", "Ready", "In progress", "Code",
+            "USR-KTL-001", "Ready", "In progress", "Code",
             "adept ; Last Boss slice", "UNT-KTL-001; src/start_guard.py",
             "test-master unit tests", "abc123", "first entry")
-        self.assertIn("**REQ-KTL-001: Ready → In progress**", body)
+        self.assertIn("**USR-KTL-001: Ready → In progress**", body)
         for label in ("Phase done:", "Who:", "Changed:", "Next:", "Proof:", "Back:"):
             self.assertIn("**%s**" % label, body)
         sys_body = format_system(body, "board-keeper")
@@ -149,26 +169,37 @@ class Comment(unittest.TestCase):
     def test_dashboards(self):
         stages = {p: {"state": "open", "number": i + 1, "owner": "adept" if p == "Code" else "req-guardian"}
                   for i, p in enumerate(PHASES)}
+        reqs = [{
+            "id": "REQ-KTL-001",
+            "statement": "Pressing Start heats water until it boils.",
+            "stage": "Code",
+            "acceptance": "TST-KTL-001",
+            "proof": "abc123",
+            "amended_from": None,
+        }]
         parent = format_parent_dashboard(
-            "REQ-KTL-001", "Pressing Start heats water until it boils.",
-            "In progress", stages, "none", "2026-10-16T05:00:00Z")
+            "USR-KTL-001", "As a kettle user I want to boil water at the press of a button so I can make tea fast.",
+            "In progress", stages, "none", "2026-10-16T05:00:00Z", reqs=reqs)
         self.assertTrue(parent.startswith(MARKER_DASHBOARD))
+        self.assertIn("USR-KTL-001", parent)
+        self.assertIn("| REQ | Sentence | Stage | Acceptance TST | Proof | Earlier |", parent)
         self.assertIn("REQ-KTL-001", parent)
         self.assertIn("| # | Stage | Status | Owner | Proof | Issue |", parent)
         self.assertIn("Code", parent)
         sub = format_sub_dashboard(
-            "Code", "#12 REQ-KTL-001", "adept", "open", "UNT-KTL-001",
+            "Code", "#12 USR-KTL-001", "adept", "open",
+            [{"id": "UNT-KTL-001", "status": "published"}],
             "abc123", "Last Boss slice", "2026-10-16T05:00:00Z")
         self.assertTrue(sub.startswith(MARKER_DASHBOARD))
         self.assertIn("**Parent:**", sub)
-        self.assertIn("UNT-KTL-001", sub)
+        self.assertIn("UNT-KTL-001 (published)", sub)
 
     def test_no_column_change_header(self):
         body = format_block(
-            "REQ-KTL-001", "Ready", "Ready", "Functions",
+            "USR-KTL-001", "Ready", "Ready", "Functions",
             "functional-specs ; SSOT Gate published", "FNC-KTL-001",
             "system-designer", "baseline g1", "first entry")
-        self.assertIn("**REQ-KTL-001: no column change**", body)
+        self.assertIn("**USR-KTL-001: no column change**", body)
 
     def test_proof_ok(self):
         self.assertFalse(proof_ok(""))
@@ -210,16 +241,20 @@ class EventLog(unittest.TestCase):
             "proof": "proposal USR-KTL-001",
         })
         self.assertTrue(out.get("moved"))
+        self.assertEqual(out.get("id"), "USR-KTL-001")
         self.assertEqual(out.get("next"), "Backlog")
-        self.assertIn("**REQ-KTL-001: (new) → Backlog**", out["comment"])
+        self.assertIn("**USR-KTL-001: (new) → Backlog**", out["comment"])
         self.assertIn(MARKER_SYSTEM, out["comment"])
         self.assertIn("[system]", out["comment"])
         log = read_log(self.root)
         self.assertGreaterEqual(len(log), 1)
         self.assertTrue(all((r.get("kind") or KIND_SYSTEM) == KIND_SYSTEM for r in log))
+        self.assertTrue(all(r.get("usr") == "USR-KTL-001" for r in log))
+        self.assertTrue(all("REQ-KTL-001" in (r.get("reqs") or []) for r in log))
         with open(os.path.join(self.root, "board.json"), encoding="utf-8") as f:
             board = json.load(f)
-        self.assertEqual(len(board["sub_issues"]["REQ-KTL-001"]), 9)
+        self.assertEqual(len(board["sub_issues"]["USR-KTL-001"]), 9)
+        self.assertEqual(board["req_parent"]["REQ-KTL-001"], "USR-KTL-001")
         phase = cmd_event(self.root, "phase", "REQ-KTL-001", payload={
             "phase": "Functions",
             "who": "functional-specs ; SSOT Gate published",
@@ -230,12 +265,14 @@ class EventLog(unittest.TestCase):
         self.assertFalse(phase.get("moved"))
         self.assertIn("no column change", phase["comment"])
         trail = cmd_trail(self.root, "REQ-KTL-001", kind=KIND_SYSTEM)
+        self.assertEqual(trail["usr"], "USR-KTL-001")
         self.assertGreaterEqual(len(trail["rendered"]), 2)
         note = cmd_note(self.root, "s1", "Minted USR and REQ for boil.", "req-guardian",
                         req_id="REQ-KTL-001", stage="Requirements", gh=False)
         self.assertIn(MARKER_NOTE, note["body"])
         self.assertIn("— Req Guardian", note["body"])
-        sys_only = cmd_trail(self.root, "REQ-KTL-001", kind=KIND_SYSTEM)
+        self.assertEqual(note["usr"], "USR-KTL-001")
+        sys_only = cmd_trail(self.root, "USR-KTL-001", kind=KIND_SYSTEM)
         notes_only = cmd_trail(self.root, "REQ-KTL-001", kind=KIND_NOTE)
         self.assertTrue(all(MARKER_SYSTEM in b for b in sys_only["rendered"]))
         self.assertTrue(all(MARKER_NOTE in b for b in notes_only["rendered"]))

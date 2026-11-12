@@ -74,7 +74,7 @@ python3 scripts/vmodel_lint.py examples/electric-kettle/.vmodel --write --code e
 python3 scripts/vmodel_docs.py examples/electric-kettle/.vmodel --code examples/electric-kettle
 ```
 
-Python 3.8+, no packages. The example stack is recorded as `TOL-KTL-001..006` (Python, pytest, no framework / package manager / linter / deploy target). A worked Curiosity → Imagination → Intelligence loop on the temperature-display choice is in `curiosity-imagination-temperature.md`. Keep-warm duration reuse-scan (stdlib, not a calendar) is in `curiosity-imagination-reuse-datetime.md`. Imagine-the-use for a one-button kettle light (`tiny`, 2 gates) is in `imagine-the-use-kettle-light.md`. A lean slice of `REQ-KTL-001` is in `.vmodel/docs/KTL/slice-REQ-KTL-001.json`. Offline board snapshot: `.vmodel/board.json` (KTL REQs at In progress until a GitHub project is attached). Example trail (labeled example data): `.vmodel/board-log.jsonl` and `docs/board-trail-REQ-KTL-001.md`.
+Python 3.8+, no packages. The example stack is recorded as `TOL-KTL-001..006` (Python, pytest, no framework / package manager / linter / deploy target). A worked Curiosity → Imagination → Intelligence loop on the temperature-display choice is in `curiosity-imagination-temperature.md`. Keep-warm duration reuse-scan (stdlib, not a calendar) is in `curiosity-imagination-reuse-datetime.md`. Imagine-the-use for a one-button kettle light (`tiny`, 2 gates) is in `imagine-the-use-kettle-light.md`. A lean slice of `REQ-KTL-001` is in `.vmodel/docs/KTL/slice-REQ-KTL-001.json`. Offline board snapshot: `.vmodel/board.json` (USR-KTL-001 at In progress until a GitHub project is attached). Example trail (labeled example data): `.vmodel/board-log.jsonl` and `docs/board-trail-USR-KTL-001.md`.
 
 ## Imagine first
 
@@ -82,14 +82,14 @@ The V is not a mandatory 11-gate march. At intake, picture the person and the mo
 
 ## Board (`/board`)
 
-The GitHub Project is a **view** of SSOT plus issues and PRs, not a second source of truth. `/board setup` creates or finds the project with `gh`. One **parent** issue per REQ plus nine **sub-issues** (the V stages). Parent column follows those sub-issues. Board Keeper edits a dashboard comment in place and posts `[system]` trail blocks; agents post signed notes. No proof, no move. Never Done without a merged PR. `/board trail REQ-ID` walks parent then stages (`--system` / `--notes`).
+The GitHub Project is a **view** of SSOT plus issues and PRs, not a second source of truth. `/board setup` creates or finds the project with `gh`. One **parent** issue per `/usr` request (USR) plus nine **sub-issues** (the V stages, covering every node from that request). REQ ids are labels and dashboard rows. Parent column follows those sub-issues. Board Keeper edits a dashboard comment in place and posts `[system]` trail blocks; agents post signed notes. No proof, no move. Done needs all nine stages closed, every REQ acceptance test passing, and merged PR(s). `/board trail USR-ID` (or a REQ id, which resolves to its parent) walks parent then stages (`--system` / `--notes`).
 
 ```bash
 python3 scripts/vmodel_board.py .vmodel setup
 python3 scripts/vmodel_board.py .vmodel status
-python3 scripts/vmodel_board.py .vmodel event coding REQ-KTL-001 --phase Code --proof <commit-or-PR> --who "adept ; Last Boss slice"
+python3 scripts/vmodel_board.py .vmodel event coding USR-KTL-001 --phase Code --proof <commit-or-PR> --who "adept ; Last Boss slice"
 python3 scripts/vmodel_board.py .vmodel note 12 "what I did, why, concern" --signer adept
-python3 scripts/vmodel_board.py .vmodel trail REQ-KTL-001 --system
+python3 scripts/vmodel_board.py .vmodel trail USR-KTL-001 --system
 ```
 
 ## How A.I.D stays lean
