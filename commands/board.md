@@ -8,8 +8,8 @@ Run the `aid-board` skill from the A.I.D plugin.
 
 `/board` or `/board status` — print the desired column per REQ from `.vmodel/` (add `--gh` when issues exist).
 
-`/board apply` — move each card one column toward that status. Never skip. Never Done without a merged PR. **No proof, no move.** Post the trail block (phase, who, changed, next, proof, back) on every move and every V phase.
+`/board apply` — one column toward the parent status derived from sub-issues. Never skip. Never Done without a merged PR. **No proof, no move.**
 
-`/board trail REQ-ID` — print that issue's comment chain oldest to newest (from `.vmodel/board-log.jsonl`).
+`/board trail REQ-ID` — parent then stage sub-issues (`--system` or `--notes` to filter). Backtrack reads system comments only.
 
-Spawn `board-keeper` for moves. The `/usr` runner may post the same block signed as A.I.D.
+Spawn `board-keeper` for moves. Engineering agents post notes with `aid-board note <issue> <text> --signer <agent>`.

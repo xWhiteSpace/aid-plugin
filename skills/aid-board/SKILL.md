@@ -1,53 +1,41 @@
 ---
 name: aid-board
-description: GitHub Project (v2) board for A.I.D. Setup, status, one-step moves, trail comments, and signed blocks. Agent-invoked from /board and by Board Keeper or the A.I.D runner. Not a slash duplicate of other commands.
+description: GitHub Project (v2) board for A.I.D. Parent issue plus nine V-stage sub-issues, dashboards, system comments, and agent notes. Agent-invoked from /board and by Board Keeper or the A.I.D runner.
 user-invocable: false
 ---
 
 # Board (GitHub Project v2)
 
-The board is a **view** of SSOT plus GitHub. It is not the source of truth. Only **Board Keeper** and **A.I.D** (the `/usr` runner) write to it. Other roles ask Board Keeper.
+The board is a **view** of SSOT plus GitHub. Only **Board Keeper** writes dashboards and system comments. Engineering agents post **notes**. ssot-gate does not write board files.
 
-Store ids in `.vmodel/board.json`. Append one line per comment to `.vmodel/board-log.jsonl` (time, issue, req, from, to, phase, who, changed, proof, comment_url). ssot-gate does not write these files.
+One **parent** issue per REQ. Nine **sub-issues** (native GitHub sub-issues: `POST /repos/{owner}/{repo}/issues/{n}/sub_issues` or GraphQL `addSubIssue`), always in this order: 1 Requirements, 2 Functions, 3 System design, 4 Unit design, 5 Code, 6 Unit test, 7 Integration test, 8 System test, 9 Acceptance test. Title `REQ-XXX-NNN · <stage>`. Lane skips and `empty_test_levels` still create the sub-issue, then close it as **not planned** with a one-line reason.
 
-## Setup (`/board setup`)
+Parent column: Backlog until stage 1 is closed; Ready when 1–4 closed; In progress when 5 is open with a branch; In review when a PR is open; Done only when all 9 are closed (completed or not planned) **and** the PR is merged.
 
-From the project root (needs `gh` auth). GraphQL via `gh api graphql` if field options are missing. GitHub MCP is the fallback when `gh` is not installed.
+## Setup
 
 ```
 python3 <plugin>/scripts/vmodel_board.py .vmodel setup
 ```
 
-Creates or finds a project titled `A.I.D board`. Status options: Backlog, Ready, In progress, In review, Done. Writes `.vmodel/board.json`.
+## Events, trail, notes
 
-## Status, apply, trail
+Phase trail (system block) goes on the **stage sub-issue**; the sub-issue closes when that phase is proven. Parent gets one system summary per **column move**; parent **Back** is the latest sub-issue system comment.
 
 ```
-python3 <plugin>/scripts/vmodel_board.py .vmodel status
-python3 <plugin>/scripts/vmodel_board.py .vmodel apply --proof TEXT --phase Code --who "adept ; Last Boss slice"
+python3 <plugin>/scripts/vmodel_board.py .vmodel event phase REQ-KTL-001 --phase Functions --proof "baseline g1" --who "functional-specs ; SSOT Gate published" --changed FNC-KTL-001
+python3 <plugin>/scripts/vmodel_board.py .vmodel note 101 "what I did, why, concern" --signer adept --req REQ-KTL-001 --phase Code
 python3 <plugin>/scripts/vmodel_board.py .vmodel trail REQ-KTL-001
+python3 <plugin>/scripts/vmodel_board.py .vmodel trail REQ-KTL-001 --system
+python3 <plugin>/scripts/vmodel_board.py .vmodel trail REQ-KTL-001 --notes
 ```
 
-`--gh` reads issues and PRs. Apply moves **one column** (never skip). **No proof, no move** — report a blocker to A.I.D. Done still needs a merged PR. `/board trail REQ-ID` prints the comment chain oldest to newest.
+`/board trail` walks **parent then sub-issues in stage order**. Backtrack reads **system** comments only.
 
-## Events (A.I.D → Board Keeper)
+## Two comment kinds
 
-Every event carries `--phase` `--who` `--changed` `--proof` `--next` (or `--json '{...}'`). A phase comment is posted even when the column does not move (header `no column change`).
+1. **Dashboard** (`<!-- aid-dashboard -->`) — first comment on parent and on each sub-issue, **edited in place** (never reposted). Parent: REQ + sentence, column, table of 9 stages (status open/closed/not planned, owner, last proof, sub-issue link), PR, updated time. Sub-issue: stage, owner, status, scope ids, proof, gate, parent link.
+2. **System** (`<!-- aid-system -->`, starts with `[system]`) — machine trail block for column move, stage open/close, gate, PR, test run. Board Keeper / this script.
+3. **Note** (`<!-- aid-note -->`) — free plain words, signed with the agent name. Every engineering agent posts at least one when it finishes its stage (`note <issue> <text> --signer <agent>`). Last Boss notes include challenge and verdict.
 
-```
-python3 <plugin>/scripts/vmodel_board.py .vmodel event intake REQ-KTL-001 --phase Requirements --who "req-guardian ; intake" --changed USR-KTL-001,REQ-KTL-001 --proof "proposal USR-KTL-001" --next "ssot-gate Gate 1"
-python3 <plugin>/scripts/vmodel_board.py .vmodel event phase REQ-KTL-001 --phase Functions --who "functional-specs ; SSOT Gate published" --changed FNC-KTL-001 --proof "baseline 2026-10-16-g1" --next system-designer
-python3 <plugin>/scripts/vmodel_board.py .vmodel event pr_merged REQ-KTL-001 --gh --phase "Acceptance test" --proof "https://github.com/xWhiteSpace/aid-plugin/pull/NN"
-```
-
-Kinds: `intake` `published` `coding` `pr_open` `pr_merged` `phase`.
-
-## Comments
-
-Same block, always. Board Keeper signs as Board Keeper. A.I.D uses `--signer AID`.
-
-```
-python3 <plugin>/scripts/vmodel_board.py .vmodel comment 12 --req REQ-KTL-001 --phase Code --who "A.I.D ; runner" --changed UNT-KTL-001 --proof abc123 --next "test-master" --signer AID
-```
-
-Block labels (same every time): Phase done, Who, Changed, Next, Proof, Back. **Back** is the previous comment URL on that issue, or `first entry`.
+`.vmodel/board-log.jsonl` fields include `stage` and `sub_issue`.

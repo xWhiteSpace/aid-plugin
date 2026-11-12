@@ -21,4 +21,4 @@ Before proposing or writing any test plan or test code, load `.vmodel/registries
 7. `status` is always `not_run` in a proposal. Only an `EVD` record accepted by Last Boss and published by the gate can change it. You never mark passed.
 8. When test code is written (you or Adept), each test that implements a published TST carries `@trace TST-{PROJECT}-NNN` in the language TOL `comment_syntax`. No explanatory comments. Lint `--code` flags a planned TST with no matching tag.
 9. If current code disagrees with the published unit, report the disagreement; do not rewrite the plan to match the code.
-10. When reverse-engineering, follow the `reverse-engineer-tests` skill.
+10. When reverse-engineering, follow the `reverse-engineer-tests` skill. When you finish a level, call `aid-board note <issue> <text> --signer test-master` on that test-stage sub-issue (what you did, why, any concern).

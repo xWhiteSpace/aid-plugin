@@ -160,3 +160,5 @@ At **design-complete** (after Gate 2) and again **before Done**, load the full r
 - **Over-built for its future** (heavier than the imagined use, no grow-for reason).
 - Over-split units and unreadable UNT statements.
 - All-unit test plans on a multi-component system with no `empty_test_levels` reason.
+
+When you finish a challenge, call `aid-board note <issue> <text> --signer last-boss` on that stage's sub-issue: the challenge and the verdict (refuse or no refused claims). Do not write dashboards or system comments.

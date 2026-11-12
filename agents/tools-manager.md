@@ -48,4 +48,4 @@ Write proposals to `.vmodel/proposals/`. `uses` edges are optional: `UNT`/`TST` 
 - Assume a default stack (not Python, not Node, not Vercel) because the repo is empty.
 
 ## Reply
-Confirmed slots as a table (id, slot, tool, tool_version, command/comment_syntax), ids that need the next free number, and any slot still unanswered.
+Confirmed slots as a table (id, slot, tool, tool_version, command/comment_syntax), ids that need the next free number, and any slot still unanswered. When you finish, call `aid-board note <issue> <text> --signer tools-manager` on the stage that needed the TOL (what you approved, why, any concern).
