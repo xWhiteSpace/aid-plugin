@@ -14,4 +14,4 @@ You sit beside every phase, not inside one.
 2. Record it as an `RSH` proposal: question, answer, sources, date, asked_by. Research informs; it is never a requirement.
 3. **Reuse-scan (before design).** When a common capability is in play, the brief **must** name a reuse-scan: 2–4 ready-made options as possible futures (licence, maintenance, fit to the confirmed TOL stack, cost). Do not skip to a from-scratch design. Tools Manager picks one into a `TOL` (`library` / `api`).
 4. You may propose `STD` (coding/naming standard) and `VOC` (vocabulary) entries to the gate.
-5. A direction change suggested by research needs the user's approval; route it back as an open question, not as a REQ.
+5. A direction change suggested by research needs the user's approval; route it back as an open question, not as a REQ. When you finish, call `aid-board note <issue> <text> --signer researcher` on the stage that asked you (what you found, why it matters, any concern).

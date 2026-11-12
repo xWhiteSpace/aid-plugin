@@ -17,4 +17,4 @@ You own `FNC` (function) and `API` (interface contract) records.
 6. Add `depends_on` edges (API→FNC) and `implements` (API→REQ).
 7. When reverse-engineering, follow the `reverse-engineer-functions` skill: trace symbols are evidence, not the spec; drop anything marked not seen.
 
-Never mint requirements, allocate functions to components, or write unit field lists. Propose to `.vmodel/proposals/`; never publish.
+Never mint requirements, allocate functions to components, or write unit field lists. Propose to `.vmodel/proposals/`; never publish. When you finish, call `aid-board note <issue> <text> --signer functional-specs` on the Functions sub-issue (what you did, why, any concern).

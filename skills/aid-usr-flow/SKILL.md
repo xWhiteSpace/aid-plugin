@@ -40,7 +40,7 @@ The chat that receives `/usr` is the **runner**. It owns the todo list and spawn
 12. **Last Boss — Done (full graph).** Before any claim of Done, spawn `last-boss` again on the **full graph** (plus front-end review if any screen is in scope). She never marks anything passed. Do not tell the user it is Done while she still refuses a claim. After a merged PR that references the REQ issue, hand `board-keeper` `event pr_merged --gh` (it still refuses Done without that merge).
 13. **Docs.** Run the `aid-docs` skill so the user can see the result. That rebuilds `v-view.html` as well.
 
-`researcher` may be spawned at any step by any role that needs the standard approach; its RSH brief is published like any other proposal. `board-keeper` is gate-adjacent (board view only); A.I.D hands it events and may post comments via `aid-board` signed as A.I.D.
+`researcher` may be spawned at any step by any role that needs the standard approach; its RSH brief is published like any other proposal. `board-keeper` is gate-adjacent (board view only); A.I.D hands it events. After intake, call `aid-board note <issue> <text> --signer AID` on the Requirements sub-issue (what, why, concern).
 
 ## Asking the user
 Ask only when blocked by something only the user can answer (a product decision, same-story-or-new, a missing acceptance target). One question at a time. Everything else, decide and report.

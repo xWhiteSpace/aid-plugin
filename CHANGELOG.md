@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.11.0 — 2026-11-12
+
+- One parent issue per REQ plus nine GitHub sub-issues (`REQ-… · <stage>`), lane skips closed as not planned. Parent column from sub-issue state (Done still needs a merged PR).
+- Dashboard comment (`<!-- aid-dashboard -->`) on parent and each sub-issue, edited in place. System comments (`<!-- aid-system -->` `[system]`) vs agent notes (`<!-- aid-note -->`). `/board trail --system|--notes`. Every engineering agent posts a signed note on its stage (`aid-board note`).
+- Kettle sample trail updated (parent then stages). Tests: `python3 -m unittest scripts/test_vmodel_board.py`.
+
 ## 0.10.1 — 2026-11-11
 
 - Board trail: every move and every V phase posts a fixed block (Phase done, Who, Changed, Next, Proof, Back). No proof, no move. `.vmodel/board-log.jsonl` plus `/board trail REQ-ID`. A.I.D uses the same block signed A.I.D.

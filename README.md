@@ -82,13 +82,14 @@ The V is not a mandatory 11-gate march. At intake, picture the person and the mo
 
 ## Board (`/board`)
 
-The GitHub Project is a **view** of SSOT plus issues and PRs, not a second source of truth. `/board setup` creates or finds the project (Status: Backlog, Ready, In progress, In review, Done) with `gh` and stores ids in `.vmodel/board.json`. One issue per REQ. A.I.D hands Board Keeper events as the V moves; Board Keeper posts a **trail block** (phase, who, changed, next, proof, back) on every move and every V phase so the issue alone can backtrack the work. No proof, no move. Never Done without a merged PR. `/board trail REQ-ID` reprints `.vmodel/board-log.jsonl`.
+The GitHub Project is a **view** of SSOT plus issues and PRs, not a second source of truth. `/board setup` creates or finds the project with `gh`. One **parent** issue per REQ plus nine **sub-issues** (the V stages). Parent column follows those sub-issues. Board Keeper edits a dashboard comment in place and posts `[system]` trail blocks; agents post signed notes. No proof, no move. Never Done without a merged PR. `/board trail REQ-ID` walks parent then stages (`--system` / `--notes`).
 
 ```bash
 python3 scripts/vmodel_board.py .vmodel setup
 python3 scripts/vmodel_board.py .vmodel status
 python3 scripts/vmodel_board.py .vmodel event coding REQ-KTL-001 --phase Code --proof <commit-or-PR> --who "adept ; Last Boss slice"
-python3 scripts/vmodel_board.py .vmodel trail REQ-KTL-001
+python3 scripts/vmodel_board.py .vmodel note 12 "what I did, why, concern" --signer adept
+python3 scripts/vmodel_board.py .vmodel trail REQ-KTL-001 --system
 ```
 
 ## How A.I.D stays lean

@@ -1,7 +1,13 @@
 # Example data — board trail for REQ-KTL-001
 
-Offline sample of the GitHub issue comments Board Keeper would post, oldest to newest. Not a live Project. Kettle SSOT still sits at In progress (no merged PR in this repo). Run `/board trail REQ-KTL-001` to reprint from `.vmodel/board-log.jsonl`.
+Offline sample. Not a live GitHub Project. Parent issue plus nine stage sub-issues (`REQ-KTL-001 · <stage>`). Dashboards (`<!-- aid-dashboard -->`) are edited in place and are not in this trail. System comments (`<!-- aid-system -->` `[system]`) are the backtrack. Notes (`<!-- aid-note -->`) are agent prose. `/board trail REQ-KTL-001` prints parent then stages; add `--system` or `--notes`.
 
+Live SSOT/board column is **In progress** (stages 1–4 closed, Code open). The Done parent line below is example data.
+
+## Parent (column moves)
+
+<!-- aid-system -->
+[system]
 **REQ-KTL-001: (new) → Backlog**
 **Phase done:** Requirements
 **Who:** req-guardian ; intake
@@ -12,82 +18,47 @@ Offline sample of the GitHub issue comments Board Keeper would post, oldest to n
 
 — Board Keeper
 
+<!-- aid-system -->
+[system]
 **REQ-KTL-001: Backlog → Ready**
-**Phase done:** Functions
-**Who:** functional-specs ; SSOT Gate published
-**Changed:** FNC-KTL-001, API-KTL-001
-**Next:** system-designer
-**Proof:** baseline 2026-10-16-g1
-**Back:** example://ktl-board/1
-
-— Board Keeper
-
-**REQ-KTL-001: no column change**
-**Phase done:** System design
-**Who:** system-designer ; SSOT Gate published
-**Changed:** CMP-KTL-003, INT-KTL-002
-**Next:** unit-designer
-**Proof:** baseline 2026-10-16-g2
-**Back:** example://ktl-board/2
-
-— Board Keeper
-
-**REQ-KTL-001: no column change**
 **Phase done:** Unit design
 **Who:** unit-designer ; SSOT Gate published
 **Changed:** UNT-KTL-001
 **Next:** adept
 **Proof:** proposal UNT-KTL-001
-**Back:** example://ktl-board/3
+**Back:** example://ktl-board/s4
 
 — Board Keeper
 
+<!-- aid-system -->
+[system]
 **REQ-KTL-001: Ready → In progress**
 **Phase done:** Code
 **Who:** adept ; Last Boss slice
 **Changed:** UNT-KTL-001; src/start_guard.py
 **Next:** test-master unit tests
-**Proof:** example: v0.10.1 PR
-**Back:** example://ktl-board/4
+**Proof:** example: v0.11.0 PR
+**Back:** example://ktl-board/s5
 
 — Board Keeper
 
+## Sub-issue `REQ-KTL-001 · Code`
+
+<!-- aid-system -->
+[system]
 **REQ-KTL-001: no column change**
-**Phase done:** Unit test
-**Who:** test-master ; Last Boss slice
-**Changed:** TST-KTL-012
-**Next:** test-master integration
-**Proof:** example: v0.10.1 PR
-**Back:** example://ktl-board/5
+**Phase done:** Code
+**Who:** adept ; Last Boss slice
+**Changed:** UNT-KTL-001; src/start_guard.py
+**Next:** test-master unit tests
+**Proof:** example: v0.11.0 PR
+**Back:** first entry
 
 — Board Keeper
 
-**REQ-KTL-001: no column change**
-**Phase done:** Integration test
-**Who:** test-master ; Last Boss slice
-**Changed:** TST-KTL-007
-**Next:** test-master system tests
-**Proof:** example: v0.10.1 PR
-**Back:** example://ktl-board/6
+<!-- aid-note -->
+Implemented start_guard in src/start_guard.py. Why: published UNT-KTL-001. Concern: no hardware interlock in this tree.
 
-— Board Keeper
+— Adept
 
-**REQ-KTL-001: In progress → In review**
-**Phase done:** System test
-**Who:** adept ; PR opened
-**Changed:** TST-KTL-006
-**Next:** last-boss Done challenge
-**Proof:** example: v0.10.1 PR
-**Back:** example://ktl-board/7
-
-— Board Keeper
-
-**REQ-KTL-001: In review → Done**
-**Phase done:** Acceptance test
-**Who:** last-boss ; PR merged
-**Changed:** TST-KTL-001
-**Next:** none
-**Proof:** example: v0.10.1 PR merged
-**Back:** example://ktl-board/8
-
-— Board Keeper
+The other eight stages follow the same pair (system block on the sub-issue, plus a signed note from the owner). Last Boss on Acceptance test records challenge and verdict. Full chain: `.vmodel/board-log.jsonl`.

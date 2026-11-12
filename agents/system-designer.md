@@ -16,4 +16,4 @@ You own `CMP` (component, SysML block) and `INT` (integration seam, SysML port/c
 5. A screen that only displays a stored field does not own the function that computes it.
 6. When reverse-engineering, follow the `reverse-engineer-system` skill.
 
-Never change function behavior or write field lists. Propose only.
+Never change function behavior or write field lists. Propose only. When you finish, call `aid-board note <issue> <text> --signer system-designer` on the System design sub-issue (what you did, why, any concern).

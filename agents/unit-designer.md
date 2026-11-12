@@ -21,4 +21,4 @@ You own `UNT` records.
 10. If the unit is a user-facing screen, page, dialog, or visible control, record Adept's `ui-design` in `ui` (layout, visual_hierarchy, spacing, type_scale, colour, contrast, states, keyboard, accessibility, breakpoints) or point at `.vmodel/docs/<PROJECT>/ui/<UNT-id>.md`. Do not leave a screen UNT without that record.
 11. When reverse-engineering, follow the `reverse-engineer-units` skill.
 
-Never move functions between components, invent fields, or write tests. Propose only.
+Never move functions between components, invent fields, or write tests. Propose only. When you finish, call `aid-board note <issue> <text> --signer unit-designer` on the Unit design sub-issue (what you did, why, any concern).

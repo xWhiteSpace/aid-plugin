@@ -13,7 +13,22 @@
     "In review": null,
     "Done": null
   },
-  "issues": {},
+  "issues": {
+    "REQ-KTL-001": "example"
+  },
+  "sub_issues": {
+    "REQ-KTL-001": {
+      "Requirements": {"number": "example-s1", "state": "closed", "reason": "completed", "index": 1, "title": "REQ-KTL-001 · Requirements", "owner": "req-guardian"},
+      "Functions": {"number": "example-s2", "state": "closed", "reason": "completed", "index": 2, "title": "REQ-KTL-001 · Functions", "owner": "functional-specs"},
+      "System design": {"number": "example-s3", "state": "closed", "reason": "completed", "index": 3, "title": "REQ-KTL-001 · System design", "owner": "system-designer"},
+      "Unit design": {"number": "example-s4", "state": "closed", "reason": "completed", "index": 4, "title": "REQ-KTL-001 · Unit design", "owner": "unit-designer"},
+      "Code": {"number": "example-s5", "state": "open", "reason": null, "branch": true, "index": 5, "title": "REQ-KTL-001 · Code", "owner": "adept"},
+      "Unit test": {"number": "example-s6", "state": "open", "reason": null, "index": 6, "title": "REQ-KTL-001 · Unit test", "owner": "test-master"},
+      "Integration test": {"number": "example-s7", "state": "open", "reason": null, "index": 7, "title": "REQ-KTL-001 · Integration test", "owner": "test-master"},
+      "System test": {"number": "example-s8", "state": "open", "reason": null, "index": 8, "title": "REQ-KTL-001 · System test", "owner": "test-master"},
+      "Acceptance test": {"number": "example-s9", "state": "open", "reason": null, "index": 9, "title": "REQ-KTL-001 · Acceptance test", "owner": "test-master"}
+    }
+  },
   "status": {
     "REQ-KTL-001": "In progress",
     "REQ-KTL-002": "In progress",
@@ -21,5 +36,5 @@
     "REQ-KTL-004": "In progress",
     "REQ-KTL-005": "In progress"
   },
-  "note": "KTL example is offline. Desired column from SSOT is In progress (published REQ with coded units, no merged PR). board-log.jsonl for REQ-KTL-001 is example data (walk to Done); not a live GitHub Project. Run /board setup in a GitHub repo to fill project ids."
+  "note": "KTL example is offline. Parent column from sub-issues is In progress (stages 1-4 closed, Code open with branch, no merged PR). board-log.jsonl is example data including a full walk to Done. Not a live GitHub Project."
 }
