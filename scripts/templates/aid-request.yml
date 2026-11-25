@@ -1,0 +1,65 @@
+name: A.I.D request
+description: Parent issue. Kind plus What, Why, When, Criteria, and How.
+title: "[A.I.D] "
+labels: []
+body:
+  - type: dropdown
+    id: kind
+    attributes:
+      label: Kind
+      description: Requirement files as SYS.1. Fix files as SUP.9.
+      options:
+        - Requirement
+        - Fix
+    validations:
+      required: true
+  - type: textarea
+    id: what
+    attributes:
+      label: What
+      description: The change a developer will build, or the behavior that is wrong. One to three lines.
+      placeholder: Boil water when Start is pressed.
+    validations:
+      required: true
+  - type: textarea
+    id: why
+    attributes:
+      label: Why
+      description: The person and the moment. One to three lines.
+      placeholder: A person making tea wants hot water without watching the kettle.
+    validations:
+      required: true
+  - type: dropdown
+    id: when
+    attributes:
+      label: When
+      description: The process they want next. This does not set Workflow Status.
+      options:
+        - SYS.2
+        - SYS.3
+        - SWE.1
+        - SWE.2
+        - SWE.3
+        - SWE.4
+        - SWE.5
+        - SWE.6
+        - SYS.4
+        - SYS.5
+    validations:
+      required: true
+  - type: textarea
+    id: criteria
+    attributes:
+      label: Criteria
+      description: A pass or fail check a developer can run. One to three lines.
+      placeholder: Pressing Start heats water until it boils, then heat stops.
+    validations:
+      required: true
+  - type: textarea
+    id: how
+    attributes:
+      label: How
+      description: A few sentences of approach. Not a design and not code steps. One to three lines.
+      placeholder: One button starts a timed heat. Stop when the water boils.
+    validations:
+      required: true

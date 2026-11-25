@@ -1,12 +1,14 @@
 ---
 name: aid-setup
-description: Configure A.I.D for this project. Sets project labels, isolation, per-role models, and a confirmed tool stack (never guessed). Writes .cursor/rules/aid-config.mdc, bootstraps .vmodel/, and publishes TOL entries via tools-manager + ssot-gate. Agent-invoked from the /setup-aid command, or when configuring aid or adding a new project label.
+description: Configure A.I.D for this project. Sets project labels, isolation, per-role models, and a confirmed tool stack (never guessed). Writes .cursor/rules/aid-config.mdc, bootstraps .vmodel/, publishes TOL entries, and creates the GitHub board (issue form, gate Action, Workflow Status kanban). Agent-invoked from the /setup-aid command, or when configuring aid or adding a new project label.
 user-invocable: false
 ---
 
 # /setup-aid
 
-Write `.cursor/rules/aid-config.mdc` in the project repo: an always-applied rule every A.I.D skill and subagent reads. Confirm the **tool stack** so later roles never guess a language or runner.
+This command prepares **this product repo** for `/issue` and the board. It does not install the Cursor plugin. The plugin is already loaded from `~/.cursor/plugins/local/aid-plugin`. Re-copy that folder from the aidBots repo and reload Cursor when the plugin source has changed.
+
+Write `.cursor/rules/aid-config.mdc`: an always-applied rule every A.I.D skill and subagent reads. Confirm the **tool stack** so later roles never guess a language or runner. Then create the GitHub Project, the parent issue form, and the gate Action.
 
 ## 1. Project labels
 Ask for one or more short labels (2 to 5 uppercase letters or digits, e.g. `ACME`). Each label is its own id space: `USR-ACME-001`. If a rule file exists, show its labels and ask what to add or retire. Never rename a label that already has published ids.
@@ -25,7 +27,7 @@ Enumerate the model slugs you can pass to a `Task` subagent in this session. Nev
 | ssot-gate | `inherit-parent` |
 | last-boss | `inherit-parent` |
 | researcher | `inherit-parent` |
-| board-keeper | `inherit-parent` |
+| issue-manager | `inherit-parent` |
 
 Use the exact detected slug for "grok-4.6 with fast on" (it may be spelled like `grok-4.6-fast`). If it is not available, mark the role as needing a choice and ask. Show the table and confirm before writing.
 
@@ -60,13 +62,24 @@ tools-manager: inherit-parent
 ssot-gate: inherit-parent
 last-boss: inherit-parent
 researcher: inherit-parent
-board-keeper: inherit-parent
+issue-manager: inherit-parent
 ```
 
-The `stack` / `tol` lines are the confirmed catalog Adept and Test Master must follow. If a slot is `none`, write `none`.
+The `stack` / `tol` lines are the confirmed catalog Adept and Test Master must follow. If a slot is `none`, write `none`. Do not write a model slug you have not confirmed. A.I.D is this chat (`inherit-parent`). Do not store `gpt-6-luna`.
 
 ## 7. Create `.vmodel/`
 If missing, create the layout in `references/vmodel-schema.md` with empty registries and `graph/meta.json` `{"graph_version": 0, "projects": [...]}`. Suggest committing `.vmodel/` (except `docs/`, which can be rebuilt) to git.
 
+## 8. Board
+Find this plugin's `scripts/vmodel_board.py` (the aid-plugin copy Cursor loaded). From the product repo run:
+
+```
+python3 <plugin>/scripts/vmodel_board.py .vmodel setup
+```
+
+That writes `.github/ISSUE_TEMPLATE/aid-request.yml` and `.github/workflows/aid-gates.yml`, and creates a new Project with Workflow Status (Backlog, Ready, In progress, In review, Done) and one kanban named Board. `gh` must be authenticated for this repo. If `.vmodel/board.json` already has a `project_id`, the script stops and reports that project. If `gh` is missing or the call fails, say so. Do not invent a project id.
+
+Do not open a parent issue here. The person files that with `/issue`.
+
 ## Reply
-Labels, isolation, models, the confirmed stack table, published TOL ids, and the path of `aid-config.mdc`.
+Labels, isolation, models, the confirmed stack table, published TOL ids, the path of `aid-config.mdc`, the board project id or the reason it was not created, and the paths of the issue form and the gate workflow. Tell the person the next command is `/issue`.

@@ -1,12 +1,12 @@
 ---
 name: aid-ssot-slice
-description: Build a small offline JSON slice of the .vmodel/ SSOT around one USR/REQ/FNC/CMP/UNT/TST id (2-hop neighbors on graph/edges.json, registry entries, project TOL, lint for those ids). Agent-invoked from /usr; not a slash command.
+description: Build a small offline JSON slice of the .vmodel/ SSOT around one USR/REQ/FNC/CMP/UNT/TST id (2-hop neighbors on graph/edges.json, registry entries, project TOL, lint for those ids). Agent-invoked from /issue; not a slash command.
 user-invocable: false
 ---
 
 # Lean SSOT slice
 
-Each agent at each `/usr` stage starts from a **slice** for its REQ (or the id it was given). Do not load the full registries by default. Readable offline; no network.
+Each agent at each `/issue` stage starts from a **slice** for its REQ (or the id it was given). Do not load the full registries by default. Readable offline; no network.
 
 ## Build
 
@@ -22,7 +22,7 @@ The JSON has that node, neighbors in range, chain-adjacent INT/TST, live project
 
 ## When
 
-- `/usr` runner: after Gate 1, slice the new REQ(s) and hand the JSON to every downstream role (and to Last Boss for the light per-stage check).
+- `/issue` runner: after Gate 1, slice the new REQ(s) and hand the JSON to every downstream role (and to Last Boss for the light per-stage check).
 - Any role that was given only an id: run this before designing.
 - **Wider or full:** if a decision needs a neighbor outside the slice, ask `ssot-gate` for `--hops N` or the full graph (`registries/` + `graph/edges.json`). Do not guess missing nodes.
 

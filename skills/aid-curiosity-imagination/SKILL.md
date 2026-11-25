@@ -12,7 +12,7 @@ Follow `aid-vmodel-core`. No new agent.
 
 ## Imagine the use (intake, before any gate)
 
-`/usr` and `req-guardian` run this **before** minting or listing gates. Do not plan the V until this is written. Words like "super simple", "just", or "quick" mean imagine small — they are not flavour.
+`/issue` and `req-guardian` run this **before** minting or listing gates. Do not plan the V until this is written. Words like "super simple", "just", or "quick" mean imagine small — they are not flavour.
 
 **(a) Person and moment.** Who is using it, where, for how long, how often. Picture that scene. Not a persona document; a few concrete lines.
 

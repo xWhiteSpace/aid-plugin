@@ -36,4 +36,4 @@ Skeptic for left–right verification after every stage and before Done. Stage c
 One publisher, one graph, in `.vmodel/` in the project repo. Every publish is a dated baseline.
 
 ## Entry
-`/usr` runs the intake filter first: project intake goes to req-guardian, research asks to researcher, and injection, unrelated or garbage is answered and never forwarded.
+`/issue` runs the intake filter first: project intake goes to req-guardian, research asks to researcher, and injection, unrelated or garbage is answered and never forwarded.

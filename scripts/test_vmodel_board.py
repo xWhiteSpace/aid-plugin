@@ -13,12 +13,60 @@ from vmodel_board import (  # noqa: E402
     desired_column, format_block, format_note, format_parent_dashboard,
     format_sub_dashboard, format_system, link_reqs, log_matches, next_column,
     plan_rows, proof_ok, read_log, req_facts, resolve_usr, sign_comment,
-    skipped_stages, usr_facts,
+    skipped_stages, usr_facts, check_parent, processes_for, PROCESS_ORDER,
+    gate_effect, cmd_attach, cmd_gate, cmd_setup, LANE_PROCESSES,
 )
 from vmodel_common import load  # noqa: E402
 
-KETTLE = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
-                      "examples", "electric-kettle", ".vmodel")
+def write_min_ssot(root):
+    os.makedirs(os.path.join(root, "registries"))
+    os.makedirs(os.path.join(root, "graph"))
+    usr = {
+        "USR-KTL-001": {
+            "id": "USR-KTL-001", "kind": "USR", "project": "KTL",
+            "title": "Boil water", "statement": "Boil water at the press of a button.",
+            "status": "published", "effort": {"lane": "tiny"},
+        }
+    }
+    req = {
+        "REQ-KTL-001": {
+            "id": "REQ-KTL-001", "kind": "REQ", "project": "KTL",
+            "title": "Boil water", "statement": "Pressing Start heats water until it boils.",
+            "status": "published",
+        }
+    }
+    fnc = {
+        "FNC-KTL-001": {
+            "id": "FNC-KTL-001", "kind": "FNC", "project": "KTL",
+            "title": "Start heat", "statement": "Start heats the water.",
+            "status": "published",
+        }
+    }
+    unt = {
+        "UNT-KTL-001": {
+            "id": "UNT-KTL-001", "kind": "UNT", "project": "KTL",
+            "title": "start_guard", "statement": "Heater runs when start is pressed.",
+            "status": "published", "source_files": ["src/start_guard.py"],
+        }
+    }
+    edges = [
+        {"from": "REQ-KTL-001", "to": "USR-KTL-001", "type": "derives"},
+        {"from": "FNC-KTL-001", "to": "REQ-KTL-001", "type": "implements"},
+        {"from": "UNT-KTL-001", "to": "FNC-KTL-001", "type": "refines"},
+        {"from": "UNT-KTL-001", "to": "src/start_guard.py", "type": "coded_in"},
+    ]
+    pairs = (
+        ("usr.json", usr), ("req.json", req), ("fnc.json", fnc), ("unt.json", unt),
+    )
+    for name, data in pairs:
+        with open(os.path.join(root, "registries", name), "w", encoding="utf-8") as f:
+            json.dump(data, f)
+    with open(os.path.join(root, "graph", "edges.json"), "w", encoding="utf-8") as f:
+        json.dump(edges, f)
+    with open(os.path.join(root, "graph", "meta.json"), "w", encoding="utf-8") as f:
+        json.dump({"graph_version": 1, "projects": ["KTL"]}, f)
+    with open(os.path.join(root, "board.json"), "w", encoding="utf-8") as f:
+        json.dump({"status": {}, "sub_issues": {}, "issues": {}}, f)
 
 
 class NextColumn(unittest.TestCase):
@@ -100,8 +148,16 @@ class Subs(unittest.TestCase):
 
 
 class Kettle(unittest.TestCase):
+    def setUp(self):
+        self.tmp = tempfile.mkdtemp()
+        self.root = os.path.join(self.tmp, ".vmodel")
+        write_min_ssot(self.root)
+
+    def tearDown(self):
+        shutil.rmtree(self.tmp)
+
     def test_ktl_001_in_progress(self):
-        nodes, edges, _ = load(KETTLE)
+        nodes, edges, _ = load(self.root)
         facts = req_facts(nodes, edges, "REQ-KTL-001")
         self.assertTrue(facts["published"])
         self.assertTrue(facts["coding_started"])
@@ -118,21 +174,6 @@ class Kettle(unittest.TestCase):
         self.assertNotIn("REQ-KTL-001", rows)
         self.assertEqual(next_column(None, rows["USR-KTL-001"]["desired"]), "Backlog")
 
-    def test_sample_trail_covers_v(self):
-        rows = [r for r in read_log(KETTLE) if log_matches(r, "USR-KTL-001")]
-        stages = [r["stage"] for r in rows
-                  if r.get("stage") and (r.get("kind") or KIND_SYSTEM) == KIND_SYSTEM]
-        self.assertEqual(stages, PHASES)
-        self.assertTrue(all(r.get("usr") == "USR-KTL-001" for r in rows))
-        self.assertTrue(all("REQ-KTL-001" in (r.get("reqs") or []) for r in rows))
-        self.assertTrue(all(r.get("sub_issue") for r in rows if r.get("stage") and r.get("kind") != KIND_NOTE))
-        parent = [r["to"] for r in rows
-                  if not r.get("stage") and (r.get("kind") or KIND_SYSTEM) == KIND_SYSTEM
-                  and r.get("from") != r.get("to")]
-        self.assertEqual(parent, COLUMNS)
-        notes = [r for r in rows if r.get("kind") == KIND_NOTE]
-        self.assertTrue(notes)
-
     def test_amend_links_earlier_parent(self):
         board = {}
         link_reqs(board, "USR-KTL-001", ["REQ-KTL-001"])
@@ -144,7 +185,7 @@ class Kettle(unittest.TestCase):
 class Comment(unittest.TestCase):
     def test_sign(self):
         self.assertIn("— A.I.D", sign_comment("hello", "AID"))
-        self.assertIn("— Board Keeper", sign_comment("moved", "board-keeper"))
+        self.assertIn("— Issue Manager", sign_comment("moved", "issue-manager"))
         self.assertIn("— Adept", sign_comment("coded start_guard", "adept"))
 
     def test_block_labels(self):
@@ -158,7 +199,7 @@ class Comment(unittest.TestCase):
         sys_body = format_system(body, "board-keeper")
         self.assertTrue(sys_body.startswith(MARKER_SYSTEM))
         self.assertIn("[system]", sys_body)
-        self.assertIn("— Board Keeper", sys_body)
+        self.assertIn("— Issue Manager", sys_body)
 
     def test_note_marker(self):
         body = format_note("Coded start_guard. Concern: no dry-run log.", "adept")
@@ -211,16 +252,7 @@ class EventLog(unittest.TestCase):
     def setUp(self):
         self.tmp = tempfile.mkdtemp()
         self.root = os.path.join(self.tmp, ".vmodel")
-        shutil.copytree(KETTLE, self.root)
-        with open(os.path.join(self.root, "board-log.jsonl"), "w", encoding="utf-8"):
-            pass
-        path = os.path.join(self.root, "board.json")
-        with open(path, encoding="utf-8") as f:
-            board = json.load(f)
-        board["status"] = {}
-        board["sub_issues"] = {}
-        with open(path, "w", encoding="utf-8") as f:
-            json.dump(board, f)
+        write_min_ssot(self.root)
 
     def tearDown(self):
         shutil.rmtree(self.tmp)
@@ -277,6 +309,177 @@ class EventLog(unittest.TestCase):
         self.assertTrue(all(MARKER_SYSTEM in b for b in sys_only["rendered"]))
         self.assertTrue(all(MARKER_NOTE in b for b in notes_only["rendered"]))
         self.assertEqual(len(notes_only["entries"]), 1)
+
+
+GOOD = """### Kind
+Requirement
+
+### What
+Boil water
+
+### Why
+A person making tea
+
+### When
+SWE.3
+
+### Criteria
+Water boils then heat stops
+
+### How
+One button starts a timed heat
+"""
+
+
+class ParentForm(unittest.TestCase):
+    def test_five_fields_pass(self):
+        out = check_parent(GOOD, allowed=["SWE.3", "SWE.4"])
+        self.assertTrue(out["ok"])
+        self.assertEqual(out["kind"], "SYS.1")
+
+    def test_missing_heading(self):
+        body = GOOD.replace("### Why\nA person making tea\n", "")
+        out = check_parent(body)
+        self.assertFalse(out["ok"])
+        self.assertIn("missing Why", out["errors"])
+
+    def test_fourth_line(self):
+        body = GOOD.replace("### What\nBoil water\n", "### What\nBoil water\nline two\nline three\nline four\n")
+        out = check_parent(body)
+        self.assertFalse(out["ok"])
+        self.assertTrue(any("What" in e for e in out["errors"]))
+
+    def test_when_outside_ten(self):
+        body = GOOD.replace("SWE.3", "tomorrow")
+        out = check_parent(body)
+        self.assertFalse(out["ok"])
+        self.assertIn("When is not a process id", out["errors"])
+
+    def test_when_not_on_list(self):
+        out = check_parent(GOOD, allowed=["SWE.4"])
+        self.assertFalse(out["ok"])
+        self.assertIn("When is not on the process list", out["errors"])
+
+    def test_lanes(self):
+        self.assertEqual(processes_for("tiny"), ["SWE.3", "SWE.4"])
+        self.assertEqual(processes_for("large"), PROCESS_ORDER)
+        self.assertEqual(len(LANE_PROCESSES["large"]), 10)
+
+    def test_requirement_and_fix(self):
+        tmp = tempfile.mkdtemp()
+        root = os.path.join(tmp, ".vmodel")
+        os.makedirs(root)
+        with open(os.path.join(root, "board.json"), "w", encoding="utf-8") as f:
+            json.dump({"nwo": "me/app"}, f)
+        req = cmd_attach(root, 12, "USR-APP-001", "Requirement",
+                         ["SWE.3", "SWE.4"], what="Boil water")
+        self.assertEqual(req["kind"], "SYS.1")
+        self.assertEqual(req["processes"], ["SWE.3", "SWE.4"])
+        self.assertEqual(req["title"], "USR-APP-001 · Boil water")
+        fix = cmd_attach(root, 13, "USR-APP-002", "Fix",
+                         ["SWE.3", "SWE.4"], what="Heat never stops")
+        self.assertEqual(fix["kind"], "SUP.9")
+        self.assertNotIn("SYS.2", fix["processes"])
+        self.assertTrue(fix["title"].startswith("SUP.9 ·"))
+        shutil.rmtree(tmp)
+
+    def test_gate_token(self):
+        self.assertFalse(gate_effect("please start", "AID", "Backlog")["moved"])
+        accept = gate_effect("/gate-Parent-accept\nkind SYS.1", "AID", "Backlog")
+        self.assertFalse(accept["moved"])
+        leave = gate_effect("/gate-Parent-breakdown\nSWE.3 SWE.4", "AID", "Backlog")
+        self.assertTrue(leave["moved"])
+        self.assertEqual(leave["to"], "Ready")
+        wrong = gate_effect("/gate-Parent-breakdown\n", "adept", "Backlog")
+        self.assertFalse(wrong["moved"])
+
+    def test_breakdown_leaves_backlog(self):
+        tmp = tempfile.mkdtemp()
+        root = os.path.join(tmp, ".vmodel")
+        os.makedirs(root)
+        with open(os.path.join(root, "board.json"), "w", encoding="utf-8") as f:
+            json.dump({"issues": {}, "nwo": "me/app"}, f)
+        cmd_attach(root, 12, "USR-APP-001", "Requirement", ["SWE.3", "SWE.4"], what="Boil water")
+        out = cmd_gate(root, "/gate-Parent-breakdown\nSWE.3, SWE.4", signer="AID", issue=12)
+        self.assertTrue(out["moved"])
+        self.assertEqual(out["column"], "Ready")
+        with open(os.path.join(root, "board.json"), encoding="utf-8") as f:
+            board = json.load(f)
+        self.assertEqual(board["sub_issues"]["USR-APP-001"]["SWE.3"]["column"], "Ready")
+        self.assertEqual(board["sub_issues"]["USR-APP-001"]["SWE.4"]["column"], "Backlog")
+        board["sub_issues"]["USR-APP-001"]["SWE.3"]["number"] = 44
+        board["sub_issues"]["USR-APP-001"]["SWE.3"]["column"] = "In progress"
+        with open(os.path.join(root, "board.json"), "w", encoding="utf-8") as f:
+            json.dump(board, f)
+        noted = cmd_note(root, 44, "Heat path is in.", "adept", gh=False)
+        self.assertTrue(noted["moved"])
+        with open(os.path.join(root, "board.json"), encoding="utf-8") as f:
+            board = json.load(f)
+        self.assertEqual(board["sub_issues"]["USR-APP-001"]["SWE.3"]["column"], "In review")
+        self.assertEqual(board["status"]["USR-APP-001"], "In review")
+        shutil.rmtree(tmp)
+
+
+class KanbanSetup(unittest.TestCase):
+    def _runner(self, calls):
+        def runner(argv, stderr=None):
+            calls.append(argv)
+            joined = " ".join(argv)
+            if "view" in argv and "repo" in argv:
+                return json.dumps({
+                    "owner": {"login": "me"}, "name": "app", "nameWithOwner": "me/app",
+                })
+            if "createProjectV2" in joined:
+                return json.dumps({"data": {"createProjectV2": {"projectV2": {
+                    "id": "PVT_1", "number": 3, "url": "https://example"}}}})
+            if "repository(owner:" in joined:
+                return json.dumps({"data": {"repository": {"id": "R_1", "owner": {"id": "O_1"}}}})
+            if "groupByFields" in joined:
+                return json.dumps({"data": {"node": {
+                    "fields": {"nodes": [{"id": "F_1", "name": "Status", "options": [
+                        {"id": "o", "name": "Backlog"}]}]},
+                    "views": {"nodes": [{"id": "V_1", "name": "View 1", "layout": "TABLE_LAYOUT",
+                                         "groupByFields": {"nodes": [{"name": "Status"}]}}]},
+                }}})
+            if "updateProjectV2View" in joined:
+                return json.dumps({"data": {"updateProjectV2View": {"projectV2View": {
+                    "id": "V_1", "name": "Board", "layout": "BOARD_LAYOUT"}}}})
+            if "updateProjectV2Field" in joined:
+                return json.dumps({"data": {"updateProjectV2Field": {"projectV2Field": {
+                    "id": "F_1", "name": "Workflow Status",
+                    "options": [{"id": "a", "name": c} for c in COLUMNS]}}}})
+            return json.dumps({"data": {}})
+        return runner
+
+    def test_create_sends_graphql(self):
+        tmp = tempfile.mkdtemp()
+        root = os.path.join(tmp, ".vmodel")
+        os.makedirs(root)
+        calls = []
+        out = cmd_setup(root, runner=self._runner(calls))
+        blob = "\n".join(" ".join(c) for c in calls)
+        self.assertIn("createProjectV2", blob)
+        self.assertIn("Workflow Status", blob)
+        self.assertIn("BOARD_LAYOUT", blob)
+        self.assertTrue(out["created"])
+        self.assertEqual(out["field"], "Workflow Status")
+        self.assertFalse(out["grouped_by_workflow_status"])
+        self.assertTrue(os.path.isfile(os.path.join(tmp, ".github", "ISSUE_TEMPLATE", "aid-request.yml")))
+        self.assertTrue(os.path.isfile(os.path.join(tmp, ".github", "workflows", "aid-gates.yml")))
+        shutil.rmtree(tmp)
+
+    def test_existing_project_does_not_create(self):
+        tmp = tempfile.mkdtemp()
+        root = os.path.join(tmp, ".vmodel")
+        os.makedirs(root)
+        with open(os.path.join(root, "board.json"), "w", encoding="utf-8") as f:
+            json.dump({"project_id": "PVT_9", "project_number": 9}, f)
+        calls = []
+        out = cmd_setup(root, runner=self._runner(calls))
+        self.assertTrue(out["already"])
+        self.assertFalse(out["created"])
+        self.assertEqual(calls, [])
+        shutil.rmtree(tmp)
 
 
 if __name__ == "__main__":

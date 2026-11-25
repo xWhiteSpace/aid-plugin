@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.13.0 — 2026-11-25
+
+- `/issue` is the only start. `/usr` is gone. A.I.D asks the person and the Engineer AI Agents the same five questions, then files a parent as SYS.1 (requirement) or SUP.9 (fix).
+- Issue Manager (`/issue-manager`) replaces Board Keeper. Its job is to empty Backlog. Setup creates a new Project with GraphQL, renames Status to Workflow Status, and sets the only view to a kanban named Board.
+- Sub-issues are the ten Automotive SPICE processes A.I.D names, not nine fixed stages. A tiny list opens SWE.3 and SWE.4. A large list opens all ten.
+- Column moves happen only when a comment's first line is a `/gate-` token and the signer is allowed. The GitHub Action calls the Issue Manager. Agents do not move Workflow Status.
+- Tests: `python3 -m unittest scripts/test_vmodel_board.py`.
+- `/setup-aid` also creates the board: issue form, gate Action, and the Workflow Status kanban. The next command is `/issue`.
+
 ## 0.12.0 — 2026-11-12
 
 - Board unit is one parent issue per customer request (`USR-XXX-NNN · <request in the user's words>`), not per REQ. Exactly nine stage sub-issues cover every node from that request. REQ ids are labels and dashboard rows.

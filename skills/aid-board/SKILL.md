@@ -1,41 +1,48 @@
 ---
 name: aid-board
-description: GitHub Project (v2) board for A.I.D. Parent issue plus nine V-stage sub-issues, dashboards, system comments, and agent notes. Agent-invoked from /board and by Board Keeper or the A.I.D runner.
+description: GitHub Project (v2) for A.I.D. The Issue Manager empties Backlog. Parent issue plus the process sub-issues A.I.D names. Agent-invoked from /issue-manager.
 user-invocable: false
 ---
 
 # Board (GitHub Project v2)
 
-The board is a **view** of SSOT plus GitHub. Only **Board Keeper** writes dashboards and system comments. Engineering agents post **notes**. ssot-gate does not write board files.
+The board is a **view** of SSOT plus GitHub. Only the **Issue Manager** writes dashboards, system comments, and Workflow Status. Engineer AI Agents post signed notes. They do not move a card.
 
-One **parent** issue per `/usr` request (USR). Nine **sub-issues** (native GitHub sub-issues: `POST /repos/{owner}/{repo}/issues/{n}/sub_issues` or GraphQL `addSubIssue`), always in this order: 1 Requirements, 2 Functions, 3 System design, 4 Unit design, 5 Code, 6 Unit test, 7 Integration test, 8 System test, 9 Acceptance test. Title `USR-XXX-NNN · <stage>`. Each stage covers every node from that request. REQ ids are labels and dashboard rows, not issues. Lane skips and `empty_test_levels` still create the sub-issue, then close it as **not planned** with a one-line reason. Amendments attach to a new parent; the dashboard marks amended REQs with a link to the earlier parent.
+The six Engineer AI Agents and the sub-issues they own:
 
-Parent column: Backlog until stage 1 is closed; Ready when 1–4 closed; In progress when 5 is open with a branch; In review when a PR is open; Done only when all 9 are closed (completed or not planned), **every REQ acceptance test is passing**, and the PR(s) are merged.
+- `req-guardian` — SYS.2, SWE.1
+- `system-designer` — SYS.3, SWE.2
+- `unit-designer` and `adept` — SWE.3, one shared sub-issue
+- `test-master` — SWE.4, SWE.5, SWE.6, SYS.4, SYS.5. Test Engineer on In review. Black box: What, Why, Criteria, and the result. Does not look at code.
+- `functional-specs` notes on SYS.2 and SYS.3 when that degree opens them. No sub-issue of its own.
 
-## Setup
+`ssot-gate` publishes, `researcher` briefs, and `tools-manager` approves tools. They may post a signed note. They do not change Workflow Status. Last Boss and the Test Engineer may raise an issue. A.I.D tells the Issue Manager, and that issue starts in Backlog.
+
+A parent is SYS.1 (requirement) or SUP.9 (fix). Sub-issues open only for the processes A.I.D names, in this order: SYS.2, SYS.3, SWE.1, SWE.2, SWE.3, SWE.4, SWE.5, SWE.6, SYS.4, SYS.5. Title `USR-XXX-NNN · SYS.2 System Requirements Analysis`. A process not on the list is a dashboard row, not an issue. VAL.1 is Criteria on the parent.
+
+Workflow Status: Backlog, Ready, In progress, In review, Done. Never skip. No proof, no move. The proof is a `/gate-` comment whose first line is the token. The Action calls this script. Agents do not set the column themselves.
+
+- `/gate-Parent-accept` — A.I.D. Does not leave Backlog.
+- `/gate-Parent-breakdown` — A.I.D, with the process list. Opens those sub-issues and moves the parent and the next sub-issue to Ready.
+- `/gate-Sub-issue-start` — the owning Engineer AI. Sub-issue and parent go to In progress.
+- `/gate-Sub-issue-review-accept` — Test Engineer. Pass moves the sub-issue to Done. `fail` opens a new Backlog issue linked to that comment.
+- `/gate-PR-accept` — Test Engineer, on the pull request. Merges only when every opened sub-issue is already Done, then the parent can be Done.
+
+## Commands
 
 ```
 python3 <plugin>/scripts/vmodel_board.py .vmodel setup
+python3 <plugin>/scripts/vmodel_board.py .vmodel check --body "..." --allowed SWE.3,SWE.4
+python3 <plugin>/scripts/vmodel_board.py .vmodel attach 12 USR-APP-001 --kind Requirement --processes SWE.3,SWE.4 --what "Boil water"
+python3 <plugin>/scripts/vmodel_board.py .vmodel gate --body "/gate-Parent-breakdown" --issue 12 --signer AID
+python3 <plugin>/scripts/vmodel_board.py .vmodel note 101 "what I did, why, concern" --signer adept --req USR-APP-001 --phase SWE.3
+python3 <plugin>/scripts/vmodel_board.py .vmodel trail USR-APP-001
 ```
 
-## Events, trail, notes
+## Comments
 
-Phase trail (system block) goes on the **stage sub-issue**; the sub-issue closes when that phase is proven. Parent gets one system summary per **column move**; parent **Back** is the latest sub-issue system comment.
+1. **Dashboard** (`<!-- aid-dashboard -->`) — edited in place. Parent lists all ten processes. A process with no sub-issue says so.
+2. **System** (`<!-- aid-system -->`, starts with `[system]`) — Issue Manager. Column moves and gate results.
+3. **Note** (`<!-- aid-note -->`) — one engineer, 1–3 lines, signed. Never edit another agent's comment.
 
-```
-python3 <plugin>/scripts/vmodel_board.py .vmodel event phase USR-KTL-001 --phase Functions --proof "baseline g1" --who "functional-specs ; SSOT Gate published" --changed FNC-KTL-001
-python3 <plugin>/scripts/vmodel_board.py .vmodel note 101 "what I did, why, concern" --signer adept --req USR-KTL-001 --phase Code
-python3 <plugin>/scripts/vmodel_board.py .vmodel trail USR-KTL-001
-python3 <plugin>/scripts/vmodel_board.py .vmodel trail REQ-KTL-001 --system
-python3 <plugin>/scripts/vmodel_board.py .vmodel trail USR-KTL-001 --notes
-```
-
-`/board trail` walks **parent then sub-issues in stage order**. Backtrack reads **system** comments only.
-
-## Two comment kinds
-
-1. **Dashboard** (`<!-- aid-dashboard -->`) — first comment on parent and on each sub-issue, **edited in place** (never reposted). Parent: USR + request, column, REQ table (id, sentence, stage reached, acceptance TST, proof, earlier parent), table of 9 stages, PR, updated time. Sub-issue: stage, owner, status, node ids in scope with status, proof, gate, parent link.
-2. **System** (`<!-- aid-system -->`, starts with `[system]`) — machine trail block for column move, stage open/close, gate, PR, test run. Board Keeper / this script.
-3. **Note** (`<!-- aid-note -->`) — free plain words, signed with the agent name. Every engineering agent posts at least one when it finishes its stage (`note <issue> <text> --signer <agent>`). Last Boss notes include challenge and verdict.
-
-`.vmodel/board-log.jsonl` fields include `usr`, `reqs`, `stage` and `sub_issue`. `/board trail` accepts a USR or REQ id (REQ resolves to its parent).
+`.vmodel/board-log.jsonl` copies the same lines. Signer label is Issue Manager.

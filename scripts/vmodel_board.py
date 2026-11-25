@@ -1,14 +1,16 @@
 #!/usr/bin/env python3
-"""Board view of SSOT + GitHub. Not an SSOT publisher.
+"""Board view of SSOT + GitHub. The Issue Manager is not an SSOT publisher.
 
-One parent issue per USR (/usr request); nine stage sub-issues covering
-every node from that request. REQ ids are labels/rows, not issues.
+A parent is SYS.1 (requirement) or SUP.9 (fix). Sub-issues are the
+Automotive SPICE processes A.I.D names. Workflow Status moves only on a
+/gate- comment. The manager's job is to empty Backlog.
 
 Usage:
-  python3 vmodel_board.py .vmodel status
   python3 vmodel_board.py .vmodel setup [--owner LOGIN] [--title TITLE]
-  python3 vmodel_board.py .vmodel apply [--gh] --proof TEXT [--phase P] ...
-  python3 vmodel_board.py .vmodel event KIND USR-or-REQ --proof TEXT [--phase P] ...
+  python3 vmodel_board.py .vmodel check --body TEXT [--allowed SWE.3,SWE.4]
+  python3 vmodel_board.py .vmodel attach ISSUE USR --kind Requirement --processes SWE.3,SWE.4 --what TEXT
+  python3 vmodel_board.py .vmodel gate --body TEXT --issue N [--signer AID]
+  python3 vmodel_board.py .vmodel status
   python3 vmodel_board.py .vmodel note ISSUE TEXT --signer AGENT [--req ID]
   python3 vmodel_board.py .vmodel trail USR-or-REQ [--system|--notes]
 """
@@ -58,7 +60,7 @@ BOARD_FILE = "board.json"
 LOG_FILE = "board-log.jsonl"
 DEFAULT_TITLE = "A.I.D board"
 SIGNERS = {
-    "AID": "A.I.D", "board-keeper": "Board Keeper",
+    "AID": "A.I.D", "board-keeper": "Issue Manager", "issue-manager": "Issue Manager",
     "req-guardian": "Req Guardian", "functional-specs": "Functional Specs",
     "system-designer": "System Designer", "unit-designer": "Unit Designer",
     "adept": "Adept", "test-master": "Test Master", "last-boss": "Last Boss",
@@ -76,6 +78,55 @@ KIND_DASHBOARD = "dashboard"
 MARKER_DASHBOARD = "<!-- aid-dashboard -->"
 MARKER_SYSTEM = "<!-- aid-system -->"
 MARKER_NOTE = "<!-- aid-note -->"
+PROCESS_ORDER = [
+    "SYS.2", "SYS.3", "SWE.1", "SWE.2", "SWE.3",
+    "SWE.4", "SWE.5", "SWE.6", "SYS.4", "SYS.5",
+]
+PROCESS_TITLES = {
+    "SYS.2": "System Requirements Analysis",
+    "SYS.3": "System Architectural Design",
+    "SWE.1": "Software Requirements Analysis",
+    "SWE.2": "Software Architectural Design",
+    "SWE.3": "Software Detailed Design and Unit Construction",
+    "SWE.4": "Software Unit Verification",
+    "SWE.5": "Software Component Verification and Integration Verification",
+    "SWE.6": "Software Verification",
+    "SYS.4": "System Integration and Integration Verification",
+    "SYS.5": "System Verification",
+}
+PROCESS_OWNERS = {
+    "SYS.2": "req-guardian",
+    "SYS.3": "system-designer",
+    "SWE.1": "req-guardian",
+    "SWE.2": "system-designer",
+    "SWE.3": "unit-designer, adept",
+    "SWE.4": "test-master",
+    "SWE.5": "test-master",
+    "SWE.6": "test-master",
+    "SYS.4": "test-master",
+    "SYS.5": "test-master",
+}
+LANE_PROCESSES = {
+    "tiny": ["SWE.3", "SWE.4"],
+    "small": ["SWE.1", "SWE.3", "SWE.4", "SWE.6"],
+    "standard": ["SWE.1", "SWE.2", "SWE.3", "SWE.4", "SWE.5", "SWE.6"],
+    "large": list(PROCESS_ORDER),
+}
+PARENT_PROCESS = {"Requirement": "SYS.1", "Fix": "SUP.9", "SYS.1": "SYS.1", "SUP.9": "SUP.9"}
+FIELD_HEADINGS = ["What", "Why", "When", "Criteria", "How"]
+GATE_PARENT_ACCEPT = "/gate-Parent-accept"
+GATE_PARENT_BREAKDOWN = "/gate-Parent-breakdown"
+GATE_SUB_START = "/gate-Sub-issue-start"
+GATE_SUB_REVIEW = "/gate-Sub-issue-review-accept"
+GATE_PR_ACCEPT = "/gate-PR-accept"
+GATE_SIGNERS = {
+    GATE_PARENT_ACCEPT: {"AID", "issue-manager"},
+    GATE_PARENT_BREAKDOWN: {"AID", "issue-manager"},
+    GATE_SUB_START: {"req-guardian", "functional-specs", "system-designer",
+                     "unit-designer", "adept", "test-master"},
+    GATE_SUB_REVIEW: {"test-master"},
+    GATE_PR_ACCEPT: {"test-master"},
+}
 
 
 def board_path(root):
@@ -423,7 +474,7 @@ def format_block(req_id, current, nxt, phase, who, changed, next_step, proof, ba
     ])
 
 
-def format_system(block, signer="board-keeper"):
+def format_system(block, signer="issue-manager"):
     return "%s\n[system]\n%s" % (MARKER_SYSTEM, sign_comment(block, signer))
 
 
@@ -476,13 +527,19 @@ def format_parent_dashboard(usr_id, statement, column, stages, pr, updated, reqs
         "| # | Stage | Status | Owner | Proof | Issue |",
         "|---|---|---|---|---|---|",
     ])
-    for i, phase in enumerate(PHASES, 1):
+    order = list(PROCESS_ORDER)
+    for phase in stages or {}:
+        if phase not in order:
+            order.append(phase)
+    for i, phase in enumerate(order, 1):
         rec = (stages or {}).get(phase) or {}
         issue = rec.get("number")
         link = "#%s" % issue if issue not in (None, "example") else (issue or "-")
+        status = stage_status(rec) if rec else "not in this degree"
+        owner = rec.get("owner") or PROCESS_OWNERS.get(phase) or STAGE_OWNERS.get(phase)
+        label = "%s %s" % (phase, PROCESS_TITLES[phase]) if phase in PROCESS_TITLES else phase
         lines.append("| %s | %s | %s | %s | %s | %s |" % (
-            i, phase, stage_status(rec), rec.get("owner") or STAGE_OWNERS.get(phase),
-            rec.get("proof") or "-", link))
+            i, label, status, owner or "-", rec.get("proof") or "-", link))
     lines.append("")
     lines.append("Updated: %s" % (updated or now_iso()))
     return "\n".join(lines)
@@ -548,18 +605,156 @@ def repo_ids(runner=None):
     }
 
 
-def find_or_create_project(owner, title, runner=None):
-    listing = gh_json(
-        ["project", "list", "--owner", owner, "--limit", "50", "--format", "json"],
-        runner=runner)
-    nodes = listing if isinstance(listing, list) else (listing.get("projects") or listing.get("items") or [])
-    for p in nodes:
-        if p.get("title") == title:
-            return p
-    created = gh_json(
-        ["project", "create", "--owner", owner, "--title", title, "--format", "json"],
-        runner=runner)
-    return created
+def processes_for(lane=None, named=None):
+    if named:
+        wanted = []
+        for pid in named:
+            pid = (pid or "").strip()
+            if pid in PROCESS_TITLES and pid not in wanted:
+                wanted.append(pid)
+        return [p for p in PROCESS_ORDER if p in wanted]
+    return list(LANE_PROCESSES.get(lane or "") or [])
+
+
+def _sections(body):
+    found = {}
+    current = None
+    buf = []
+
+    def flush():
+        if current:
+            lines = [ln.strip() for ln in buf if ln.strip()]
+            found[current] = lines
+
+    for raw in (body or "").splitlines():
+        line = raw.strip()
+        heading = None
+        if line.startswith("### "):
+            heading = line[4:].strip()
+        elif line.startswith("**") and line.endswith("**") and len(line) > 4:
+            heading = line.strip("*").strip()
+        if heading in FIELD_HEADINGS or heading in ("Kind",):
+            flush()
+            current = heading
+            buf = []
+            continue
+        if current:
+            buf.append(raw)
+    flush()
+    return found
+
+
+def check_parent(body, allowed=None):
+    sections = _sections(body)
+    errors = []
+    kind_lines = sections.get("Kind") or []
+    kind_raw = kind_lines[0] if kind_lines else ""
+    parent = PARENT_PROCESS.get(kind_raw)
+    if not parent:
+        errors.append("Kind must be Requirement or Fix")
+    for heading in FIELD_HEADINGS:
+        lines = sections.get(heading) or []
+        if not lines:
+            errors.append("missing %s" % heading)
+        elif len(lines) > 3:
+            errors.append("%s is longer than 3 lines" % heading)
+    when = (sections.get("When") or [""])[0]
+    if when and when not in PROCESS_TITLES:
+        errors.append("When is not a process id")
+    if allowed is not None and when and when not in allowed:
+        errors.append("When is not on the process list")
+    what = (sections.get("What") or [""])[0]
+    return {
+        "ok": not errors,
+        "errors": errors,
+        "kind": parent,
+        "when": when,
+        "what": what,
+        "sections": sections,
+    }
+
+
+def gate_line(body):
+    for raw in (body or "").splitlines():
+        line = raw.strip()
+        if line:
+            return line
+    return ""
+
+
+def gate_effect(body, signer, column):
+    line = gate_line(body)
+    fail = line == GATE_SUB_REVIEW + " fail"
+    token = GATE_SUB_REVIEW if fail else line
+    allowed = GATE_SIGNERS.get(token)
+    if not allowed:
+        return {"moved": False, "reason": "not a gate"}
+    if signer not in allowed and SIGNERS.get(signer) not in {SIGNERS[s] for s in allowed if s in SIGNERS}:
+        return {"moved": False, "reason": "signer", "token": token}
+    column = column or "Backlog"
+    if token == GATE_PARENT_ACCEPT:
+        if column != "Backlog":
+            return {"moved": False, "reason": "column", "token": token}
+        return {"moved": False, "accepted": True, "token": token, "column": "Backlog"}
+    if token == GATE_PARENT_BREAKDOWN:
+        if column != "Backlog":
+            return {"moved": False, "reason": "column", "token": token}
+        return {"moved": True, "token": token, "to": "Ready", "open": True}
+    if token == GATE_SUB_START:
+        if column != "Ready":
+            return {"moved": False, "reason": "column", "token": token}
+        return {"moved": True, "token": token, "to": "In progress"}
+    if token == GATE_SUB_REVIEW:
+        if column != "In review":
+            return {"moved": False, "reason": "column", "token": token}
+        if fail:
+            return {"moved": False, "token": token, "fail": True, "raise_backlog": True}
+        return {"moved": True, "token": token, "to": "Done"}
+    if token == GATE_PR_ACCEPT:
+        return {"moved": True, "token": token, "to": "Done", "merge": True}
+    return {"moved": False, "reason": "not a gate"}
+
+
+def product_root(root):
+    root = os.path.abspath(root)
+    if os.path.basename(root) == ".vmodel":
+        return os.path.dirname(root)
+    return root
+
+
+def install_project_files(root):
+    here = os.path.join(os.path.dirname(os.path.abspath(__file__)), "templates")
+    dest_root = product_root(root)
+    written = []
+    pairs = (
+        ("aid-request.yml", os.path.join(dest_root, ".github", "ISSUE_TEMPLATE", "aid-request.yml")),
+        ("aid-gates.yml", os.path.join(dest_root, ".github", "workflows", "aid-gates.yml")),
+    )
+    for name, dest in pairs:
+        src = os.path.join(here, name)
+        os.makedirs(os.path.dirname(dest), exist_ok=True)
+        with open(src, encoding="utf-8") as f:
+            text = f.read()
+        with open(dest, "w", encoding="utf-8") as f:
+            f.write(text)
+        written.append(dest)
+    return written
+
+
+def graphql(query, runner=None, **variables):
+    args = ["api", "graphql", "-f", "query=%s" % query.strip()]
+    for key, value in variables.items():
+        if isinstance(value, (dict, list)):
+            args.extend(["-F", "%s=%s" % (key, json.dumps(value))])
+        else:
+            args.extend(["-f", "%s=%s" % (key, value)])
+    raw = run_gh(args, runner=runner)
+    if isinstance(raw, bytes):
+        raw = raw.decode("utf-8")
+    data = json.loads(raw)
+    if data.get("errors"):
+        raise subprocess.CalledProcessError(1, args, json.dumps(data["errors"]))
+    return data.get("data") or {}
 
 
 def status_options_from_fields(fields):
@@ -576,11 +771,12 @@ def status_options_from_fields(fields):
 
 
 SETUP_MUTATION = """
-mutation($fieldId: ID!, $options: [ProjectV2SingleSelectFieldOptionInput!]!) {
-  updateProjectV2Field(input: {fieldId: $fieldId, singleSelectOptions: $options}) {
+mutation($fieldId: ID!, $name: String!, $options: [ProjectV2SingleSelectFieldOptionInput!]!) {
+  updateProjectV2Field(input: {fieldId: $fieldId, name: $name, singleSelectOptions: $options}) {
     projectV2Field {
       ... on ProjectV2SingleSelectField {
         id
+        name
         options { id name }
       }
     }
@@ -588,22 +784,64 @@ mutation($fieldId: ID!, $options: [ProjectV2SingleSelectFieldOptionInput!]!) {
 }
 """
 
+CREATE_PROJECT = """
+mutation($ownerId: ID!, $repositoryId: ID!, $title: String!) {
+  createProjectV2(input: {ownerId: $ownerId, repositoryId: $repositoryId, title: $title}) {
+    projectV2 { id number url }
+  }
+}
+"""
+
+REPO_IDS = """
+query($owner: String!, $name: String!) {
+  repository(owner: $owner, name: $name) {
+    id
+    owner { id }
+  }
+}
+"""
+
+PROJECT_VIEWS = """
+query($id: ID!) {
+  node(id: $id) {
+    ... on ProjectV2 {
+      fields(first: 30) {
+        nodes {
+          ... on ProjectV2FieldCommon { id name }
+          ... on ProjectV2SingleSelectField { id name options { id name } }
+        }
+      }
+      views(first: 10) {
+        nodes { id name layout groupByFields(first: 5) { nodes { name } } }
+      }
+    }
+  }
+}
+"""
+
+UPDATE_VIEW = """
+mutation($viewId: ID!, $name: String!, $layout: ProjectV2ViewLayout!) {
+  updateProjectV2View(input: {viewId: $viewId, name: $name, layout: $layout}) {
+    projectV2View { id name layout }
+  }
+}
+"""
+
 SETUP_OPTIONS = [
-    {"name": "Backlog", "color": "GRAY", "description": "Intake"},
-    {"name": "Ready", "color": "BLUE", "description": "Published REQ"},
-    {"name": "In progress", "color": "YELLOW", "description": "Coding"},
-    {"name": "In review", "color": "ORANGE", "description": "PR open"},
-    {"name": "Done", "color": "GREEN", "description": "Merged and proven"},
+    {"name": "Backlog", "color": "GRAY", "description": "Raised. Not yet executable."},
+    {"name": "Ready", "color": "BLUE", "description": "An Engineer AI Agent can execute it."},
+    {"name": "In progress", "color": "YELLOW", "description": "An Engineer AI Agent is executing it."},
+    {"name": "In review", "color": "ORANGE", "description": "Black-box review by the Test Engineer."},
+    {"name": "Done", "color": "GREEN", "description": "Review passed."},
 ]
 
 
 def ensure_status_options(field_id, current, runner=None):
-    if all(current.get(c) for c in COLUMNS):
-        return current
     raw = run_gh([
         "api", "graphql",
         "-f", "query=%s" % SETUP_MUTATION.strip(),
         "-f", "fieldId=%s" % field_id,
+        "-f", "name=Workflow Status",
         "-F", "options=%s" % json.dumps(SETUP_OPTIONS),
     ], runner=runner)
     if isinstance(raw, bytes):
@@ -613,30 +851,60 @@ def ensure_status_options(field_id, current, runner=None):
     opts = {}
     for o in field.get("options") or []:
         opts[o.get("name")] = o.get("id")
-    return opts or current
+    return opts or current, field.get("name") or "Workflow Status"
+
+
+def _status_field(fields):
+    rows = fields if isinstance(fields, list) else (fields or [])
+    for f in rows:
+        name = (f.get("name") or "").lower()
+        if name in ("status", "workflow status"):
+            return f
+    for f in rows:
+        if f.get("options"):
+            return f
+    return None
 
 
 def cmd_setup(root, owner=None, title=None, runner=None):
+    written = install_project_files(root)
+    prev = load_board(root)
+    if prev.get("project_id"):
+        return {
+            "board": board_path(root),
+            "project_id": prev.get("project_id"),
+            "project_number": prev.get("project_number"),
+            "already": True,
+            "created": False,
+            "files": written,
+        }
     ids = repo_ids(runner=runner)
     owner = owner or ids["owner"]
     title = title or DEFAULT_TITLE
-    proj = find_or_create_project(owner, title, runner=runner)
-    number = proj.get("number")
+    repo_node = graphql(REPO_IDS, runner=runner, owner=owner, name=ids.get("repo") or "")
+    repository = repo_node.get("repository") or {}
+    created = graphql(
+        CREATE_PROJECT, runner=runner,
+        ownerId=(repository.get("owner") or {}).get("id") or "",
+        repositoryId=repository.get("id") or "",
+        title=title)
+    proj = (created.get("createProjectV2") or {}).get("projectV2") or {}
     project_id = proj.get("id")
-    fields = gh_json(
-        ["project", "field-list", str(number), "--owner", owner, "--format", "json"],
-        runner=runner)
-    field_id, opts = status_options_from_fields(fields)
+    number = proj.get("number")
+    detail = graphql(PROJECT_VIEWS, runner=runner, id=project_id or "") if project_id else {}
+    node = detail.get("node") or {}
+    views = ((node.get("views") or {}).get("nodes")) or []
+    view = views[0] if views else {}
+    if view.get("id"):
+        graphql(UPDATE_VIEW, runner=runner, viewId=view["id"], name="Board", layout="BOARD_LAYOUT")
+    field = _status_field((node.get("fields") or {}).get("nodes") or [])
+    field_id = (field or {}).get("id")
+    opts = {}
+    field_name = "Workflow Status"
     if field_id:
-        opts = ensure_status_options(field_id, opts, runner=runner)
+        opts, field_name = ensure_status_options(field_id, {}, runner=runner)
+    grouped = [n.get("name") for n in ((view.get("groupByFields") or {}).get("nodes") or [])]
     nwo = ids.get("nwo")
-    if number and nwo:
-        try:
-            run_gh(["project", "link", str(number), "--owner", owner, "--repo", nwo],
-                   runner=runner)
-        except (OSError, subprocess.CalledProcessError):
-            pass
-    prev = load_board(root)
     board = {
         "title": title,
         "owner": owner,
@@ -645,6 +913,10 @@ def cmd_setup(root, owner=None, title=None, runner=None):
         "project_number": number,
         "project_id": project_id,
         "status_field_id": field_id,
+        "status_field_name": field_name,
+        "view_id": view.get("id"),
+        "view_layout": "BOARD_LAYOUT",
+        "group_by": grouped,
         "status_options": {c: opts.get(c) for c in COLUMNS},
         "issues": prev.get("issues") or {},
         "sub_issues": prev.get("sub_issues") or {},
@@ -657,7 +929,18 @@ def cmd_setup(root, owner=None, title=None, runner=None):
         "req_progress": prev.get("req_progress") or {},
     }
     path = save_board(root, board)
-    return {"board": path, "project_number": number, "url": proj.get("url")}
+    return {
+        "board": path,
+        "project_number": number,
+        "project_id": project_id,
+        "url": proj.get("url"),
+        "created": True,
+        "field": field_name,
+        "layout": "BOARD_LAYOUT",
+        "group_by": grouped,
+        "grouped_by_workflow_status": grouped == ["Workflow Status"],
+        "files": written,
+    }
 
 
 def cmd_status(root, gh=False, runner=None):
@@ -736,44 +1019,7 @@ def ensure_issue(root, row, board, runner=None, title=None):
     issues = board.setdefault("issues", {})
     if row["id"] in issues:
         return issues[row["id"]], False
-    label = row["label"]
-    try:
-        run_gh(["label", "create", label, "--description", "A.I.D request",
-                "--color", "0E8A16"], runner=runner)
-    except (OSError, subprocess.CalledProcessError):
-        pass
-    for req in row.get("reqs") or []:
-        try:
-            run_gh(["label", "create", req, "--description", "A.I.D requirement row",
-                    "--color", "1D76DB"], runner=runner)
-        except (OSError, subprocess.CalledProcessError):
-            pass
-    short = row.get("title") or (row.get("statement") or row["id"])[:72]
-    issue_title = title or "%s · %s" % (row["id"], short)
-    body = row.get("request") or row.get("statement") or row["id"]
-    args = [
-        "issue", "create", "--title", issue_title,
-        "--body", body, "--label", label, "--json", "number,url,id",
-    ]
-    for req in row.get("reqs") or []:
-        args.extend(["--label", req])
-    created = gh_json(args, runner=runner)
-    num = created.get("number")
-    issues[row["id"]] = num
-    url = created.get("url")
-    if board.get("project_number") and url:
-        try:
-            added = gh_json([
-                "project", "item-add", str(board["project_number"]),
-                "--owner", board.get("owner") or "",
-                "--url", url, "--format", "json",
-            ], runner=runner)
-            if added.get("id"):
-                board.setdefault("items", {})[row["id"]] = added.get("id")
-        except (OSError, subprocess.CalledProcessError, json.JSONDecodeError, TypeError):
-            pass
-    save_board(root, board)
-    return num, True
+    return None, False
 
 
 def ensure_sub_issues(root, req_id, board, ssot, runner=None, gh=False):
@@ -855,7 +1101,7 @@ def set_status(board, item_id, column, runner=None):
     return True
 
 
-def record_comment(root, req_id, current, nxt, payload, issue=None, signer="board-keeper",
+def record_comment(root, req_id, current, nxt, payload, issue=None, signer="issue-manager",
                    runner=None, nwo=None, gh=False, kind=KIND_SYSTEM, stage=None,
                    sub_issue=None, body=None):
     proof = (payload.get("proof") or "").strip() if kind == KIND_SYSTEM else (payload.get("proof") or "")
@@ -970,7 +1216,7 @@ def merge_payload(base, extra):
     return out
 
 
-def cmd_apply(root, gh=False, runner=None, payload=None, signer="board-keeper"):
+def cmd_apply(root, gh=False, runner=None, payload=None, signer="issue-manager"):
     board = load_board(root)
     nodes, edges, _ = load(root)
     gh_map = read_gh_state(root, runner=runner) if gh else {}
@@ -1034,7 +1280,7 @@ def link_reqs(board, usr_id, req_ids):
     return parents
 
 
-def cmd_event(root, kind, nid, gh=False, runner=None, payload=None, signer="board-keeper"):
+def cmd_event(root, kind, nid, gh=False, runner=None, payload=None, signer="issue-manager"):
     if kind not in EVENTS:
         raise SystemExit("error: event must be one of %s" % ", ".join(sorted(EVENTS)))
     nodes, edges, _ = load(root)
@@ -1172,9 +1418,18 @@ def cmd_note(root, issue, text, signer, req_id=None, stage=None, gh=True, runner
         root, usr_id or req_id, None, None, payload, issue=issue, signer=signer,
         runner=runner, nwo=board.get("nwo"), gh=gh, kind=KIND_NOTE,
         stage=stage, sub_issue=issue if stage else None)
+    key = usr_id or req_id
+    rec = ((board.get("sub_issues") or {}).get(key) or {}).get(stage) if stage else None
+    owners = [p.strip() for p in (PROCESS_OWNERS.get(stage) or "").split(",") if p.strip()]
+    moved = False
+    if rec and rec.get("column") == "In progress" and signer in owners:
+        rec["column"] = "In review"
+        board.setdefault("status", {})[key] = _advance_parent(board, key)
+        moved = True
     save_board(root, board)
     return {"issue": issue, "body": body, "log": log_row, "usr": usr_id,
-            "req": req_id, "stage": stage}
+            "req": req_id, "stage": stage, "moved": moved,
+            "column": (board.get("status") or {}).get(key)}
 
 
 def trail_order(rows):
@@ -1254,7 +1509,7 @@ def _signer_key(label):
     for k, v in SIGNERS.items():
         if v == label or k == label:
             return k
-    return "board-keeper"
+    return "issue-manager"
 
 
 def parse_args(argv):
@@ -1264,7 +1519,8 @@ def parse_args(argv):
     i = 1
     while i < len(argv):
         a = argv[i]
-        if a in ("status", "setup", "apply", "comment", "event", "trail", "note"):
+        if a in ("status", "setup", "apply", "comment", "event", "trail", "note",
+                 "check", "attach", "gate"):
             cmd = a
             rest = argv[i + 1:]
             break
@@ -1299,6 +1555,7 @@ def positional(rest):
     flags_with_val = {
         "--owner", "--title", "--signer", "--phase", "--who", "--changed",
         "--proof", "--next", "--json", "--from", "--to", "--req",
+        "--body", "--kind", "--processes", "--issue", "--what", "--allowed",
     }
     skip_vals = set(SIGNERS.keys()) | set(SIGNERS.values())
     for a in rest:
@@ -1343,7 +1600,132 @@ def take_signer(rest):
         return raw
     if rest and rest[-1] == "AID":
         return "AID"
-    return "board-keeper"
+    return "issue-manager"
+
+
+def open_named_processes(board, usr_id, process_ids):
+    named = processes_for(named=process_ids)
+    subs = board.setdefault("sub_issues", {}).setdefault(usr_id, {})
+    opened = []
+    for i, pid in enumerate(named, 1):
+        title = "%s · %s %s" % (usr_id, pid, PROCESS_TITLES[pid])
+        rec = subs.get(pid) or {}
+        rec.update({
+            "state": rec.get("state") or "open",
+            "reason": rec.get("reason"),
+            "title": title,
+            "index": i,
+            "owner": PROCESS_OWNERS[pid],
+            "process": pid,
+            "column": rec.get("column") or "Backlog",
+        })
+        subs[pid] = rec
+        opened.append(pid)
+    for key in list(subs):
+        if key in PROCESS_TITLES and key not in opened:
+            del subs[key]
+    return subs
+
+
+def parent_title(usr_id, kind, what):
+    first = (what or "").strip().splitlines()[0].strip() if what else ""
+    if kind == "SUP.9":
+        return "SUP.9 · %s" % first
+    return "%s · %s" % (usr_id, first)
+
+
+def cmd_check(body, allowed=None):
+    return check_parent(body, allowed=allowed)
+
+
+def cmd_attach(root, issue, usr_id, kind, processes, what=None, runner=None):
+    parent = PARENT_PROCESS.get(kind)
+    if parent not in ("SYS.1", "SUP.9"):
+        return {"ok": False, "errors": ["Kind must be Requirement or Fix"]}
+    named = processes_for(named=processes)
+    if parent == "SUP.9" and "SYS.2" in named and "SYS.2" not in (processes or []):
+        named = [p for p in named if p != "SYS.2"]
+    if not named:
+        return {"ok": False, "errors": ["no processes"]}
+    board = load_board(root)
+    board.setdefault("issues", {})[str(usr_id)] = issue
+    title = parent_title(usr_id, parent, what)
+    board.setdefault("parents", {})[usr_id] = {
+        "kind": parent, "title": title, "issue": issue, "processes": named,
+    }
+    open_named_processes(board, usr_id, named)
+    board.setdefault("status", {}).setdefault(usr_id, "Backlog")
+    if runner and board.get("nwo") and issue:
+        try:
+            run_gh(["issue", "edit", str(issue), "--repo", board["nwo"], "--title", title],
+                   runner=runner)
+        except (OSError, subprocess.CalledProcessError):
+            pass
+    save_board(root, board)
+    return {"ok": True, "kind": parent, "title": title, "processes": named, "issue": issue}
+
+
+def _subs_done(board, usr_id):
+    subs = (board.get("sub_issues") or {}).get(usr_id) or {}
+    opened = [rec for key, rec in subs.items() if key in PROCESS_TITLES]
+    return bool(opened) and all(rec.get("column") == "Done" for rec in opened)
+
+
+def _advance_parent(board, usr_id):
+    subs = (board.get("sub_issues") or {}).get(usr_id) or {}
+    opened = [(pid, subs[pid]) for pid in PROCESS_ORDER if pid in subs]
+    if not opened:
+        return board.get("status", {}).get(usr_id) or "Backlog"
+    columns = [rec.get("column") or "Backlog" for _pid, rec in opened]
+    if all(c == "Done" for c in columns):
+        return "Done"
+    if any(c == "In progress" for c in columns):
+        return "In progress"
+    if any(c == "In review" for c in columns):
+        return "In review"
+    if any(c == "Ready" for c in columns):
+        return "Ready"
+    return "Backlog"
+
+
+def cmd_gate(root, body, signer="AID", issue=None, runner=None):
+    board = load_board(root)
+    req, stage = lookup_issue(board, issue) if issue else (None, None)
+    if stage and req:
+        column = ((board.get("sub_issues") or {}).get(req) or {}).get(stage, {}).get("column") or "Backlog"
+    elif req:
+        column = (board.get("status") or {}).get(req) or "Backlog"
+    else:
+        column = "Backlog"
+    effect = gate_effect(body, signer, column)
+    if effect.get("merge") and stage:
+        return {"moved": False, "reason": "pr gate is on the pull request", "merge": False, "req": req, "stage": stage}
+    if effect.get("merge") and req and not _subs_done(board, req):
+        effect = {"moved": False, "reason": "subs open", "token": effect.get("token"), "merge": False}
+    if effect.get("moved") and req:
+        dest = effect.get("to")
+        if stage:
+            board["sub_issues"][req][stage]["column"] = dest
+        elif effect.get("open"):
+            subs = (board.get("sub_issues") or {}).get(req) or {}
+            for pid in PROCESS_ORDER:
+                rec = subs.get(pid)
+                if rec and (rec.get("column") or "Backlog") == "Backlog":
+                    rec["column"] = "Ready"
+                    break
+        if req:
+            board.setdefault("status", {})[req] = _advance_parent(board, req) if stage or effect.get("open") else dest
+        save_board(root, board)
+        effect["column"] = (board.get("status") or {}).get(req)
+    if effect.get("raise_backlog"):
+        effect["linked_issue"] = issue
+        board.setdefault("raised", []).append({
+            "from": issue, "column": "Backlog", "comment": body,
+        })
+        save_board(root, board)
+    effect["req"] = req
+    effect["stage"] = stage
+    return effect
 
 
 def main():
@@ -1357,6 +1739,27 @@ def main():
     if cmd == "setup":
         print(json.dumps(cmd_setup(root, owner=opt(rest, "--owner"),
                                    title=opt(rest, "--title")), indent=2))
+        return 0
+    if cmd == "check":
+        body = opt(rest, "--body") or ""
+        allowed = opt(rest, "--allowed") or opt(rest, "--processes")
+        allowed_list = [p.strip() for p in allowed.split(",")] if allowed else None
+        print(json.dumps(cmd_check(body, allowed_list), indent=2))
+        return 0
+    if cmd == "attach":
+        pos = positional(rest)
+        if len(pos) < 2:
+            print("error: attach needs ISSUE and USR", file=sys.stderr)
+            return 2
+        processes = [p.strip() for p in (opt(rest, "--processes") or "").split(",") if p.strip()]
+        print(json.dumps(cmd_attach(
+            root, pos[0], pos[1], opt(rest, "--kind") or "", processes,
+            what=opt(rest, "--what")), indent=2))
+        return 0
+    if cmd == "gate":
+        print(json.dumps(cmd_gate(
+            root, opt(rest, "--body") or "", signer=signer,
+            issue=opt(rest, "--issue")), indent=2))
         return 0
     if cmd == "status":
         print(json.dumps(cmd_status(root, gh=gh), indent=2))
